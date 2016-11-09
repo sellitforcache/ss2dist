@@ -5,7 +5,7 @@ struct track
 
 struct surface
 {
-	double A,B,C,D,E,F,G,H,I,K;
+	double A, B, C, D, E, F, G, H, I, K;
 };
 
 struct surface_card_data
@@ -18,6 +18,22 @@ struct surface_card_data
 
 class SurfaceSource
 {	
+
+	//
+	//
+	// DATA
+	//
+	//
+
+	//
+	//
+	// METHODS
+	//
+	//
+
+	ReadRecord();
+
+
 public:
 
 	//
@@ -27,25 +43,31 @@ public:
 	//
 
 	// parameters
-	string		id, kods, vers, lods, idtms, probs, aids;
-	int 		knods, np1, nrss, nrcd, njsw, niss, niwr, mipts, kjaq;	
+	string				id, kods, vers, lods, idtms, probs, aids;
+	int 				knods, np1, nrss, nrcd, njsw, niss, niwr, mipts, kjaq;	
 
 	// arrays
-	int*		surface_numbers;
-	surface*	surface_parameters;
+	int*				surface_numbers;
+	surface*			surface_parameters;
 
 	// surface description lookup table
 	surface_card_data 	surface_card[41];
+
+	// file object
+	ifstream 			input_file;
 
 	//
 	//
 	// METHODS
 	//
 	//
+
 	~SurfaceSource();
 	SurfaceSource();
-	SurfaceSource(const string& fileName );
-	SurfaceSource(char*         fileName );
-
+	SurfaceSource( const string& );
+	SurfaceSource( const char*   );
+	void Init();
+	void OpenWssaFile( const char* );
+	void ReadHeader();
 
 }

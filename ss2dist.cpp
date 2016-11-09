@@ -9,53 +9,7 @@ using namespace std;
 /*
 Adapated from https://wiki.calculquebec.ca/w/C%2B%2B_:_fichier_Fortran_binaire/en
 */
- 
- const int RECORD_DELIMITER_LENGTH = 4;
- 
-bool ReadPoints(const string& fileName, vector& points)
-{
-	int nbPoints;
-	
-	// clear the points
-	points.clear();
-	
-	// open file in binary mode
-	ifstream input(fileName.c_str(), ios::binary);
-	
-	if (input.good())
-	{
-	   // read number of points
-		input.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
-		input.read((char*) &nbPoints, sizeof(nbPoints));
-		input.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
-	
-		// set vector size
-		points.resize(nbPoints);
-	
-		// read each point
-		for (int i = 0; i < nbPoints; ++i)
-		{
-			input.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
-	
-			input.read((char*) &points[i].x, sizeof(points[i].x));
-			input.read((char*) &points[i].y, sizeof(points[i].y));
-			input.read((char*) &points[i].z, sizeof(points[i].z));
-	
-			input.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
-		}
-	
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-
-
-SurfaceSource::SurfaceSource(){
-
+SurfaceSource::Init(){
 	// init surface lookup table
 	surface_card[ 0].symbol = 'XXX';
 	surface_card[ 1].symbol = 'p  ';
@@ -182,59 +136,81 @@ SurfaceSource::SurfaceSource(){
 	surface_card[38].description = 'Arbitrary polydron                      ';
 	surface_card[39].description = 'Right Hexagonal Prism                   ';
 	surface_card[40].description = 'Right Hexagonal Prism - Same as RHP     ';
+}
 
-	//
-	//  START
-	//
-	//  READING
-	//
-	//  DATA
-	//
+SurfaceSource::SurfaceSource(const string& fileName){
+	Init();
+	OpenWssaFile(fileName.c_str());
+}
+SurfaceSource::SurfaceSource(char*         fileName){
+	Init();
+	OpenWssaFile(fileName);
+}
 
-	// open file in binary mode
-	ifstream input( fileName.c_str(), ios::binary );
-	
-	if (input.good()){
+SurfaceSource::OpenWssaFile(const char* fileName){
+
+	if(input_file.is_open()){
 
 	}
 	else{
+		input_file.open(fileName, ios::binary)
+	}
+}
 
+const int RECORD_DELIMITER_LENGTH = 4;
+bool ReadRecord(void** destination, size_t* size, size_t NumberOfEntries)
+{
+
+	if (input_file.good())
+	{
+		input_file.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+		for(int i=0;i<NumberOfEntries;i++){
+			input_file.read((char*) destination[i], size[i]);
+		}
+		input_file.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 
-	read_header();
+}
 
-	void read_header(){
-		// HEADER FORMATTING
-		//
-		// record 1: id;
-		// record 2: kods,vers,lods,idtms,probs,aids,knods;
-		// record 3: np1,nrss,nrcd,njsw,niss;
-		// record 4: niwr,mipts,kjaq;
-		//
-		// id		= The ID string, should be SF_00001 for MCNP6-made surface source, char8
-		// kods		= code name, char8
-		// vers		= code version, char5
-		// lods		= LODDAT of code that wrote surface source file, char8
-		// idtms	= IDTM of the surface source write run, char19
-		// probs	= probid, problem id, char19
-		// aids		= title string of the creation run, char80
-		// knods	= ending dump number, int
-		// np1		= total number of histories in SS write run, int
-		// nrss		= the total number of tracks recorded, int
-		// nrcd		= Number of values in a surface-source record, int
-		// njsw		= Number of surfaces in JASW, int
-		// niss		= Number of histories in input surface source, int
-		// niwr		= Number of cells in RSSA file, int
-		// mipts	= Source particle type, int
-		// kjaq		= Flag for macrobody facets on source tape, int
-		//
-		//
-		// the next njsw+niwr records describe the surfaces/cells in the SS
-		//
-		//
-		// the last record is the SS summary vector
 
-	}
+
+SurfaceSource::ReadHeader(){
+	// HEADER FORMATTING
+	//
+	// record 1: id;
+	// record 2: kods,vers,lods,idtms,probs,aids,knods;
+	// record 3: np1,nrss,nrcd,njsw,niss;
+	// record 4: niwr,mipts,kjaq;
+	//
+	// id		= The ID string, should be SF_00001 for MCNP6-made surface source, char8
+	// kods		= code name, char8
+	// vers		= code version, char5
+	// lods		= LODDAT of code that wrote surface source file, char8
+	// idtms	= IDTM of the surface source write run, char19
+	// probs	= probid, problem id, char19
+	// aids		= title string of the creation run, char80
+	// knods	= ending dump number, int
+	// np1		= total number of histories in SS write run, int
+	// nrss		= the total number of tracks recorded, int
+	// nrcd		= Number of values in a surface-source record, int
+	// njsw		= Number of surfaces in JASW, int
+	// niss		= Number of histories in input surface source, int
+	// niwr		= Number of cells in RSSA file, int
+	// mipts	= Source particle type, int
+	// kjaq		= Flag for macrobody facets on source tape, int
+	//
+	//
+	// the next njsw+niwr records describe the surfaces/cells in the SS
+	//
+	//
+	// the last record is the SS summary vector
+
+}
 
 
 
