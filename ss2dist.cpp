@@ -210,6 +210,60 @@ SurfaceSource::ReadHeader(){
 	//
 	// the last record is the SS summary vector
 
+	// first record
+	ReadRecord((void**) &id, sizeof(id), 1);
+
+	// second record, first make array of pointers, then sizes
+	size_t size = 7;
+	pointers = 	new void**	[size];
+	sizes = 	new size_t	[size];
+	pointers[0]	= (void**) &kods;
+	pointers[1]	= (void**) &vers;
+	pointers[2]	= (void**) &lods;
+	pointers[3]	= (void**) &idtms;
+	pointers[4]	= (void**) &probs;
+	pointers[5]	= (void**) &aids;
+	pointers[6]	= (void**) &knods;
+	sizes[0]	= sizeof(kods);
+	sizes[1]	= sizeof(vers);
+	sizes[2]	= sizeof(lods);
+	sizes[3]	= sizeof(idtms);
+	sizes[4]	= sizeof(probs);
+	sizes[5]	= sizeof(aids);
+	sizes[6]	= sizeof(knods);
+	ReadRecord(pointers, sizes, size);
+	delete pointers;
+	delete sizes;
+
+	// third record, first make array of pointers, then sizes
+	size = 5;
+	pointers[0]	= (void**) &np1;
+	pointers[1]	= (void**) &nrss;
+	pointers[2]	= (void**) &nrcd;
+	pointers[3]	= (void**) &njsw;
+	pointers[4]	= (void**) &niss;
+	sizes[0]	= sizeof(np1);
+	sizes[1]	= sizeof(nrss);
+	sizes[2]	= sizeof(nrcd);
+	sizes[3]	= sizeof(njsw);
+	sizes[4]	= sizeof(niss);
+	ReadRecord(pointers, sizes, size);
+
+	// third record, first make array of pointers, then sizes
+	size = 3;
+	pointers[0]	= (void**) &niwr;
+	pointers[1]	= (void**) &mipts;
+	pointers[2]	= (void**) &kjaq;
+	sizes[0]	= sizeof(niwr);
+	sizes[1]	= sizeof(mipts);
+	sizes[2]	= sizeof(kjaq);
+	ReadRecord(pointers, sizes, size);
+
+	// go on, copying surface/cell information from the next records until particle data starts
+	for (){
+
+	}
+
 }
 
 

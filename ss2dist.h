@@ -31,7 +31,7 @@ class SurfaceSource
 	//
 	//
 
-	ReadRecord();
+	ReadRecord(void** , size_t*, size_t);
 
 
 public:
@@ -69,5 +69,6 @@ public:
 	void Init();
 	void OpenWssaFile( const char* );
 	void ReadHeader();
+	void PrintHeader();
 
 }
