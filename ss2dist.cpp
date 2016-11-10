@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cmath>
 #include "ss2dist.h"
  
 /*
@@ -454,12 +455,6 @@ void SurfaceSource::ReadHeader(){
 	// last record is the summary tables
 	ReadSummaryRecord(surface_summaries);
 
-//    read(iusr,end=320)  a, ((nslr(i,j),i=1,2+4*mipts),j=1,njsw+niwr)
-//if( ink(10)/=0 )  write(iuo,140) (i,nslr(1,i),nslr(2,i),i=1,njsw+niwr)
-//140 format(/," summary for all particles per surface or cell.",/, &
-//      & 5x, "no.",16x,  "total tracks",11x,  "independent histories",/, &
-//      & (i7,2i24) )
-
 }
 
 void SurfaceSource::PrintSizes(){
@@ -530,10 +525,47 @@ void SurfaceSource::PrintHeader(){
 		printf("\n");
 	}
 
-
 };
 
+void SurfaceSource::GetTrack(track* this_track){
 
+	size_t size = 11;
+	void** pointers = 	new void*	[size];
+	size_t* sizes 	= 	new size_t	[size];
+	pointers[ 0]	= (void*) &this_track[0].nps;
+	pointers[ 1]	= (void*) &this_track[0].bitarray;
+	pointers[ 2]	= (void*) &this_track[0].wgt;
+	pointers[ 3]	= (void*) &this_track[0].erg;
+	pointers[ 4]	= (void*) &this_track[0].tme;
+	pointers[ 5]	= (void*) &this_track[0].x;
+	pointers[ 6]	= (void*) &this_track[0].y;
+	pointers[ 7]	= (void*) &this_track[0].z;
+	pointers[ 8]	= (void*) &this_track[0].xhat;
+	pointers[ 9]	= (void*) &this_track[0].yhat;
+	pointers[10]	= (void*) &this_track[0].cs;
+	sizes[ 0]		= sizeof(this_track[0].nps			);
+	sizes[ 1]		= sizeof(this_track[0].bitarray		);
+	sizes[ 2]		= sizeof(this_track[0].wgt			);
+	sizes[ 3]		= sizeof(this_track[0].erg			);
+	sizes[ 4]		= sizeof(this_track[0].tme			);
+	sizes[ 5]		= sizeof(this_track[0].x			);
+	sizes[ 6]		= sizeof(this_track[0].y			);
+	sizes[ 7]		= sizeof(this_track[0].z			);
+	sizes[ 8]		= sizeof(this_track[0].xhat			);
+	sizes[ 9]		= sizeof(this_track[0].yhat			);
+	sizes[10]		= sizeof(this_track[0].cs			);
+	if(!ReadRecord(pointers, sizes, size)){printf("ERROR READING TRACKS RECORD\n");std::exit(1);}
+
+	// calculate missing zhat from the data
+	if ((this_track[0].xhat*this_track[0].xhat+this_track[0].yhat*this_track[0].yhat)<1.0){
+		this_track[0].zhat   = copysign(std::sqrt(1.0 - this_track[0].xhat*this_track[0].xhat -
+		                                         this_track[0].yhat*this_track[0].yhat), this_track[0].bitarray);
+	}
+	else{
+	    this_track[0].zhat = 0.0;
+	}
+
+}
 
 
 
@@ -547,9 +579,28 @@ MAIN FUNCTION
 
 int main(int argc, char* argv[]){
 
+
+	track this_track;
 	SurfaceSource ss(argv[1]);
+	
 	ss.PrintSizes();
 	ss.ReadHeader();
 	ss.PrintHeader();
 
+	for(int i=0;i<10;i++){
+		ss.GetTrack(&this_track);
+		printf("\nTRACK %d\n",i);
+		printf("x       = % 6.4E\n",this_track.x);
+		printf("y       = % 6.4E\n",this_track.y);
+		printf("z       = % 6.4E\n",this_track.z);
+		printf("xhat    = % 6.4E\n",this_track.xhat);
+		printf("yhat    = % 6.4E\n",this_track.yhat);
+		printf("zhat    = % 6.4E\n",this_track.zhat);
+		printf("erg     = % 6.4E\n",this_track.erg);
+		printf("tme     = % 6.4E\n",this_track.tme);
+		printf("wgt     = % 6.4E\n",this_track.wgt);
+		printf("cs      = % 6.4E\n",this_track.cs);
+		printf("nps     = % f\n"  ,this_track.nps);
+		printf("bit     = % f\n"  ,this_track.bitarray);
+	}
 }

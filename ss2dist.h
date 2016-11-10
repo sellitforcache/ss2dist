@@ -1,6 +1,6 @@
 struct track
 {
-	double x, y, z, xhat, yhat, zhat, erg, surface;
+	double x, y, z, xhat, yhat, zhat, erg, cs, tme, wgt, nps, bitarray;
 };
 
 struct surface
@@ -83,6 +83,7 @@ public:
 	void ReadHeader();
 	void PrintHeader();
 	void PrintSizes();
+	void GetTrack(track*);
 
 
 };
