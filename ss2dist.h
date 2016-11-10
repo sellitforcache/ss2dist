@@ -5,14 +5,14 @@ struct track
 
 struct surface
 {
-	double A, B, C, D, E, F, G, H, I, K;
+	double A, B, C, D, E, F, G, H, I, J, K;
 };
 
 struct surface_card_data
 {
-	char	symbol[3];
+	char	symbol[4];
 	int 	n_coefficients;
-	char 	description[40]; 
+	char 	description[41]; 
 };
 
 
@@ -45,13 +45,14 @@ public:
 	//
 
 	// parameters
-	char*				id, kods, vers, lods, idtms, probs, aids;
-	int 				knods, np1, nrss, nrcd, njsw, niss, niwr, mipts, kjaq;	
+	char				id[9], kods[9], vers[6], lods[6], idtms[20], probs[20], aids[81];
+	int					knods, np1, nrss, nrcd, njsw, niss, niwr, mipts, kjaq;	
 
 	// arrays
 	int*				surface_numbers;
+	int*				surface_facets;
 	surface*			surface_parameters;
-	int 				surface_count;
+	int					surface_count;
 
 	// surface description lookup table
 	surface_card_data 	surface_card[41];
