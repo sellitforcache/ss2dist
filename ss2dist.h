@@ -31,7 +31,9 @@ class SurfaceSource
 	//
 	//
 
-	ReadRecord(void** , size_t*, size_t);
+	bool ReadRecord(void** , size_t*, size_t);
+	bool ReadSurfaceRecord0(int* ,       surface*);
+	bool ReadSurfaceRecord1(int* , int*, surface*);
 
 
 public:
@@ -43,18 +45,19 @@ public:
 	//
 
 	// parameters
-	string				id, kods, vers, lods, idtms, probs, aids;
+	char*				id, kods, vers, lods, idtms, probs, aids;
 	int 				knods, np1, nrss, nrcd, njsw, niss, niwr, mipts, kjaq;	
 
 	// arrays
 	int*				surface_numbers;
 	surface*			surface_parameters;
+	int 				surface_count;
 
 	// surface description lookup table
 	surface_card_data 	surface_card[41];
 
 	// file object
-	ifstream 			input_file;
+	std::ifstream 		input_file;
 
 	//
 	//
@@ -64,11 +67,11 @@ public:
 
 	~SurfaceSource();
 	SurfaceSource();
-	SurfaceSource( const string& );
+	SurfaceSource( const std::string& );
 	SurfaceSource( const char*   );
 	void Init();
 	void OpenWssaFile( const char* );
 	void ReadHeader();
 	void PrintHeader();
 
-}
+};
