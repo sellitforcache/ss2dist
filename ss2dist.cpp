@@ -2,6 +2,9 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include "ss2dist.h"
  
@@ -168,6 +171,16 @@ SurfaceSource::SurfaceSource(const char*        fileName){
 
 void SurfaceSource::OpenWssaFile(const char* fileName){
 
+	// set object name
+	input_file_name.assign(fileName);
+
+	// print the name
+	std::string title_file = "======> " + input_file_name + " <======";
+	std::cout << "\n" << std::string(title_file.length(), '=') << std::endl;
+	std::cout << title_file <<std::endl;
+	std::cout << std::string(title_file.length(), '=') << "\n" << std::endl;
+
+	// open file
 	if(input_file.is_open()){
 		printf("!!! File '%s' is already open.",fileName);
 	}
@@ -176,19 +189,50 @@ void SurfaceSource::OpenWssaFile(const char* fileName){
 	}
 }
 
-// FORTRAN record delimiter length... usually 4 bytes.  Can be 8.
+// FORTRAN record delimiter length... usually 4 bytes.  Can be 8!  Should set as a preprocessor option
 const int RECORD_DELIMITER_LENGTH = 4;
 bool SurfaceSource::ReadRecord(void** destination, size_t* size, size_t NumberOfEntries)
 {
+	int record_length0	= 0;
+	int record_length1	= 0;
+	int null			= 0;
+	int length_read		= 0;
+	int dist_to_end		= 0;
 
 	if (input_file.good())
 	{
-		input_file.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+		// read starting delimiter
+		input_file.read((char*) &record_length0, RECORD_DELIMITER_LENGTH);
+		//printf("RECORD LENGTH %d\n",record_length0);
+
+		// read what's asked for
 		for(int i=0;i<NumberOfEntries;i++){
-			input_file.read((char*) destination[i], size[i]);
+			length_read = length_read + size[i];
+			if(length_read>record_length0){
+				printf("DATA REQUESTED (%d) OVERRAN RECORD LENGTH (%d)!\n",length_read,record_length0);
+				return false;
+			}
+			else{
+				input_file.read((char*) destination[i], size[i]);
+			}
 		}
-		input_file.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
-		return true;
+
+		// go to the end of the record
+		dist_to_end = record_length0-length_read;
+		if( dist_to_end > 0 ){
+			//printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
+			input_file.seekg(dist_to_end, std::ios::cur);
+		}
+
+		// read ending delimiter, assert
+		input_file.read((char*) &record_length1, RECORD_DELIMITER_LENGTH);
+		if(record_length0!=record_length1){
+			printf("BEGINNING (%d) AND ENDING (%d) RECORD LENGTH DELIMITERS DO NOT MATCH\n",record_length0,record_length1);
+			return false;
+		}
+		else{
+			return true;
+		}
 	}
 	else
 	{
@@ -196,19 +240,19 @@ bool SurfaceSource::ReadRecord(void** destination, size_t* size, size_t NumberOf
 	}
 
 }
-bool SurfaceSource::ReadSurfaceRecord0(int* numbers, surface* paramters)
+bool SurfaceSource::ReadSurfaceRecord0(int* numbers, int* types, int* lengths, surface* parameters)
 {
 	// internal variables
-	int ks, n;
+	int record_length = 0;
 
 	// read record
 	if (input_file.good())
 	{
-		input_file.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+		input_file.read((char*) &record_length, sizeof(record_length));
 		input_file.read((char*) numbers,	sizeof(int));
-		input_file.read((char*) &ks,		sizeof(int));
-		input_file.read((char*) &n,			sizeof(int));
-		input_file.read((char*) paramters,n*sizeof(double));
+		input_file.read((char*) types,		sizeof(int));
+		input_file.read((char*) lengths,	sizeof(int));
+		input_file.read((char*) parameters,lengths[0]*sizeof(parameters[0].value[0]));
 		input_file.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
 		return true;
 	}
@@ -218,20 +262,20 @@ bool SurfaceSource::ReadSurfaceRecord0(int* numbers, surface* paramters)
 	}
 
 }
-bool SurfaceSource::ReadSurfaceRecord1(int* numbers, int* facets, surface* paramters)
+bool SurfaceSource::ReadSurfaceRecord1(int* numbers, int* types, int* lengths, surface* parameters, int* facets)
 {
 
 	// internal variables
-	int ks, n;
+	int record_length = 0;
 
 	if (input_file.good())
 	{
-		input_file.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+		input_file.read((char*) &record_length, sizeof(record_length));
 		input_file.read((char*) numbers,	sizeof(int));
 		input_file.read((char*) facets,		sizeof(int));
-		input_file.read((char*) &ks,		sizeof(int));
-		input_file.read((char*) &n,			sizeof(int));
-		input_file.read((char*) paramters,n*sizeof(double));
+		input_file.read((char*) types,		sizeof(int));
+		input_file.read((char*) lengths,	sizeof(int));
+		input_file.read((char*) parameters,lengths[0]*sizeof(parameters[0].value[0]));
 		input_file.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
 		return true;
 	}
@@ -241,7 +285,57 @@ bool SurfaceSource::ReadSurfaceRecord1(int* numbers, int* facets, surface* param
 	}
 
 }
+bool SurfaceSource::ReadSummaryRecord(int** summaries)
+{
+	int record_length0	= 0;
+	int record_length1	= 0;
+	int null			= 0;
+	int length_read		= 0;
+	int dist_to_end		= 0;
 
+	if (input_file.good())
+	{
+		// read starting delimiter
+		input_file.read((char*) &record_length0, RECORD_DELIMITER_LENGTH);
+		//printf("RECORD LENGTH %d\n",record_length0);
+
+		// read what's asked for
+		for(int i=0;i<surface_count;i++){
+			for(int j=0;j<surface_summary_length;j++){
+				length_read = length_read + sizeof(int);
+				if(length_read>record_length0){
+					printf("DATA REQUESTED (%d) OVERRAN RECORD LENGTH (%d)!\n",length_read,record_length0);
+					return false;
+				}
+				else{
+					input_file.read((char*) &summaries[i][j], sizeof(int));
+				}
+			}
+		}
+
+		// go to the end of the record
+		dist_to_end = record_length0-length_read;
+		if( dist_to_end > 0 ){
+			//printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
+			input_file.seekg(dist_to_end, std::ios::cur);
+		}
+
+		// read ending delimiter, assert
+		input_file.read((char*) &record_length1, RECORD_DELIMITER_LENGTH);
+		if(record_length0!=record_length1){
+			printf("BEGINNING (%d) AND ENDING (%d) RECORD LENGTH DELIMITERS DO NOT MATCH\n",record_length0,record_length1);
+			return false;
+		}
+		else{
+			return true;
+		}
+	}
+	else
+	{
+		return false;
+	}
+
+}
 
 
 void SurfaceSource::ReadHeader(){
@@ -280,141 +374,161 @@ void SurfaceSource::ReadHeader(){
 	size_t* sizes 	= 	new size_t	[15];
 	size_t size = 1;
 	pointers[0]	= (void**) &id;
-	sizes[0]	= sizeof(id);
-	ReadRecord(pointers, sizes, size);
+	sizes[0]	= sizeof(id)-1;
+	if(!ReadRecord(pointers, sizes, size)){printf("ERROR READING FIRST RECORD\n");std::exit(1);}
 
 	// second record, first make array of pointers, then sizes
 	size = 7;
-	pointers[0]	= (void**) &kods;
-	pointers[1]	= (void**) &vers;
-	pointers[2]	= (void**) &lods;
-	pointers[3]	= (void**) &idtms;
-	pointers[4]	= (void**) &probs;
-	pointers[5]	= (void**) &aids;
-	pointers[6]	= (void**) &knods;
-	sizes[0]	= sizeof(kods);
-	sizes[1]	= sizeof(vers);
-	sizes[2]	= sizeof(lods);
-	sizes[3]	= sizeof(idtms);
-	sizes[4]	= sizeof(probs);
-	sizes[5]	= sizeof(aids);
+	pointers[0]	= (void*) &kods;
+	pointers[1]	= (void*) &vers;
+	pointers[2]	= (void*) &lods;
+	pointers[3]	= (void*) &idtms;
+	pointers[4]	= (void*) &probs;
+	pointers[5]	= (void*) &aids;
+	pointers[6]	= (void*) &knods;
+	sizes[0]	= sizeof(kods)-1;
+	sizes[1]	= sizeof(vers)-1;
+	sizes[2]	= sizeof(lods)-1;
+	sizes[3]	= sizeof(idtms)-1;
+	sizes[4]	= sizeof(probs)-1;
+	sizes[5]	= sizeof(aids)-1;
 	sizes[6]	= sizeof(knods);
-	ReadRecord(pointers, sizes, size);
+	if(!ReadRecord(pointers, sizes, size)){printf("ERROR READING SECOND RECORD\n");std::exit(1);}
 
 	// third record, first make array of pointers, then sizes
 	size = 5;
-	pointers[0]	= (void**) &np1;
-	pointers[1]	= (void**) &nrss;
-	pointers[2]	= (void**) &nrcd;
-	pointers[3]	= (void**) &njsw;
-	pointers[4]	= (void**) &niss;
+	pointers[0]	= (void*) &np1;
+	pointers[1]	= (void*) &nrss;
+	pointers[2]	= (void*) &nrcd;
+	pointers[3]	= (void*) &njsw;
+	pointers[4]	= (void*) &niss;
 	sizes[0]	= sizeof(np1);
 	sizes[1]	= sizeof(nrss);
 	sizes[2]	= sizeof(nrcd);
 	sizes[3]	= sizeof(njsw);
 	sizes[4]	= sizeof(niss);
-	ReadRecord(pointers, sizes, size);
+	if(!ReadRecord(pointers, sizes, size)){printf("ERROR READING THIRD RECORD\n");std::exit(1);}
 
-	// third record, first make array of pointers, then sizes
+	// fourth record, first make array of pointers, then sizes
 	size = 3;
-	pointers[0]	= (void**) &niwr;
-	pointers[1]	= (void**) &mipts;
-	pointers[2]	= (void**) &kjaq;
+	pointers[0]	= (void*) &niwr;
+	pointers[1]	= (void*) &mipts;
+	pointers[2]	= (void*) &kjaq;
 	sizes[0]	= sizeof(niwr);
 	sizes[1]	= sizeof(mipts);
 	sizes[2]	= sizeof(kjaq);
-	ReadRecord(pointers, sizes, size);
+	if(!ReadRecord(pointers, sizes, size)){printf("ERROR READING FOURTH RECORD\n");std::exit(1);}
 
 	// init arays for surface information
-	surface_count		= njsw+niwr;
-	surface_parameters	= new surface 	[surface_count];
-	surface_numbers		= new int 		[surface_count];
-	surface_facets		= new int 		[surface_count];
+	surface_summary_length		= 2+4*mipts;
+	surface_count				= njsw+niwr;
+	surface_parameters			= new surface 	[surface_count];
+	surface_parameters_lengths	= new int 		[surface_count];
+	surface_numbers				= new int 		[surface_count];
+	surface_types				= new int 		[surface_count];
+	surface_facets				= new int 		[surface_count];
+	surface_summaries			= new int* 		[surface_count];
 	for(int i = 0 ; i < surface_count ; i++){
-		surface_parameters	[i].A	= 0;
-		surface_parameters	[i].B	= 0;
-		surface_parameters	[i].C	= 0;
-		surface_parameters	[i].D	= 0;
-		surface_parameters	[i].E	= 0;
-		surface_parameters	[i].F	= 0;
-		surface_parameters	[i].G	= 0;
-		surface_parameters	[i].H	= 0;
-		surface_parameters	[i].I	= 0;
-		surface_parameters	[i].J	= 0;
-		surface_parameters	[i].K	= 0;
-		surface_numbers		[i] 	= -1;
-		surface_facets		[i] 	= -1;
+		for(int j = 0 ; j < 10 ; j++){
+			surface_parameters	[i].value[j]	= 0;
+		}
+		surface_summaries[i] = new int [surface_summary_length];
+		for(int k=0;k<surface_summary_length;k++){
+			surface_summaries[i][k]=0;
+		}
+		surface_numbers			[i] 			= -1;
+		surface_facets			[i] 			= -1;
 	}
+
 
 	// go on, copying surface/cell information from the next records until particle data starts
 	for(int i = 0 ; i < surface_count ; i++){
 		if( kjaq==0 | i>njsw-1 ) {
-			ReadSurfaceRecord0(&surface_numbers[i],&surface_parameters[i]);
+			ReadSurfaceRecord0(&surface_numbers[i],&surface_types[i],&surface_parameters_lengths[i],&surface_parameters[i]);
 		}
 		if( kjaq==1 & i<=njsw-1 ) {
-			ReadSurfaceRecord1(&surface_numbers[i],&surface_facets[i],&surface_parameters[i]);
+			ReadSurfaceRecord1(&surface_numbers[i],&surface_types[i],&surface_parameters_lengths[i],&surface_parameters[i],&surface_facets[i]);
 		}
 	}
 
-	// last record is the summary table
+	// last record is the summary tables
+	ReadSummaryRecord(surface_summaries);
+
+//    read(iusr,end=320)  a, ((nslr(i,j),i=1,2+4*mipts),j=1,njsw+niwr)
+//if( ink(10)/=0 )  write(iuo,140) (i,nslr(1,i),nslr(2,i),i=1,njsw+niwr)
+//140 format(/," summary for all particles per surface or cell.",/, &
+//      & 5x, "no.",16x,  "total tracks",11x,  "independent histories",/, &
+//      & (i7,2i24) )
+
+}
+
+void SurfaceSource::PrintSizes(){
+
+	printf("== DATA SIZE INFORMATION == \n");
+	printf("normal integers  :  %1ld bytes\n",	sizeof(knods));
+	printf("floating points  :  %1ld bytes\n",	sizeof(surface_parameters[0].value[0]));
+	printf("characters       :  %1ld bytes\n",	sizeof(id[0]));
+	printf("\n");
 
 }
 
 void SurfaceSource::PrintHeader(){
 
+	printf("=========================================== HEADER INFORMATION =========================================== \n");
+	printf("WSSA ID string                                 :  %8s \n",	id);
+	printf("code name                                      :  %8s \n",	kods);
+	printf("code version                                   :  %5s \n",	vers);
+	printf("LODDAT of code that wrote surface source file  :  %8s \n",	lods);
+	printf("IDTM of the surface source write run           :  %19s\n",	idtms);
+	printf("probid, problem id                             :  %19s\n",	probs);
+	printf("title string of the creation run               :  %80s\n",	aids);
+	printf("ending dump number                             :  %d\n",	knods);
+	printf("total number of histories in SS write run      :  %d\n",	np1);
+	printf("the total number of tracks recorded            :  %d\n",	nrss);
+	printf("Number of values in a surface-source record    :  %d\n",	nrcd);
+	printf("Number of surfaces in JASW                     :  %d\n",	njsw);
+	printf("Number of histories in input surface source    :  %d\n",	niss);
+	printf("Number of cells in RSSA file                   :  %d\n",	niwr);
+	printf("Source particle type                           :  %d\n",	mipts);
+	printf("Flag for macrobody facets on source tape       :  %d\n",	kjaq);
 
-	printf("\n ========== HEADER INFORMATION ========== \n");
-	printf("The ID string:                                  %8s \n",id);
-	printf("code name:                                      %8s \n",kods);
-	printf("code version:                                   %5s \n",vers);
-	printf("LODDAT of code that wrote surface source file:  %8s \n",lods);
-	printf("IDTM of the surface source write run:           %19s\n",idtms);
-	printf("probid, problem id:                             %19s\n",probs);
-	printf("title string of the creation run:               %80s\n",aids);
-	printf("ending dump number:                             %d\n",	knods);
-	printf("total number of histories in SS write run:      %d\n",	np1);
-	printf("the total number of tracks recorded:            %d\n",	nrss);
-	printf("Number of values in a surface-source record:    %d\n",	nrcd);
-	printf("Number of surfaces in JASW:                     %d\n",	njsw);
-	printf("Number of histories in input surface source:    %d\n",	niss);
-	printf("Number of cells in RSSA file:                   %d\n",	niwr);
-	printf("Source particle type:                           %d\n",	mipts);
-	printf("Flag for macrobody facets on source tape:       %d\n",	kjaq);
-	printf("\n       --- SURFACE INFORMATION --- \n");
-	printf("  creation-run surfaces ,  surface,  type, coefficients\n");
 
+	if(     kjaq == 0 ) {
+		printf("\n============================================================ SURFACE INFORMATION ============================================================ \n");
+		printf("creation-run surfaces |  surface  |  type  |  coefficients\n");
+	}
+	else if( kjaq == 1 ) {
+		printf("\n============================================================ SURFACE INFORMATION ============================================================ \n");
+		printf("creation-run surfaces |  surface  |  facet  |  type  |  coefficients\n");
+	}
 	for(int i = 0 ; i < surface_count ; i++){
 		if(     kjaq == 0 ) {
-			printf("%d  %d  %s  % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E",
-				                 i,surface_numbers[i],surface_card[i].symbol,surface_parameters[i].A,
-				                                                      surface_parameters[i].B,
-				                                                      surface_parameters[i].C,
-				                                                      surface_parameters[i].D,
-				                                                      surface_parameters[i].E,
-				                                                      surface_parameters[i].F,
-				                                                      surface_parameters[i].G,
-				                                                      surface_parameters[i].H,
-				                                                      surface_parameters[i].I,
-				                                                      surface_parameters[i].J,
-				                                                      surface_parameters[i].K);
+			printf("                %5d      %5d       %s  ",i,surface_numbers[i],surface_card[surface_types[i]].symbol);
+			for(int j = 0 ; j < surface_parameters_lengths[i] ; j++){
+				printf(" % 10.8E",surface_parameters[i].value[j]);
+			}
+			printf("\n");
         }
 		else if( kjaq == 1 ) {
-			printf("%d  %d  %d  %s  % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E % 10.8E",
-				                 i,surface_numbers[i],surface_facets[i],surface_card[i].symbol,surface_parameters[i].A,
-				                                                      surface_parameters[i].B,
-				                                                      surface_parameters[i].C,
-				                                                      surface_parameters[i].D,
-				                                                      surface_parameters[i].E,
-				                                                      surface_parameters[i].F,
-				                                                      surface_parameters[i].G,
-				                                                      surface_parameters[i].H,
-				                                                      surface_parameters[i].I,
-				                                                      surface_parameters[i].J,
-				                                                      surface_parameters[i].K);
-        }
+			printf("%                %5d      %5d        %1d          %s  ",i,surface_numbers[i],surface_facets[i],surface_card[surface_types[i]].symbol);
+			for(int j = 0 ; j < surface_parameters_lengths[i] ; j++){
+				printf(" % 10.8E",surface_parameters[i].value[j]);
+			}
+			printf("\n");
+		}
 	}
+	printf("\n");
 
-	printf("\n ======== END HEADER INFORMATION ======== \n\n");
+
+	printf("\n============================================================= SURFACE SUMMARIES ============================================================= \n");
+	printf("===============================================================!IMPROVE LATER!=============================================================== \n");
+	for(int i=0;i<surface_count;i++){
+		printf("Surface %5d\n",surface_numbers[i]);
+		for(int j=0;j<surface_summary_length;j++){
+			printf("%d ",surface_summaries[i][j]);
+		}
+		printf("\n");
+	}
 
 
 };
@@ -433,8 +547,9 @@ MAIN FUNCTION
 
 int main(int argc, char* argv[]){
 
-	printf("Opening %s...\n",argv[1]);
 	SurfaceSource ss(argv[1]);
+	ss.PrintSizes();
+	ss.ReadHeader();
 	ss.PrintHeader();
 
 }

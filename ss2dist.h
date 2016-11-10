@@ -5,7 +5,7 @@ struct track
 
 struct surface
 {
-	double A, B, C, D, E, F, G, H, I, J, K;
+	double value[10];
 };
 
 struct surface_card_data
@@ -32,8 +32,9 @@ class SurfaceSource
 	//
 
 	bool ReadRecord(void** , size_t*, size_t);
-	bool ReadSurfaceRecord0(int* ,       surface*);
-	bool ReadSurfaceRecord1(int* , int*, surface*);
+	bool ReadSurfaceRecord0(int* , int* , int* , surface*);
+	bool ReadSurfaceRecord1(int* , int* , int* , surface*, int*);
+	bool ReadSummaryRecord(int**);
 
 
 public:
@@ -45,19 +46,26 @@ public:
 	//
 
 	// parameters
-	char				id[9], kods[9], vers[6], lods[6], idtms[20], probs[20], aids[81];
-	int					knods, np1, nrss, nrcd, njsw, niss, niwr, mipts, kjaq;	
+	char				id[9], kods[9], vers[6], lods[9], idtms[20], probs[20], aids[81];
+	int					knods, nrcd, njsw, niwr, mipts, kjaq;	
+	// these are always declared as 8byte?!
+	long long 			np1, nrss, niss;
 
 	// arrays
 	int*				surface_numbers;
+	int*				surface_types;
 	int*				surface_facets;
+	int*				surface_parameters_lengths;
+	int** 				surface_summaries;
 	surface*			surface_parameters;
 	int					surface_count;
+	int 				surface_summary_length;
 
 	// surface description lookup table
 	surface_card_data 	surface_card[41];
 
 	// file object
+	std::string			input_file_name;
 	std::ifstream 		input_file;
 
 	//
@@ -74,5 +82,7 @@ public:
 	void OpenWssaFile( const char* );
 	void ReadHeader();
 	void PrintHeader();
+	void PrintSizes();
+
 
 };
