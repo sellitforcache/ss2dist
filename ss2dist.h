@@ -1,6 +1,6 @@
 struct track
 {
-	double x, y, z, xhat, yhat, zhat, erg, cs, tme, wgt, nps, bitarray;
+	double nps, bitarray, wgt, erg, tme, x, y, z, xhat, yhat, cs, zhat;		
 };
 
 struct surface

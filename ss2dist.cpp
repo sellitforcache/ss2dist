@@ -9,6 +9,8 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <iterator>
+#include <valarray>
 #include "ss2dist.h"
  
 /*
@@ -480,11 +482,11 @@ void SurfaceSource::PrintHeader(){
 	printf("probid, problem id                             :  %19s\n",	probs);
 	printf("title string of the creation run               :  %80s\n",	aids);
 	printf("ending dump number                             :  %d\n",	knods);
-	printf("total number of histories in SS write run      :  %d\n",	np1);
-	printf("the total number of tracks recorded            :  %d\n",	nrss);
+	printf("total number of histories in SS write run      :  %lld\n",	np1);
+	printf("the total number of tracks recorded            :  %lld\n",	nrss);
 	printf("Number of values in a surface-source record    :  %d\n",	nrcd);
 	printf("Number of surfaces in JASW                     :  %d\n",	njsw);
-	printf("Number of histories in input surface source    :  %d\n",	niss);
+	printf("Number of histories in input surface source    :  %lld\n",	niss);
 	printf("Number of cells in RSSA file                   :  %d\n",	niwr);
 	printf("Source particle type                           :  %d\n",	mipts);
 	printf("Flag for macrobody facets on source tape       :  %d\n",	kjaq);
@@ -507,7 +509,7 @@ void SurfaceSource::PrintHeader(){
 			printf("\n");
         }
 		else if( kjaq == 1 ) {
-			printf("%                %5d      %5d        %1d          %s  ",i,surface_numbers[i],surface_facets[i],surface_card[surface_types[i]].symbol);
+			printf("                %5d      %5d        %1d          %s  ",i,surface_numbers[i],surface_facets[i],surface_card[surface_types[i]].symbol);
 			for(int j = 0 ; j < surface_parameters_lengths[i] ; j++){
 				printf(" % 10.8E",surface_parameters[i].value[j]);
 			}
@@ -531,32 +533,13 @@ void SurfaceSource::PrintHeader(){
 
 void SurfaceSource::GetTrack(track* this_track){
 
-	size_t size = 11;
-	void** pointers = 	new void*	[size];
-	size_t* sizes 	= 	new size_t	[size];
-	pointers[ 0]	= (void*) &this_track[0].nps;
-	pointers[ 1]	= (void*) &this_track[0].bitarray;
-	pointers[ 2]	= (void*) &this_track[0].wgt;
-	pointers[ 3]	= (void*) &this_track[0].erg;
-	pointers[ 4]	= (void*) &this_track[0].tme;
-	pointers[ 5]	= (void*) &this_track[0].x;
-	pointers[ 6]	= (void*) &this_track[0].y;
-	pointers[ 7]	= (void*) &this_track[0].z;
-	pointers[ 8]	= (void*) &this_track[0].xhat;
-	pointers[ 9]	= (void*) &this_track[0].yhat;
-	pointers[10]	= (void*) &this_track[0].cs;
-	sizes[ 0]		= sizeof(this_track[0].nps			);
-	sizes[ 1]		= sizeof(this_track[0].bitarray		);
-	sizes[ 2]		= sizeof(this_track[0].wgt			);
-	sizes[ 3]		= sizeof(this_track[0].erg			);
-	sizes[ 4]		= sizeof(this_track[0].tme			);
-	sizes[ 5]		= sizeof(this_track[0].x			);
-	sizes[ 6]		= sizeof(this_track[0].y			);
-	sizes[ 7]		= sizeof(this_track[0].z			);
-	sizes[ 8]		= sizeof(this_track[0].xhat			);
-	sizes[ 9]		= sizeof(this_track[0].yhat			);
-	sizes[10]		= sizeof(this_track[0].cs			);
-	if(!ReadRecord(pointers, sizes, size)){printf("ERROR READING TRACKS RECORD\n");std::exit(1);}
+	// local vars
+	size_t size 	= 1;
+	size_t* sizes 	= new size_t [size];
+	sizes[0] 		= 11*sizeof(double);
+	
+	// try reading it all in at once...
+	if(!ReadRecord((void**) &this_track, sizes, size)){printf("ERROR READING TRACKS RECORD\n");std::exit(1);}
 
 	// calculate missing zhat from the data
 	if ((this_track[0].xhat*this_track[0].xhat+this_track[0].yhat*this_track[0].yhat)<1.0){
@@ -569,57 +552,56 @@ void SurfaceSource::GetTrack(track* this_track){
 
 }
 
-
-
-
-class histogram:
-
-	def __init__(self,bins):
-		self.bins		= 	copy.deepcopy(bins)  # bins are edges
-		self.n_bins		=	len(bins)
-		self.values		=	numpy.zeros((self.n_bins-1,))
-		self.sqvals		=	numpy.zeros((self.n_bins-1,))
-		self.counts		=	numpy.zeros((self.n_bins-1,))
-		self.err		=	numpy.zeros((self.n_bins-1,))
-
-	def add(self,bin_val,weight):
-
-		# check if in bounds
-		valid = True
-		if bin_val < self.bins[0] or bin_val > self.bins[-1]:
-			valid = False
-
-		# add weight to bin if between bins
-		if valid:
-			dex = next((i for i, x in enumerate(bin_val < self.bins) if x), False) - 1
-			self.values[dex] = self.values[dex] + weight
-			self.sqvals[dex] = self.sqvals[dex] + weight*weight
-			self.counts[dex] = self.counts[dex] + 1
-
-	def update(self):
-
-		# calculate error
-		for dex in range(0,self.n_bins-1):
-			N		= self.counts[dex]
-			sum_xi	= self.values[dex]
-			sum_xi2	= self.sqvals[dex]
-			if N==1:
-				self.err[dex] = 1.0
-			elif N > 1:
-				tally_err_sq =   1.0/(N-1) * ( N*sum_xi2/(sum_xi*sum_xi) - 1.0) 
-				if tally_err_sq > 0:
-					self.err[dex] = numpy.sqrt(tally_err_sq)
-				else:
-					self.err[dex] = 0.0
-			else:
-				self.err[dex] = 0.0
-
+//class histogram:
+//
+//	def __init__(self,bins):
+//		self.bins		= 	copy.deepcopy(bins)  # bins are edges
+//		self.n_bins		=	len(bins)
+//		self.values		=	numpy.zeros((self.n_bins-1,))
+//		self.sqvals		=	numpy.zeros((self.n_bins-1,))
+//		self.counts		=	numpy.zeros((self.n_bins-1,))
+//		self.err		=	numpy.zeros((self.n_bins-1,))
+//
+//	def add(self,bin_val,weight):
+//
+//		# check if in bounds
+//		valid = True
+//		if bin_val < self.bins[0] or bin_val > self.bins[-1]:
+//			valid = False
+//
+//		# add weight to bin if between bins
+//		if valid:
+//			dex = next((i for i, x in enumerate(bin_val < self.bins) if x), False) - 1
+//			self.values[dex] = self.values[dex] + weight
+//			self.sqvals[dex] = self.sqvals[dex] + weight*weight
+//			self.counts[dex] = self.counts[dex] + 1
+//
+//	def update(self):
+//
+//		# calculate error
+//		for dex in range(0,self.n_bins-1):
+//			N		= self.counts[dex]
+//			sum_xi	= self.values[dex]
+//			sum_xi2	= self.sqvals[dex]
+//			if N==1:
+//				self.err[dex] = 1.0
+//			elif N > 1:
+//				tally_err_sq =   1.0/(N-1) * ( N*sum_xi2/(sum_xi*sum_xi) - 1.0) 
+//				if tally_err_sq > 0:
+//					self.err[dex] = numpy.sqrt(tally_err_sq)
+//				else:
+//					self.err[dex] = 0.0
+//			else:
+//				self.err[dex] = 0.0
 
 /*
 MAIN FUNCTION
 */
 
 int main(int argc, char* argv[]){
+
+	//
+	if (argc!=2) { printf("A wssa filename (and only a filename) must be given.\n"); return 1;}
 
 	// init some data
 	track this_track;
@@ -630,171 +612,266 @@ int main(int argc, char* argv[]){
 	ss.ReadHeader();
 	ss.PrintHeader();
 
+//	for(int i=0;i<ss.nrss;i++){
+//
+//		ss.GetTrack(&this_track);
+//
+//		printf("\nTRACK %d\n",i);
+//		printf("x       = % 6.4E\n",this_track.x);
+//		printf("y       = % 6.4E\n",this_track.y);
+//		printf("z       = % 6.4E\n",this_track.z);
+//		printf("xhat    = % 6.4E\n",this_track.xhat);
+//		printf("yhat    = % 6.4E\n",this_track.yhat);
+//		printf("zhat    = % 6.4E\n",this_track.zhat);
+//		printf("erg     = % 6.4E\n",this_track.erg);
+//		printf("tme     = % 6.4E\n",this_track.tme);
+//		printf("wgt     = % 6.4E\n",this_track.wgt);
+//		printf("cs      = % 6.4E\n",this_track.cs);
+//		printf("nps     = % f\n"  ,this_track.nps);
+//		printf("bit     = % f\n"  ,this_track.bitarray);
+//
+//	}
 
-	//
-	this_sc == 10307
-	sphere = False
-	E_bins   = numpy.array([1e-11,to_energy(2.0),600])
-	x_bins   = numpy.linspace(-425,425,1701)
-	y_bins   = numpy.linspace(-153.5,286.0,880)
-	theta_bins = numpy.array([0,90])*numpy.pi/180.0
-	phi_bins = numpy.linspace(0,2*numpy.pi,2) 
-	dist     = numpy.zeros((  len(E_bins)-1 , len(theta_bins)-1 , len(phi_bins)-1 , len(y_bins)-1 , len(x_bins)-1 ),dtype=numpy.float64)
+	// constants
+	double	pi = 3.141592653589793238462643383279502884197169399375105820974944;
+	int 	this_sc = 10307;
+	bool 	sphere = false;
+
+	// set bin vectors
+	std::vector<double> E_bins;
+	E_bins.push_back(1e-11);
+	E_bins.push_back(1e-6);
+	E_bins.push_back(600.0);
+
+	double 	x_min	= -425.0;
+	double 	x_max	=  425.0;
+	long 	x_len	=  1700;
+	double 	x_res	= (x_max-x_min)/(x_len);
+
+	double 	y_min	= -153.5;
+	double 	y_max	=  286;
+	long 	y_len	=  879;
+	double 	y_res	= (x_max-x_min)/(x_len);
+
+	std::vector<double> theta_bins (2);
+	theta_bins[0]=0.0;
+	theta_bins[1]=90.0*pi/180.0;
+	std::vector<double> phi_bins (2);
+	phi_bins[0]=0.0;
+	phi_bins[1]=2.0*pi;
+
+	// init dist vector
+	long E_len		= E_bins.end()     - E_bins.begin()     - 1;
+	long theta_len	= theta_bins.end() - theta_bins.begin() - 1;
+	long phi_len	= phi_bins.end()   - phi_bins.begin()   - 1;
+	printf("E_len %ld theta_len %ld phi_len %ld x_len %ld y_len %ld\n",E_len,theta_len,phi_len,x_len,y_len );
+	std::vector<double> dist ( E_len*theta_len*phi_len*x_len*y_len );
+
+	// claculate strides for indexing
+	long 	E_stride		=  theta_len*phi_len*y_len*x_len;
+	long 	theta_stride	=  phi_len*y_len*x_len;
+	long 	phi_stride		=  y_len*x_len;
+	long 	y_stride		=  x_len;
+	long 	x_stride		=  0;
+
 	//  surface plane parameters
-	surface_plane   = numpy.array([ 1.0, 0.0, 0.0, 2.9847115E+03])   # plane, GLOBAL coordinates
-	surface_center  = numpy.array([ 2.9847115E+03, -226.3105 , 0.0 ])
-	surface_normal  = numpy.array([surface_plane[0],surface_plane[1],surface_plane[2]]) 
-	surface_normal_rot = surface_normal 
-	surface_vec1    = numpy.array([-surface_plane[1],surface_plane[0] ,  0.0])
-	surface_vec2    = numpy.array([0.0,0.0,1.0])
+	std::valarray<double> surface_plane (4);
+	surface_plane[0]=1.0;
+	surface_plane[1]=0.0;
+	surface_plane[2]=0.0;
+	surface_plane[3]=2.9847115E+03;
+	std::valarray<double> surface_center (3);
+	surface_center[0] = 2.9847115E+03;
+	surface_center[1] = -226.3105;
+	surface_center[2] = 0.0;
+	std::valarray<double> surface_normal (3);
+	surface_normal[0]=surface_plane[0];
+	surface_normal[1]=surface_plane[1];
+	surface_normal[2]=surface_plane[2];
+	std::valarray<double> surface_vec1 (3);
+	surface_vec1[0]=-surface_plane[1];
+	surface_vec1[1]= surface_plane[0];
+	surface_vec1[2]=0.0;
+	std::valarray<double> surface_vec2 (3);
+	surface_vec2[0]= 0.0;
+	surface_vec2[1]= 0.0;
+	surface_vec2[2]= 1.0;
 
-	for(int i=0;i<ss.nrss;i++){
+
+	// init variables
+	std::valarray<double> vec		(3);
+	std::valarray<double> pos		(3);
+	std::valarray<double> xfm_pos	(3);
+	std::valarray<double> this_vec	(3);
+	std::valarray<double> this_pos	(2);
+	double this_E 		= 0.0;
+	double this_wgt		= 0.0;
+	double this_theta	= 0.0;
+	double this_phi		= 0.0;
+	double sense 		= 0.0;
+	double max_wgt 		= 1e99;
+	long E_dex			= 0;
+	long x_dex			= 0;
+	long y_dex			= 0;
+	long theta_dex		= 0;
+	long phi_dex		= 0;
+	long array_index	= 0;
+	//
+	double b			= 0;
+	int j				= 0;
+	int ipt				= 0;
+	int nsf				= 0;
+	//
+	std::vector<double>::iterator E_dex2;
+	std::vector<double>::iterator theta_dex2;
+	std::vector<double>::iterator phi_dex2;
+
+	// set loop length
+	int N = ss.nrss;//std::min(ss.nrss,10000000000);
+
+	// loop over tracks
+	for(int i=0;i<N;i++){
+
+		// get track
 		ss.GetTrack(&this_track);
 
-	for i in progress(range(1,min(ss.nrss,int(1e10)))):    #max on BOA-bender 499,672,557?!
+		// decode bitarray, onyl for mcnpx?
+		b   = fabs(this_track.bitarray); // sign means what?
+		j   = int(b / 2e8);              // collided?  history?
+		ipt = int(b / 1e6 - j*2e2);      // particle type (1=n,2=p,3=e,4=mu-,9=proton,20=pi_+)
+		nsf = int(b - ipt*1e6 - j*2e8);  // surface
+
+		// mcnp6
+		if (!strcmp("SF_00001",ss.id)){
+			nsf=this_track.cs;
+			ipt=1;  //have manually set, IS NOT READ HERE, SCRIPT WILL ASSUME ALL ARE NEUTRONS
+		}
+
+		// get data
+		vec[0]=this_track.xhat;
+		vec[1]=this_track.yhat;
+		vec[2]=this_track.zhat;
+		pos[0]=this_track.x;
+		pos[1]=this_track.y;
+		pos[2]=this_track.z;
+		this_E 	  = this_track.erg;
+		this_wgt  = this_track.wgt;
+
+		// transform particle origin
+		xfm_pos	= pos - surface_center;
+
+		// calculate sense
+		sense = (surface_normal*pos).sum() - surface_plane[3];  // use sense almost zero for on-plane particles since I don't think mcnpx prints which surface its on!
+
+		if  ((ipt==1) & (fabs(sense)<=1e-5)){
+
+			// transform vector to normal system
+			this_vec[0] = (surface_vec1*vec).sum();
+			this_vec[1] = (surface_vec2*vec).sum();
+			this_vec[2] = (surface_normal*vec).sum();
+
+			// transform position to surface coordinates using basis vectors specified
+			this_pos[0] = (surface_vec1*xfm_pos).sum();
+			this_pos[1] = (surface_vec2*xfm_pos).sum();
 		
-		### get track global position/direction
-		track = ss.next_track()
-
-		### decode bitarray
-		b   = abs(track.bitarray)      # sign means what?
-		j   = int(b / 2e8)             # collided?  history?
-		ipt = int(b / 1e6 - j*2e2)     # particle type (1=n,2=p,3=e,4=mu-,9=proton,20=pi_+)
-		nsf = int(b - ipt*1e6 - j*2e8) # surface
-		
-		### get data
-		vec = numpy.array([track.u,track.v,track.w])
-		pos = numpy.array([track.x,track.y,track.z])
-		this_E 	  = track.erg
-		this_wgt  = track.wgt
-		
-		# transform particle origin
-		xfm_pos	= numpy.subtract(pos,surface_center)
-
-		### mcnp6
-		if 'SF_00001' in ss.kod:
-			nsf=track.cs
-			ipt=1  #have manually set, IS NOT READ HERE, SCRIPT WILL ASSUME ALL ARE NEUTRONS
-
-		### calculate sense
-		if sphere:
-			surface_normal	= xfm_pos / numpy.linalg.norm(xfm_pos)
-			D 				= numpy.dot(surface_normal,xfm_pos)
-			surface_plane	= numpy.array([surface_normal[0],surface_normal[1],surface_normal[2],D])
-			sense = surface_plane[0]*xfm_pos[0] + surface_plane[1]*xfm_pos[1] + surface_plane[2]*xfm_pos[2] - surface_plane[3]  # use sense almost zero for on-plane particles since I don't think mcnpx prints which surface its on!
-		else:
-			sense = surface_plane[0]*pos[0] + surface_plane[1]*pos[1] + surface_plane[2]*pos[2] - surface_plane[3]  # use sense almost zero for on-plane particles since I don't think mcnpx prints which surface its on!
-
-
-		if  (ipt==1) and (abs(sense)<=1e-5): # (nsf==this_sc): #
-
-			if sphere:
-				surface_vec1	= surface_normal[2]/abs(surface_normal[2]) * numpy.subtract(numpy.array([0.0,0.0,D/surface_normal[2]]),xfm_pos)
-				surface_vec1	= surface_vec1 / numpy.linalg.norm(surface_vec1)
-				surface_vec2	= numpy.cross(surface_normal,surface_vec1)
-				this_theta		= numpy.arccos(numpy.dot(surface_normal,vec))
-				this_phi		= numpy.arctan2(numpy.dot(surface_vec2,vec),numpy.dot(surface_vec1,vec))
-				sphere_vec1		= numpy.array([1.0,0.0,0.0])
-				sphere_vec2		= numpy.array([0.0,1.0,0.0])
-				sphere_vec3		= numpy.array([0.0,0.0,1.0])
-				sphere_theta	= numpy.arccos(surface_normal[2])
-				sphere_phi		= numpy.arctan2(surface_normal[1],surface_normal[0])
-				if sphere_phi < 0.0:
-					sphere_phi = 2.0*numpy.pi + sphere_phi
-				this_pos        = numpy.array([sphere_phi,sphere_theta])
-				this_vec = numpy.array([numpy.dot(surface_vec1,vec),numpy.dot(surface_vec2,vec),numpy.dot(surface_normal_rot,vec)])
-			else:
-				### transform vector to normal system
-				this_vec = numpy.array([numpy.dot(surface_vec1,vec),numpy.dot(surface_vec2,vec),numpy.dot(surface_normal_rot,vec)])
-
-				### transform position to surface coordinates using basis vectors specified
-				this_pos = numpy.array([numpy.dot(surface_vec1,xfm_pos),numpy.dot(surface_vec2,xfm_pos)])
-		
-				### calc angular values
-				this_theta  = numpy.arccos(this_vec[2])
-				this_phi = numpy.arctan2(this_vec[1],this_vec[0])
+			// calc angular values
+			this_theta  = acos(this_vec[2]);
+			this_phi 	= atan2(this_vec[1],this_vec[0]);
 			
-			if this_phi < 0.0:
-				this_phi = 2.0*numpy.pi + this_phi
+			if (this_phi < 0.0){
+				this_phi = 2.0*pi + this_phi;
+			}
 		
-			### find the bins
-			if (this_E > E_bins[0] and this_E < E_bins[-1]):
-				E_dex 	=  numpy.nonzero(this_E      < E_bins  )[0][0]-1
-			else:
-				E_dex = sys.maxint
-			if (this_pos[0] > x_bins[0] and this_pos[0] < x_bins[-1]):
-				x_dex 	=  numpy.nonzero(this_pos[0] < x_bins  )[0][0]-1
-			else:
-				x_dex= sys.maxint
-			if (this_pos[1] > y_bins[0] and this_pos[1] < y_bins[-1]):	
-				y_dex 	=  numpy.nonzero(this_pos[1] < y_bins  )[0][0]-1
-			else:
-				y_dex= sys.maxint
-			if (this_theta > theta_bins[0] and this_theta < theta_bins[-1]):
-				theta_dex	=  numpy.nonzero(this_theta     < theta_bins )[0][0]-1
-			else:
-				theta_dex= sys.maxint
-			if (this_phi > phi_bins[0] and this_phi < phi_bins[-1]):	
-				phi_dex	=  numpy.nonzero(this_phi    < phi_bins)[0][0]-1
-			else:
-				phi_dex=sys.maxint
+
+			// find the bins
+			if (this_E > *E_bins.begin() & this_E < *(E_bins.end()-1)){
+				E_dex2 	= std::lower_bound (E_bins.begin(), E_bins.end(), this_E);
+				E_dex	= E_dex2-E_bins.begin()-1;
+			}
+			else{
+				E_dex = INT_MAX;
+			}
+			if (this_pos[0] > x_min & this_pos[0] < x_max){
+				x_dex 	= int((this_pos[0]-x_min)/x_res);
+			}
+			else{
+				x_dex = INT_MAX;
+			}
+			if (this_pos[1] > y_min & this_pos[1] < y_max){
+				y_dex 	=  int((this_pos[1]-y_min)/y_res);
+			}
+			else{
+				y_dex = INT_MAX;
+			}
+			if (this_theta > *theta_bins.begin() & this_theta < *(theta_bins.end()-1)){
+				theta_dex2 	= std::lower_bound (theta_bins.begin(), theta_bins.end(), this_theta);
+				theta_dex	= theta_dex2-theta_bins.begin()-1;
+			}
+			else{
+				theta_dex = INT_MAX;
+			}
+			if (this_phi > *phi_bins.begin() & this_phi < *(phi_bins.end()-1)){
+				phi_dex2	= std::lower_bound (phi_bins.begin(), phi_bins.end(), this_phi);
+				phi_dex		= phi_dex2-phi_bins.begin()-1;
+			}
+			else{
+				phi_dex = INT_MAX;
+			}
 				
-			### increment array
-			if (E_dex < len(E_bins)-1) and (theta_dex < len(theta_bins)-1) and (phi_dex < len(phi_bins)-1) and (y_dex < len(y_bins)-1) and (x_dex < len(x_bins)-1 and this_wgt <= max_wgt) :
-				count = count+1
-				x_avg = x_avg + x_bins[x_dex]
-				x_dex_avg = x_dex_avg + x_dex
-				dist[E_dex][theta_dex][phi_dex][y_dex][x_dex] = dist[E_dex][theta_dex][phi_dex][y_dex][x_dex] + this_wgt
-				histograms_curr[theta_dex].add(this_E,this_wgt)
-				histograms_flux[theta_dex].add(this_E,this_wgt/this_vec[2]/surface_area)
-				histograms_wght[theta_dex].add(this_wgt,1)
-			else:
-				if (E_dex >= len(E_bins)-1 and printflag and errorflag): 
-					print "E = %6.4E index %i is outside bin boundaries" % (this_E,E_dex)
-				if(theta_dex >= len(theta_bins)-1 and printflag and errorflag): 
-					print "theta = %6.4E index %i is outside bin boundaries" % (this_theta,theta_dex)
-				if(phi_dex >= len(phi_bins)-1 and printflag and errorflag): 
-					print "phi = %6.4E index %i is outside bin boundaries" % (this_phi,phi_dex)
-					print pos,vec
-				if(y_dex >= len(y_bins)-1 and printflag and errorflag): 
-					print "y = %6.4E index %i is outside bin boundaries" % (this_pos[1],y_dex)
-					print pos,vec
-				if(x_dex >= len(x_bins)-1 and printflag and errorflag):
-					print "x = %6.4E index %i is outside bin boundaries" % (this_pos[0],x_dex)
-				if(this_wgt > max_wgt and printflag and errorflag):
-					print "wgt = %6.4E is greater than maximum specified weight %6.4E" % (this_wgt,max_wgt)
-	print "max weight",wgt_avg
-	# update the histograms to calculate error, must be done before nps division!
-	for i in range(0,len(theta_bins)-1):
-		histograms_curr[i].update()
-		histograms_flux[i].update()
-		histograms_wght[i].update()
-	### normalize dist to nps:
-	unit_area = (y_bins[1]-y_bins[0])*(x_bins[1]-x_bins[0])
-	surface_nps = abs(track.nps)
-	total_weight = 0.0
-	total_tracks = 0
-	# divide by nps
-	for i in range(0,len(theta_bins)-1):
-		total_tracks = total_tracks + numpy.sum(histograms_curr[i].counts)
-		total_weight = total_weight + numpy.sum(histograms_curr[i].values)
-		histograms_curr[i].values = histograms_curr[i].values / surface_nps
-		histograms_flux[i].values = histograms_flux[i].values / surface_nps
-	npstrack_ratio = surface_nps/total_tracks
-	# divide dists array
-	if fluxflag:
-		dist = dist / surface_nps / unit_area
-	else:
-		dist = dist / surface_nps
-
-
-
-		std::vector<int> data = { 1, 1, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6 };
-    	auto lower = std::lower_bound(data.begin(), data.end(), 4);
-    	auto upper = std::upper_bound(data.begin(), data.end(), 4);
-    	std::copy(lower, upper, std::ostream_iterator<int>(std::cout, " "));
-
+			// increment array
+			if (E_dex < INT_MAX & theta_dex < INT_MAX & phi_dex < INT_MAX & y_dex < INT_MAX & x_dex < INT_MAX & this_wgt <= max_wgt) {
+				//printf("E_dex %ld theta_dex %ld phi_dex %ld y_dex %ld x_dex %ld \n",E_dex ,theta_dex,phi_dex, y_dex , x_dex);
+//				count = count+1
+//				x_avg = x_avg + x_bins[x_dex]
+//				x_dex_avg = x_dex_avg + x_dex
+				array_index = E_dex*E_stride + theta_dex*theta_stride + phi_dex*phi_stride + y_dex*y_stride + x_dex*x_stride;
+				dist[ array_index ] = dist[ array_index] + this_wgt;
+//				histograms_curr[theta_dex].add(this_E,this_wgt)
+//				histograms_flux[theta_dex].add(this_E,this_wgt/this_vec[2]/surface_area)
+//				histograms_wght[theta_dex].add(this_wgt,1)
+			}
+			else{
+			//	if (E_dex >= len(E_bins)-1 and printflag and errorflag): 
+			//		print "E = %6.4E index %i is outside bin boundaries" % (this_E,E_dex)
+			//	if(theta_dex >= len(theta_bins)-1 and printflag and errorflag): 
+			//		print "theta = %6.4E index %i is outside bin boundaries" % (this_theta,theta_dex)
+			//	if(phi_dex >= len(phi_bins)-1 and printflag and errorflag): 
+			//		print "phi = %6.4E index %i is outside bin boundaries" % (this_phi,phi_dex)
+			//		print pos,vec
+			//	if(y_dex >= len(y_bins)-1 and printflag and errorflag): 
+			//		print "y = %6.4E index %i is outside bin boundaries" % (this_pos[1],y_dex)
+			//		print pos,vec
+			//	if(x_dex >= len(x_bins)-1 and printflag and errorflag):
+			//		print "x = %6.4E index %i is outside bin boundaries" % (this_pos[0],x_dex)
+			//	if(this_wgt > max_wgt and printflag and errorflag):
+			//		print "wgt = %6.4E is greater than maximum specified weight %6.4E" % (this_wgt,max_wgt)
+			}
+		}
+//	print "max weight",wgt_avg
+//	# update the histograms to calculate error, must be done before nps division!
+//	for i in range(0,len(theta_bins)-1):
+//		histograms_curr[i].update()
+//		histograms_flux[i].update()
+//		histograms_wght[i].update()
+//	### normalize dist to nps:
+//	unit_area = (y_bins[1]-y_bins[0])*(x_bins[1]-x_bins[0])
+//	surface_nps = abs(track.nps)
+//	total_weight = 0.0
+//	total_tracks = 0
+//	# divide by nps
+//	for i in range(0,len(theta_bins)-1):
+//		total_tracks = total_tracks + numpy.sum(histograms_curr[i].counts)
+//		total_weight = total_weight + numpy.sum(histograms_curr[i].values)
+//		histograms_curr[i].values = histograms_curr[i].values / surface_nps
+//		histograms_flux[i].values = histograms_flux[i].values / surface_nps
+//	npstrack_ratio = surface_nps/total_tracks
+//	# divide dists array
+//	if fluxflag:
+//		dist = dist / surface_nps / unit_area
+//	else:
+//		dist = dist / surface_nps
 
 
 	}
+
 }
