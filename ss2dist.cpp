@@ -641,6 +641,7 @@ int main(int argc, char* argv[]){
 	std::vector<double> E_bins;
 	E_bins.push_back(1e-11);
 	E_bins.push_back(1e-6);
+	E_bins.push_back(1.0);
 	E_bins.push_back(600.0);
 
 	double 	x_min	= -425.0;
@@ -729,10 +730,20 @@ int main(int argc, char* argv[]){
 	std::vector<double>::iterator phi_dex2;
 
 	// set loop length
-	int N = ss.nrss;//std::min(ss.nrss,10000000000);
+	long N = ss.nrss;//std::min(ss.nrss,10000000000);
+
+	// stuff for status printing
+	long Nd = N%int(pow(10,floor (log10 (labs (N)))));
+	long Ns =  (N-Nd)/10;
+	printf("\nBINNING TRACKS\n");
+	printf("00==10==20==30==40==50==60==70==80==90==||100%%\n");
+	printf("||");
 
 	// loop over tracks
-	for(int i=0;i<N;i++){
+	for(long i=0;i<N;i++){
+
+		// print a new status
+		if ( (i-Nd)%Ns == 0){printf("||||");fflush(stdout);}
 
 		// get track
 		ss.GetTrack(&this_track);
@@ -877,7 +888,7 @@ int main(int argc, char* argv[]){
 	//
 
 	}
-
+	printf("<X>   DONE.\n\n");
 
 	// write output
 	std::string ofileName = "dist.bin";
