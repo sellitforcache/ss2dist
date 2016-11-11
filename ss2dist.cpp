@@ -674,7 +674,7 @@ int main(int argc, char* argv[]){
 	long 	theta_stride	=  phi_len*y_len*x_len;
 	long 	phi_stride		=  y_len*x_len;
 	long 	y_stride		=  x_len;
-	long 	x_stride		=  0;
+	long 	x_stride		=  1;
 
 	//  surface plane parameters
 	std::valarray<double> surface_plane (4);
@@ -717,7 +717,7 @@ int main(int argc, char* argv[]){
 	long y_dex			= 0;
 	long theta_dex		= 0;
 	long phi_dex		= 0;
-	long array_index	= 0;
+	long array_dex		= 0;
 	//
 	double b			= 0;
 	int j				= 0;
@@ -822,12 +822,12 @@ int main(int argc, char* argv[]){
 				
 			// increment array
 			if (E_dex < INT_MAX & theta_dex < INT_MAX & phi_dex < INT_MAX & y_dex < INT_MAX & x_dex < INT_MAX & this_wgt <= max_wgt) {
-				//printf("E_dex %ld theta_dex %ld phi_dex %ld y_dex %ld x_dex %ld \n",E_dex ,theta_dex,phi_dex, y_dex , x_dex);
 //				count = count+1
 //				x_avg = x_avg + x_bins[x_dex]
 //				x_dex_avg = x_dex_avg + x_dex
-				array_index = E_dex*E_stride + theta_dex*theta_stride + phi_dex*phi_stride + y_dex*y_stride + x_dex*x_stride;
-				dist[ array_index ] = dist[ array_index] + this_wgt;
+				array_dex = E_dex*E_stride + theta_dex*theta_stride + phi_dex*phi_stride + y_dex*y_stride + x_dex*x_stride;
+				//printf("array_dex %ld E_dex %ld theta_dex %ld phi_dex %ld y_dex %ld x_dex %ld \n",array_dex,E_dex ,theta_dex,phi_dex, y_dex , x_dex);
+				dist[ array_dex ] = dist[ array_dex] + this_wgt;
 //				histograms_curr[theta_dex].add(this_E,this_wgt)
 //				histograms_flux[theta_dex].add(this_E,this_wgt/this_vec[2]/surface_area)
 //				histograms_wght[theta_dex].add(this_wgt,1)
@@ -884,6 +884,16 @@ int main(int argc, char* argv[]){
 	std::cout << "writing output to " << ofileName << std::endl;
 	std::ofstream output_file;
 	output_file.open(ofileName, std::ios::binary);
+	double fE_len 		 = (double) E_len;
+	double ftheta_len 	 = (double) theta_len;
+	double fphi_len 	 = (double) phi_len;
+	double fy_len 		 = (double) y_len;
+	double fx_len 		 = (double) x_len;
+	output_file.write((char*) &fE_len,		sizeof(double));
+	output_file.write((char*) &ftheta_len,	sizeof(double));
+	output_file.write((char*) &fphi_len,	sizeof(double));
+	output_file.write((char*) &fy_len,		sizeof(double));
+	output_file.write((char*) &fx_len,		sizeof(double));
 	output_file.write((char*) &dist[0], dist_len*sizeof(double));
 	output_file.close();
 
