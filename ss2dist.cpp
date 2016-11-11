@@ -664,8 +664,10 @@ int main(int argc, char* argv[]){
 	long E_len		= E_bins.end()     - E_bins.begin()     - 1;
 	long theta_len	= theta_bins.end() - theta_bins.begin() - 1;
 	long phi_len	= phi_bins.end()   - phi_bins.begin()   - 1;
+	long dist_len	= E_len*theta_len*phi_len*x_len*y_len;
 	printf("E_len %ld theta_len %ld phi_len %ld x_len %ld y_len %ld\n",E_len,theta_len,phi_len,x_len,y_len );
-	std::vector<double> dist ( E_len*theta_len*phi_len*x_len*y_len );
+	printf("dist_len %ld \n",dist_len);
+	std::vector<double> dist ( dist_len );
 
 	// claculate strides for indexing
 	long 	E_stride		=  theta_len*phi_len*y_len*x_len;
@@ -872,6 +874,17 @@ int main(int argc, char* argv[]){
 //		dist = dist / surface_nps
 
 
+	//
+
 	}
+
+
+	// write output
+	std::string ofileName = "dist.bin";
+	std::cout << "writing output to " << ofileName << std::endl;
+	std::ofstream output_file;
+	output_file.open(ofileName, std::ios::binary);
+	output_file.write((char*) &dist[0], dist_len*sizeof(double));
+	output_file.close();
 
 }
