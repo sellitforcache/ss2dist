@@ -1,4 +1,3 @@
-
 #include <fstream>
 #include <vector>
 #include <string>
@@ -11,6 +10,7 @@
 #include <algorithm>
 #include <iterator>
 #include <valarray>
+#include <climits>
 #include "ss2dist.h"
  
 /*
@@ -883,7 +883,7 @@ int main(int argc, char* argv[]){
 	std::string ofileName = "dist.bin";
 	std::cout << "writing output to " << ofileName << std::endl;
 	std::ofstream output_file;
-	output_file.open(ofileName, std::ios::binary);
+	output_file.open(ofileName.c_str(), std::ios::binary);
 	double fE_len 		 = (double) E_len;
 	double ftheta_len 	 = (double) theta_len;
 	double fphi_len 	 = (double) phi_len;
