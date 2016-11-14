@@ -87,3 +87,46 @@ public:
 
 
 };
+
+class InputFile {
+public:
+
+	//
+	//
+	// DATA
+	//
+	//
+	
+	//  surface vectors
+	std::valarray<double> surface_plane;
+	std::valarray<double> surface_center;
+
+	// bin vectors
+	std::vector<double> E_bins;
+	std::vector<double> theta_bins;
+	std::vector<double> phi_bins;
+
+	// regular xy binning paramters
+	double 	x_min, x_max, x_res, y_min, y_max, y_res;
+	long 	x_len, y_len, this_sc;
+
+	// file object
+	std::string			input_file_name;
+	std::ifstream 		input_file;
+
+	//
+	//
+	// METHODS
+	//
+	//
+
+	~InputFile();
+	InputFile();
+	InputFile( const std::string& );
+	InputFile( const char*   );
+	void Init();
+	void OpenInputFile( const char* );
+	bool GetSurface( SurfaceSource*, long );
+	void Parse();
+
+};

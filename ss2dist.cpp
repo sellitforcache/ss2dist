@@ -11,6 +11,7 @@
 #include <iterator>
 #include <valarray>
 #include <climits>
+#include <sys/stat.h>
 #include "ss2dist.h"
  
 /*
@@ -176,6 +177,9 @@ SurfaceSource::SurfaceSource(const char*        fileName){
 
 void SurfaceSource::OpenWssaFile(const char* fileName){
 
+	// for file check
+	struct stat buffer;   
+
 	// set object name
 	input_file_name.assign(fileName);
 
@@ -186,15 +190,17 @@ void SurfaceSource::OpenWssaFile(const char* fileName){
 	std::cout << std::string(title_file.length(), '=') << "\n" << std::endl;
 
 	// open file
-	if(input_file.is_open()){
-		printf("!!! File '%s' is already open.",fileName);
-	}
-	else{
+	if( (stat (fileName, &buffer) == 0)){
 		input_file.open(fileName, std::ios::binary);
 	}
-}
+	else{
+		printf("problem opening %s.  Aborting\n",fileName);
+		exit(1);
+	}
 
+}
 // FORTRAN record delimiter length... usually 4 bytes.  Can be 8!  Should set as a preprocessor option
+const double	pi = 3.141592653589793238462643383279502884197169399375105820974944;
 const int RECORD_DELIMITER_LENGTH = 4;
 bool SurfaceSource::ReadRecord(void** destination, size_t* size, size_t NumberOfEntries)
 {
@@ -529,7 +535,7 @@ void SurfaceSource::PrintHeader(){
 		printf("\n");
 	}
 
-};
+}
 
 void SurfaceSource::GetTrack(track* this_track){
 
@@ -594,6 +600,122 @@ void SurfaceSource::GetTrack(track* this_track){
 //			else:
 //				self.err[dex] = 0.0
 
+
+InputFile::~InputFile(){
+	input_file.close();
+}
+InputFile::InputFile(const std::string& fileName){
+	Init();
+	OpenInputFile(fileName.c_str());
+}
+InputFile::InputFile(const char*        fileName){
+	Init();
+	OpenInputFile(fileName);
+}
+void InputFile::Init(){
+	// init valarray vectors
+	surface_plane .resize(4,0);
+	surface_center.resize(3,0);
+}
+void InputFile::OpenInputFile(const char* fileName){
+
+	// for file check
+	struct stat buffer;   
+
+	// set object name
+	input_file_name.assign(fileName);
+
+	// print the name
+	std::string title_file = "======> " + input_file_name + " <======";
+	std::cout << "\n" << std::string(title_file.length(), '=') << std::endl;
+	std::cout << title_file <<std::endl;
+	std::cout << std::string(title_file.length(), '=') << "\n" << std::endl;
+
+	// open file
+	if( (stat (fileName, &buffer) == 0)){
+		input_file.open(fileName, std::ios::in);
+	}
+	else{
+		printf("problem opening %s.  Aborting\n",fileName);
+		exit(1);
+	}
+}
+void InputFile::Parse(){
+
+	this_sc = 10307;
+
+	E_bins.push_back(1e-11);
+	E_bins.push_back(1e-6);
+	E_bins.push_back(1.0);
+	E_bins.push_back(600.0);
+	
+	x_min	= -425.0;
+	x_max	=  425.0;
+	x_len	=  1700;
+	x_res	= (x_max-x_min)/(x_len);
+	
+	y_min	= -153.5;
+	y_max	=  286;
+	y_len	=  879;
+	y_res	= (x_max-x_min)/(x_len);
+	
+	
+	theta_bins.push_back(0.0);
+	theta_bins.push_back(90.0*pi/180.0);
+	
+	phi_bins.push_back(0.0);
+	phi_bins.push_back(2.0*pi);
+	
+}
+bool InputFile::GetSurface( SurfaceSource* ss , long this_sc ){
+
+	bool notfound = true;
+
+	// go through, look for the surface specified
+	for(long i=0;i<ss[0].surface_count;i++){
+		if( ss[0].surface_numbers[i] == this_sc ){
+			// check if not a plane, get data
+			switch( ss[0].surface_types[i] ){
+				case 1 :   // p
+					if(ss[0].surface_parameters_lengths[i]!=4){printf("Surface type '%s' marked as having %ld parameters!",ss[0].surface_card[ss[0].surface_types[i]],ss[0].surface_parameters_lengths[i]);return false;}
+					surface_plane[0] = ss[0].surface_parameters[i].value[0];
+					surface_plane[1] = ss[0].surface_parameters[i].value[1];
+					surface_plane[2] = ss[0].surface_parameters[i].value[2];
+					surface_plane[3] = ss[0].surface_parameters[i].value[3]; 
+				case 2 :   // px
+					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %ld parameters!",ss[0].surface_card[ss[0].surface_types[i]],ss[0].surface_parameters_lengths[i]);return false;}
+					surface_plane[0] = 1.0;
+					surface_plane[1] = 0.0;
+					surface_plane[2] = 0.0;
+					surface_plane[3] = ss[0].surface_parameters[i].value[0];
+				case 3 :   // py
+					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %ld parameters!",ss[0].surface_card[ss[0].surface_types[i]],ss[0].surface_parameters_lengths[i]);return false;}
+					surface_plane[0] = 0.0;
+					surface_plane[1] = 1.0;
+					surface_plane[2] = 0.0;
+					surface_plane[3] = ss[0].surface_parameters[i].value[0];
+				case 4 :   // pz
+					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %ld parameters!",ss[0].surface_card[ss[0].surface_types[i]],ss[0].surface_parameters_lengths[i]);return false;}
+					surface_plane[0] = 0.0;
+					surface_plane[1] = 0.0;
+					surface_plane[2] = 1.0;
+					surface_plane[3] = ss[0].surface_parameters[i].value[0];
+				default: // surface not supported
+					printf("Surface type '%s' not supported.  Only planes are!\n",ss[0].surface_card[ss[0].surface_types[i]]); return false;
+			}
+			notfound = false;
+			return true;
+		}
+	}
+
+	// not found
+	if(notfound){
+		printf("Surface %ld not found in the surface source...\n",this_sc);
+	}
+
+}
+
+
 /*
 MAIN FUNCTION
 */
@@ -601,7 +723,7 @@ MAIN FUNCTION
 int main(int argc, char* argv[]){
 
 	//
-	if (argc!=2) { printf("A wssa filename (and only a filename) must be given.\n"); return 1;}
+	if (argc!=3) { printf("A wssa filename and a surface description file must be given.\n"); return 1;}
 
 	// init some data
 	track this_track;
@@ -612,96 +734,45 @@ int main(int argc, char* argv[]){
 	ss.ReadHeader();
 	ss.PrintHeader();
 
-//	for(int i=0;i<ss.nrss;i++){
-//
-//		ss.GetTrack(&this_track);
-//
-//		printf("\nTRACK %d\n",i);
-//		printf("x       = % 6.4E\n",this_track.x);
-//		printf("y       = % 6.4E\n",this_track.y);
-//		printf("z       = % 6.4E\n",this_track.z);
-//		printf("xhat    = % 6.4E\n",this_track.xhat);
-//		printf("yhat    = % 6.4E\n",this_track.yhat);
-//		printf("zhat    = % 6.4E\n",this_track.zhat);
-//		printf("erg     = % 6.4E\n",this_track.erg);
-//		printf("tme     = % 6.4E\n",this_track.tme);
-//		printf("wgt     = % 6.4E\n",this_track.wgt);
-//		printf("cs      = % 6.4E\n",this_track.cs);
-//		printf("nps     = % f\n"  ,this_track.nps);
-//		printf("bit     = % f\n"  ,this_track.bitarray);
-//
-//	}
+	// load input file
+	InputFile input(argv[2]);
+	input.Parse();
 
 	// constants
-	double	pi = 3.141592653589793238462643383279502884197169399375105820974944;
-	int 	this_sc = 10307;
+	int 	this_sc = 0;
 	bool 	sphere = false;
 
-	// set bin vectors
-	std::vector<double> E_bins;
-	E_bins.push_back(1e-11);
-	E_bins.push_back(1e-6);
-	E_bins.push_back(1.0);
-	E_bins.push_back(600.0);
-
-	double 	x_min	= -425.0;
-	double 	x_max	=  425.0;
-	long 	x_len	=  1700;
-	double 	x_res	= (x_max-x_min)/(x_len);
-
-	double 	y_min	= -153.5;
-	double 	y_max	=  286;
-	long 	y_len	=  879;
-	double 	y_res	= (x_max-x_min)/(x_len);
-
-	std::vector<double> theta_bins (2);
-	theta_bins[0]=0.0;
-	theta_bins[1]=90.0*pi/180.0;
-	std::vector<double> phi_bins (2);
-	phi_bins[0]=0.0;
-	phi_bins[1]=2.0*pi;
-
 	// init dist vector
-	long E_len		= E_bins.end()     - E_bins.begin()     - 1;
-	long theta_len	= theta_bins.end() - theta_bins.begin() - 1;
-	long phi_len	= phi_bins.end()   - phi_bins.begin()   - 1;
-	long dist_len	= E_len*theta_len*phi_len*x_len*y_len;
-	printf("E_len %ld theta_len %ld phi_len %ld x_len %ld y_len %ld\n",E_len,theta_len,phi_len,x_len,y_len );
+	long E_len		= input.E_bins.end()     - input.E_bins.begin()     - 1;
+	long theta_len	= input.theta_bins.end() - input.theta_bins.begin() - 1;
+	long phi_len	= input.phi_bins.end()   - input.phi_bins.begin()   - 1;
+	long dist_len	= E_len*theta_len*phi_len*input.x_len*input.y_len;
+	printf("E_len %ld theta_len %ld phi_len %ld x_len %ld y_len %ld\n",E_len,theta_len,phi_len,input.x_len,input.y_len );
 	printf("dist_len %ld \n",dist_len);
 	std::vector<double> dist ( dist_len );
 
 	// claculate strides for indexing
-	long 	E_stride		=  theta_len*phi_len*y_len*x_len;
-	long 	theta_stride	=  phi_len*y_len*x_len;
-	long 	phi_stride		=  y_len*x_len;
-	long 	y_stride		=  x_len;
+	long 	E_stride		=  theta_len*phi_len*input.y_len*input.x_len;
+	long 	theta_stride	=  phi_len*input.y_len*input.x_len;
+	long 	phi_stride		=  input.y_len*input.x_len;
+	long 	y_stride		=  input.x_len;
 	long 	x_stride		=  1;
 
-	//  surface plane parameters
-	std::valarray<double> surface_plane (4);
-	surface_plane[0]=1.0;
-	surface_plane[1]=0.0;
-	surface_plane[2]=0.0;
-	surface_plane[3]=2.9847115E+03;
-	std::valarray<double> surface_center (3);
-	surface_center[0] = 2.9847115E+03;
-	surface_center[1] = -226.3105;
-	surface_center[2] = 0.0;
+	// calculate the other vectors from plane vectors
 	std::valarray<double> surface_normal (3);
-	surface_normal[0]=surface_plane[0];
-	surface_normal[1]=surface_plane[1];
-	surface_normal[2]=surface_plane[2];
-	std::valarray<double> surface_vec1 (3);
-	surface_vec1[0]=-surface_plane[1];
-	surface_vec1[1]= surface_plane[0];
+	std::valarray<double> surface_vec1   (3);
+	std::valarray<double> surface_vec2   (3);
+	surface_normal[0]=input.surface_plane[0];
+	surface_normal[1]=input.surface_plane[1];
+	surface_normal[2]=input.surface_plane[2];
+	surface_vec1[0]=-input.surface_plane[1];
+	surface_vec1[1]= input.surface_plane[0];
 	surface_vec1[2]=0.0;
-	std::valarray<double> surface_vec2 (3);
 	surface_vec2[0]= 0.0;
 	surface_vec2[1]= 0.0;
 	surface_vec2[2]= 1.0;
 
-
-	// init variables
+	// init binning variables
 	std::valarray<double> vec		(3);
 	std::valarray<double> pos		(3);
 	std::valarray<double> xfm_pos	(3);
@@ -771,10 +842,10 @@ int main(int argc, char* argv[]){
 		this_wgt  = this_track.wgt;
 
 		// transform particle origin
-		xfm_pos	= pos - surface_center;
+		xfm_pos	= pos - input.surface_center;
 
 		// calculate sense
-		sense = (surface_normal*pos).sum() - surface_plane[3];  // use sense almost zero for on-plane particles since I don't think mcnpx prints which surface its on!
+		sense = (surface_normal*pos).sum() - input.surface_plane[3];  // use sense almost zero for on-plane particles since I don't think mcnpx prints which surface its on!
 
 		if  ((ipt==1) & (fabs(sense)<=1e-5)){
 
@@ -797,35 +868,35 @@ int main(int argc, char* argv[]){
 		
 
 			// find the bins
-			if (this_E > *E_bins.begin() & this_E < *(E_bins.end()-1)){
-				E_dex2 	= std::lower_bound (E_bins.begin(), E_bins.end(), this_E);
-				E_dex	= E_dex2-E_bins.begin()-1;
+			if (this_E > *input.E_bins.begin() & this_E < *(input.E_bins.end()-1)){
+				E_dex2 	= std::lower_bound (input.E_bins.begin(), input.E_bins.end(), this_E);
+				E_dex	= E_dex2-input.E_bins.begin()-1;
 			}
 			else{
 				E_dex = INT_MAX;
 			}
-			if (this_pos[0] > x_min & this_pos[0] < x_max){
-				x_dex 	= int((this_pos[0]-x_min)/x_res);
+			if (this_pos[0] > input.x_min & this_pos[0] < input.x_max){
+				x_dex 	= int((this_pos[0]-input.x_min)/input.x_res);
 			}
 			else{
 				x_dex = INT_MAX;
 			}
-			if (this_pos[1] > y_min & this_pos[1] < y_max){
-				y_dex 	=  int((this_pos[1]-y_min)/y_res);
+			if (this_pos[1] > input.y_min & this_pos[1] < input.y_max){
+				y_dex 	=  int((this_pos[1]-input.y_min)/input.y_res);
 			}
 			else{
 				y_dex = INT_MAX;
 			}
-			if (this_theta > *theta_bins.begin() & this_theta < *(theta_bins.end()-1)){
-				theta_dex2 	= std::lower_bound (theta_bins.begin(), theta_bins.end(), this_theta);
-				theta_dex	= theta_dex2-theta_bins.begin()-1;
+			if (this_theta > *input.theta_bins.begin() & this_theta < *(input.theta_bins.end()-1)){
+				theta_dex2 	= std::lower_bound (input.theta_bins.begin(), input.theta_bins.end(), this_theta);
+				theta_dex	= theta_dex2-input.theta_bins.begin()-1;
 			}
 			else{
 				theta_dex = INT_MAX;
 			}
-			if (this_phi > *phi_bins.begin() & this_phi < *(phi_bins.end()-1)){
-				phi_dex2	= std::lower_bound (phi_bins.begin(), phi_bins.end(), this_phi);
-				phi_dex		= phi_dex2-phi_bins.begin()-1;
+			if (this_phi > *input.phi_bins.begin() & this_phi < *(input.phi_bins.end()-1)){
+				phi_dex2	= std::lower_bound (input.phi_bins.begin(), input.phi_bins.end(), this_phi);
+				phi_dex		= phi_dex2-input.phi_bins.begin()-1;
 			}
 			else{
 				phi_dex = INT_MAX;
@@ -891,15 +962,16 @@ int main(int argc, char* argv[]){
 	printf("<X>   DONE.\n\n");
 
 	// write output
-	std::string ofileName = "dist.bin";
-	std::cout << "writing output to " << ofileName << std::endl;
+	char* ofileName = new char [ int(floor(log10(input.this_sc)))+9 ];
+	sprintf(ofileName,"%d_dist.bin",input.this_sc);
+	printf("writing output to %s \n\n",ofileName);
 	std::ofstream output_file;
-	output_file.open(ofileName.c_str(), std::ios::binary);
-	double fE_len 		 = (double) E_len;
-	double ftheta_len 	 = (double) theta_len;
-	double fphi_len 	 = (double) phi_len;
-	double fy_len 		 = (double) y_len;
-	double fx_len 		 = (double) x_len;
+	output_file.open(ofileName, std::ios::binary);
+	double fE_len 		 = (double)       E_len;
+	double ftheta_len 	 = (double)       theta_len;
+	double fphi_len 	 = (double)       phi_len;
+	double fy_len 		 = (double) input.y_len;
+	double fx_len 		 = (double) input.x_len;
 	output_file.write((char*) &fE_len,		sizeof(double));
 	output_file.write((char*) &ftheta_len,	sizeof(double));
 	output_file.write((char*) &fphi_len,	sizeof(double));
