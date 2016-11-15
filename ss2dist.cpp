@@ -665,39 +665,39 @@ void InputFile::Parse(){
 		else if(!strcmp(tokens[0].c_str(),"#")){}
 		else{
 			if (!strcmp(tokens[0].c_str(),"surface")){
-				this_sc = stoi(tokens[1]);
+				this_sc = atoi(tokens[1].c_str());
 				printf("this_sc %ld\n",this_sc);
 			}
 			else if(!strcmp(tokens[0].c_str(),"center")){
-				surface_center[0] = stod(tokens[1]);
-				surface_center[1] = stod(tokens[2]);
-				surface_center[2] = stod(tokens[3]);
+				surface_center[0] = atof(tokens[1].c_str());
+				surface_center[1] = atof(tokens[2].c_str());
+				surface_center[2] = atof(tokens[3].c_str());
 			}
 			else if(!strcmp(tokens[0].c_str(),"E_bins")){
 				for(long i=1;i<tokens.size();i++){
-					E_bins.push_back(stod(tokens[i]));
+					E_bins.push_back(atof(tokens[i].c_str()));
 				}
 			}
 			else if(!strcmp(tokens[0].c_str(),"theta_bins")){
 				for(long i=1;i<tokens.size();i++){
-					theta_bins.push_back(stod(tokens[i]));
+					theta_bins.push_back(atof(tokens[i].c_str()));
 				}
 			}
 			else if(!strcmp(tokens[0].c_str(),"phi_bins")){
 				for(long i=1;i<tokens.size();i++){
-					phi_bins.push_back(stod(tokens[i]));
+					phi_bins.push_back(atof(tokens[i].c_str()));
 				}
 			}
 			else if(!strcmp(tokens[0].c_str(),"x_params")){
-				x_min	= stod(tokens[1]);
-				x_max	= stod(tokens[2]);
-				x_res	= stod(tokens[3]);
+				x_min	= atof(tokens[1].c_str());
+				x_max	= atof(tokens[2].c_str());
+				x_res	= atof(tokens[3].c_str());
 				x_len	=  (x_max-x_min)/x_res;
 			}
 			else if(!strcmp(tokens[0].c_str(),"y_params")){
-				y_min	= stod(tokens[1]);
-				y_max	= stod(tokens[2]);
-				y_res	= stod(tokens[3]);
+				y_min	= atof(tokens[1].c_str());
+				y_max	= atof(tokens[2].c_str());
+				y_res	= atof(tokens[3].c_str());
 				y_len	=  (y_max-y_min)/y_res;
 			}
 		}
