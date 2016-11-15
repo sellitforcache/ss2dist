@@ -688,6 +688,18 @@ void InputFile::Parse(){
 					phi_bins.push_back(stod(tokens[i]));
 				}
 			}
+			else if(!strcmp(tokens[0].c_str(),"x_params")){
+				x_min	= stod(tokens[1]);
+				x_max	= stod(tokens[2]);
+				x_res	= stod(tokens[3]);
+				x_len	=  (x_max-x_min)/x_res;
+			}
+			else if(!strcmp(tokens[0].c_str(),"y_params")){
+				y_min	= stod(tokens[1]);
+				y_max	= stod(tokens[2]);
+				y_res	= stod(tokens[3]);
+				y_len	=  (y_max-y_min)/y_res;
+			}
 		}
 	}
 
@@ -697,15 +709,15 @@ void InputFile::Parse(){
 	//E_bins.push_back(1.0);
 	//E_bins.push_back(600.0);
 	
-	x_min	= -425.0;
-	x_max	=  425.0;
-	x_len	=  1700;
-	x_res	= (x_max-x_min)/(x_len);
-	
-	y_min	= -153.5;
-	y_max	=  286;
-	y_len	=  879;
-	y_res	= (x_max-x_min)/(x_len);
+	//x_min	= -425.0;
+	//x_max	=  425.0;
+	//x_len	=  1700;
+	//x_res	= (x_max-x_min)/(x_len);
+
+	//y_min	= -153.5;
+	//y_max	=  286;
+	//y_len	=  879;
+	//y_res	= (x_max-x_min)/(x_len);
 	
 	
 	//theta_bins.push_back(0.0);
