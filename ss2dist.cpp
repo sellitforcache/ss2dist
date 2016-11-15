@@ -11,6 +11,7 @@
 #include <iterator>
 #include <valarray>
 #include <climits>
+#include <sstream>
 #include <sys/stat.h>
 #include "ss2dist.h"
  
@@ -640,14 +641,61 @@ void InputFile::OpenInputFile(const char* fileName){
 		exit(1);
 	}
 }
+std::vector<std::string> InputFile::SplitString(const std::string &s, char delim) {
+	std::stringstream sstream(s);
+	std::string item;
+	std::vector<std::string> tokens;
+	while (getline(sstream, item, delim)) {
+	    tokens.push_back(item);
+	}
+	return tokens;
+}
+
 void InputFile::Parse(){
 
-	this_sc = 10307;
+	std::string line;
+	std::vector<std::string> tokens;
+	std::string item;
+	char* delim = new char;
+	strncpy(delim, " " , 1);
 
-	E_bins.push_back(1e-11);
-	E_bins.push_back(1e-6);
-	E_bins.push_back(1.0);
-	E_bins.push_back(600.0);
+	while(std::getline(input_file,line)){
+		tokens = SplitString(line, *delim);
+		if     (tokens.size()==0){}
+		else if(!strcmp(tokens[0].c_str(),"#")){}
+		else{
+			if (!strcmp(tokens[0].c_str(),"surface")){
+				this_sc = stoi(tokens[1]);
+				printf("this_sc %ld\n",this_sc);
+			}
+			else if(!strcmp(tokens[0].c_str(),"center")){
+				surface_center[0] = stod(tokens[1]);
+				surface_center[1] = stod(tokens[2]);
+				surface_center[2] = stod(tokens[3]);
+			}
+			else if(!strcmp(tokens[0].c_str(),"E_bins")){
+				for(long i=1;i<tokens.size();i++){
+					E_bins.push_back(stod(tokens[i]));
+				}
+			}
+			else if(!strcmp(tokens[0].c_str(),"theta_bins")){
+				for(long i=1;i<tokens.size();i++){
+					theta_bins.push_back(stod(tokens[i]));
+				}
+			}
+			else if(!strcmp(tokens[0].c_str(),"phi_bins")){
+				for(long i=1;i<tokens.size();i++){
+					phi_bins.push_back(stod(tokens[i]));
+				}
+			}
+		}
+	}
+
+	//this_sc = 10307;
+	//E_bins.push_back(1e-11);
+	//E_bins.push_back(1e-6);
+	//E_bins.push_back(1.0);
+	//E_bins.push_back(600.0);
 	
 	x_min	= -425.0;
 	x_max	=  425.0;
@@ -660,16 +708,13 @@ void InputFile::Parse(){
 	y_res	= (x_max-x_min)/(x_len);
 	
 	
-	theta_bins.push_back(0.0);
-	theta_bins.push_back(90.0*pi/180.0);
-	
-	phi_bins.push_back(0.0);
-	phi_bins.push_back(2.0*pi);
+	//theta_bins.push_back(0.0);
+	//theta_bins.push_back(90.0*pi/180.0);
+	//phi_bins.push_back(0.0);
+	//phi_bins.push_back(2.0*pi);
 	
 }
 bool InputFile::GetSurface( SurfaceSource* ss , long this_sc ){
-
-	bool notfound = true;
 
 	// go through, look for the surface specified
 	for(long i=0;i<ss[0].surface_count;i++){
@@ -677,41 +722,42 @@ bool InputFile::GetSurface( SurfaceSource* ss , long this_sc ){
 			// check if not a plane, get data
 			switch( ss[0].surface_types[i] ){
 				case 1 :   // p
-					if(ss[0].surface_parameters_lengths[i]!=4){printf("Surface type '%s' marked as having %ld parameters!",ss[0].surface_card[ss[0].surface_types[i]],ss[0].surface_parameters_lengths[i]);return false;}
+					if(ss[0].surface_parameters_lengths[i]!=4){printf("Surface type '%s' marked as having %d parameters!",ss[0].surface_card[ss[0].surface_types[i]].symbol,ss[0].surface_parameters_lengths[i]);return false;}
 					surface_plane[0] = ss[0].surface_parameters[i].value[0];
 					surface_plane[1] = ss[0].surface_parameters[i].value[1];
 					surface_plane[2] = ss[0].surface_parameters[i].value[2];
 					surface_plane[3] = ss[0].surface_parameters[i].value[3]; 
+					return true;
 				case 2 :   // px
-					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %ld parameters!",ss[0].surface_card[ss[0].surface_types[i]],ss[0].surface_parameters_lengths[i]);return false;}
+					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %d parameters!",ss[0].surface_card[ss[0].surface_types[i]].symbol,ss[0].surface_parameters_lengths[i]);return false;}
 					surface_plane[0] = 1.0;
 					surface_plane[1] = 0.0;
 					surface_plane[2] = 0.0;
 					surface_plane[3] = ss[0].surface_parameters[i].value[0];
+					return true;
 				case 3 :   // py
-					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %ld parameters!",ss[0].surface_card[ss[0].surface_types[i]],ss[0].surface_parameters_lengths[i]);return false;}
+					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %d parameters!",ss[0].surface_card[ss[0].surface_types[i]].symbol,ss[0].surface_parameters_lengths[i]);return false;}
 					surface_plane[0] = 0.0;
 					surface_plane[1] = 1.0;
 					surface_plane[2] = 0.0;
 					surface_plane[3] = ss[0].surface_parameters[i].value[0];
+					return true;
 				case 4 :   // pz
-					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %ld parameters!",ss[0].surface_card[ss[0].surface_types[i]],ss[0].surface_parameters_lengths[i]);return false;}
+					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %d parameters!",ss[0].surface_card[ss[0].surface_types[i]].symbol,ss[0].surface_parameters_lengths[i]);return false;}
 					surface_plane[0] = 0.0;
 					surface_plane[1] = 0.0;
 					surface_plane[2] = 1.0;
 					surface_plane[3] = ss[0].surface_parameters[i].value[0];
+					return true;
 				default: // surface not supported
-					printf("Surface type '%s' not supported.  Only planes are!\n",ss[0].surface_card[ss[0].surface_types[i]]); return false;
+					printf("Surface type '%s' not supported.  Only planes are!\n",ss[0].surface_card[ss[0].surface_types[i]].symbol); return false;
 			}
-			notfound = false;
-			return true;
 		}
 	}
 
 	// not found
-	if(notfound){
-		printf("Surface %ld not found in the surface source...\n",this_sc);
-	}
+	printf("Surface %ld not found in the surface source...\n",this_sc);
+	return false;
 
 }
 
@@ -963,7 +1009,7 @@ int main(int argc, char* argv[]){
 
 	// write output
 	char* ofileName = new char [ int(floor(log10(input.this_sc)))+9 ];
-	sprintf(ofileName,"%d_dist.bin",input.this_sc);
+	sprintf(ofileName,"%ld_dist.bin",input.this_sc);
 	printf("writing output to %s \n\n",ofileName);
 	std::ofstream output_file;
 	output_file.open(ofileName, std::ios::binary);

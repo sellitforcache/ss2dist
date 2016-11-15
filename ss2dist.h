@@ -89,6 +89,9 @@ public:
 };
 
 class InputFile {
+
+	std::vector<std::string>  SplitString(const std::string&, char );
+
 public:
 
 	//
