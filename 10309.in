@@ -1,0 +1,14 @@
+# plane number
+surface 10309
+# center point
+center 3.28064870E+03 0 0
+#
+#
+#
+#
+#
+E_bins     1e-11 1e-6  1e0  6e2
+x_params   -425.0  425.0  0.5
+y_params   -153.5  286.0  0.5
+theta_bins    0.0    1.57079632679
+phi_bins      0.0    6.28318530718

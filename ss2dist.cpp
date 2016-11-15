@@ -642,12 +642,9 @@ void InputFile::OpenInputFile(const char* fileName){
 	}
 }
 std::vector<std::string> InputFile::SplitString(const std::string &s, char delim) {
-	std::stringstream sstream(s);
-	std::string item;
-	std::vector<std::string> tokens;
-	while (getline(sstream, item, delim)) {
-	    tokens.push_back(item);
-	}
+    std::istringstream buf(s);
+    std::istream_iterator<std::string> beg(buf), end;
+    std::vector<std::string> tokens(beg, end);
 	return tokens;
 }
 
