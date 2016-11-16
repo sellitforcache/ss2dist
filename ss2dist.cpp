@@ -807,7 +807,8 @@ int main(int argc, char* argv[]){
 	// load input file
 	InputFile input(argv[2]);
 	input.Parse();
-	input.GetSurface(&ss);
+	bool res = input.GetSurface(&ss);
+	if(!res){exit(1);}
 	input.PrintSummary();
 
 	// constants
