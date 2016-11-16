@@ -663,7 +663,7 @@ void InputFile::Parse(){
 		else{
 			if (!strcmp(tokens[0].c_str(),"surface")){
 				this_sc = atoi(tokens[1].c_str());
-				printf("this_sc %ld\n",this_sc);
+				//printf("this_sc %ld\n",this_sc);
 			}
 			else if(!strcmp(tokens[0].c_str(),"center")){
 				surface_center[0] = atof(tokens[1].c_str());
@@ -707,31 +707,33 @@ void InputFile::PrintSummary(){
 	long theta_len	= theta_bins.end() - theta_bins.begin() - 1;
 	long phi_len	= phi_bins.end()   - phi_bins.begin()   - 1;
 
-	printf("E_len,	  %5d\n",	E_len		);
-	printf("theta_len %5d\n",	theta_len	);
-	printf("phi_len	  %5d\n",	phi_len		);
-	printf("y_len	  %5d\n",	y_len		);
+	printf(" ======================= INPUT FILE SUMMARY ======================= \n");
+	printf("Surface   %5ld\n",this_sc);
+	printf("E_len,	  %5ld\n",	E_len		);
+	printf("theta_len %5ld\n",	theta_len	);
+	printf("phi_len	  %5ld\n",	phi_len		);
+	printf("y_len	  %5ld\n",	y_len		);
 	printf("y_min	  % 6.4E\n",	y_min		);
 	printf("y_max	  % 6.4E\n",	y_max		);
 	printf("y_res	  % 6.4E\n",	y_res		);
-	printf("x_len	  %5d\n",	x_len		);
+	printf("x_len	  %5ld\n",	x_len		);
 	printf("x_min	  % 6.4E\n",	x_min		);
 	printf("x_max	  % 6.4E\n",	x_max		);
 	printf("x_res	  % 6.4E\n",	x_res		);
 	printf("\n");
-	printf("E_bins\n");
+	printf(" ========================= E_bins VECTOR ========================= \n");
 	for(long i=0;i<E_len+1;i++){
-		printf("% 6.4E",E_bins[i]);
+		printf(" % 6.4E",E_bins[i]);
 	}
-	printf("\n");
-	printf("theta_bins\n");
+	printf("\n\n");
+	printf(" ======================= theta_bins VECTOR ======================= \n");
 	for(long i=0;i<theta_len+1;i++){
-		printf("% 6.4E",theta_bins[i]);
+		printf(" % 6.4E",theta_bins[i]);
 	}
-	printf("\n");
-	printf("phi_bins\n");
+	printf("\n\n");
+	printf(" ======================== phi_bins VECTOR ======================== \n");
 	for(long i=0;i<phi_len+1;i++){
-		printf("% 6.4E",phi_bins[i]);
+		printf(" % 6.4E",phi_bins[i]);
 	}
 	printf("\n");
 
@@ -817,8 +819,7 @@ int main(int argc, char* argv[]){
 	long theta_len	= input.theta_bins.end() - input.theta_bins.begin() - 1;
 	long phi_len	= input.phi_bins.end()   - input.phi_bins.begin()   - 1;
 	long dist_len	= E_len*theta_len*phi_len*input.x_len*input.y_len;
-	printf("E_len %ld theta_len %ld phi_len %ld x_len %ld y_len %ld\n",E_len,theta_len,phi_len,input.x_len,input.y_len );
-	printf("dist_len %ld \n",dist_len);
+	printf("\n DISTRIBUTION ARRAY LENGTH = %ld elements =  %ld B, %5.1f MB\n",dist_len,dist_len*sizeof(double),double(dist_len)*double(sizeof(double))/1048576.0);
 	std::vector<double> dist ( dist_len );
 
 	// claculate strides for indexing
