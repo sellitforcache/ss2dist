@@ -699,31 +699,44 @@ void InputFile::Parse(){
 			}
 		}
 	}
-
-	//this_sc = 10307;
-	//E_bins.push_back(1e-11);
-	//E_bins.push_back(1e-6);
-	//E_bins.push_back(1.0);
-	//E_bins.push_back(600.0);
-	
-	//x_min	= -425.0;
-	//x_max	=  425.0;
-	//x_len	=  1700;
-	//x_res	= (x_max-x_min)/(x_len);
-
-	//y_min	= -153.5;
-	//y_max	=  286;
-	//y_len	=  879;
-	//y_res	= (x_max-x_min)/(x_len);
-	
-	
-	//theta_bins.push_back(0.0);
-	//theta_bins.push_back(90.0*pi/180.0);
-	//phi_bins.push_back(0.0);
-	//phi_bins.push_back(2.0*pi);
 	
 }
-bool InputFile::GetSurface( SurfaceSource* ss , long this_sc ){
+void InputFile::PrintSummary(){
+
+	long E_len		= E_bins.end()     - E_bins.begin()     - 1;
+	long theta_len	= theta_bins.end() - theta_bins.begin() - 1;
+	long phi_len	= phi_bins.end()   - phi_bins.begin()   - 1;
+
+	printf("E_len,	  %5d\n",	E_len		);
+	printf("theta_len %5d\n",	theta_len	);
+	printf("phi_len	  %5d\n",	phi_len		);
+	printf("y_len	  %5d\n",	y_len		);
+	printf("y_min	  % 6.4E\n",	y_min		);
+	printf("y_max	  % 6.4E\n",	y_max		);
+	printf("y_res	  % 6.4E\n",	y_res		);
+	printf("x_len	  %5d\n",	x_len		);
+	printf("x_min	  % 6.4E\n",	x_min		);
+	printf("x_max	  % 6.4E\n",	x_max		);
+	printf("x_res	  % 6.4E\n",	x_res		);
+	printf("\n");
+	printf("E_bins\n");
+	for(long i=0;i<E_len+1;i++){
+		printf("% 6.4E",E_bins[i]);
+	}
+	printf("\n");
+	printf("theta_bins\n");
+	for(long i=0;i<theta_len+1;i++){
+		printf("% 6.4E",theta_bins[i]);
+	}
+	printf("\n");
+	printf("phi_bins\n");
+	for(long i=0;i<phi_len+1;i++){
+		printf("% 6.4E",phi_bins[i]);
+	}
+	printf("\n");
+
+}
+bool InputFile::GetSurface( SurfaceSource* ss ){
 
 	// go through, look for the surface specified
 	for(long i=0;i<ss[0].surface_count;i++){
@@ -792,6 +805,8 @@ int main(int argc, char* argv[]){
 	// load input file
 	InputFile input(argv[2]);
 	input.Parse();
+	input.GetSurface(&ss);
+	input.PrintSummary();
 
 	// constants
 	int 	this_sc = 0;
@@ -850,6 +865,12 @@ int main(int argc, char* argv[]){
 	int j				= 0;
 	int ipt				= 0;
 	int nsf				= 0;
+	//
+	double 	total_weight 	= 0.0;
+	double 	total_tracks 	= 0;
+	//
+	bool printflag = false;
+	bool errorflag = false;
 	//
 	std::vector<double>::iterator E_dex2;
 	std::vector<double>::iterator theta_dex2;
@@ -922,7 +943,7 @@ int main(int argc, char* argv[]){
 			}
 		
 
-			// find the bins
+			// find the bin indices
 			if (this_E > *input.E_bins.begin() & this_E < *(input.E_bins.end()-1)){
 				E_dex2 	= std::lower_bound (input.E_bins.begin(), input.E_bins.end(), this_E);
 				E_dex	= E_dex2-input.E_bins.begin()-1;
@@ -959,80 +980,87 @@ int main(int argc, char* argv[]){
 				
 			// increment array
 			if (E_dex < INT_MAX & theta_dex < INT_MAX & phi_dex < INT_MAX & y_dex < INT_MAX & x_dex < INT_MAX & this_wgt <= max_wgt) {
-//				count = count+1
-//				x_avg = x_avg + x_bins[x_dex]
-//				x_dex_avg = x_dex_avg + x_dex
 				array_dex = E_dex*E_stride + theta_dex*theta_stride + phi_dex*phi_stride + y_dex*y_stride + x_dex*x_stride;
-				//printf("array_dex %ld E_dex %ld theta_dex %ld phi_dex %ld y_dex %ld x_dex %ld \n",array_dex,E_dex ,theta_dex,phi_dex, y_dex , x_dex);
 				dist[ array_dex ] = dist[ array_dex] + this_wgt;
-//				histograms_curr[theta_dex].add(this_E,this_wgt)
-//				histograms_flux[theta_dex].add(this_E,this_wgt/this_vec[2]/surface_area)
-//				histograms_wght[theta_dex].add(this_wgt,1)
+				total_tracks++;
 			}
 			else{
-			//	if (E_dex >= len(E_bins)-1 and printflag and errorflag): 
-			//		print "E = %6.4E index %i is outside bin boundaries" % (this_E,E_dex)
-			//	if(theta_dex >= len(theta_bins)-1 and printflag and errorflag): 
-			//		print "theta = %6.4E index %i is outside bin boundaries" % (this_theta,theta_dex)
-			//	if(phi_dex >= len(phi_bins)-1 and printflag and errorflag): 
-			//		print "phi = %6.4E index %i is outside bin boundaries" % (this_phi,phi_dex)
-			//		print pos,vec
-			//	if(y_dex >= len(y_bins)-1 and printflag and errorflag): 
-			//		print "y = %6.4E index %i is outside bin boundaries" % (this_pos[1],y_dex)
-			//		print pos,vec
-			//	if(x_dex >= len(x_bins)-1 and printflag and errorflag):
-			//		print "x = %6.4E index %i is outside bin boundaries" % (this_pos[0],x_dex)
-			//	if(this_wgt > max_wgt and printflag and errorflag):
-			//		print "wgt = %6.4E is greater than maximum specified weight %6.4E" % (this_wgt,max_wgt)
+			if (E_dex >= E_len & printflag & errorflag){ 
+				printf( "E = %6.4E index %ld is outside bin boundaries\n",this_E,E_dex);}
+			if(theta_dex >= theta_len & printflag & errorflag){ 
+				printf(  "theta = %6.4E index %ld is outside bin boundaries\n",this_theta,theta_dex);}
+			if(phi_dex >= phi_len & printflag & errorflag){ 
+				printf(  "phi = %6.4E index %ld is outside bin boundaries\n",this_phi,phi_dex);}
+			if(y_dex >= input.y_len & printflag & errorflag){ 
+				printf(  "y = %6.4E index %ld is outside bin boundaries\n" ,this_pos[1],y_dex);}
+			if(x_dex >= input.x_len & printflag & errorflag){
+				printf(  "x = %6.4E index %ld is outside bin boundaries\n",this_pos[0],x_dex);}
+			if(this_wgt > max_wgt & printflag & errorflag){
+				printf(  "wgt = %6.4E is greater than maximum specified weight %6.4E\n",this_wgt,max_wgt);}
 			}
 		}
-//	print "max weight",wgt_avg
-//	# update the histograms to calculate error, must be done before nps division!
-//	for i in range(0,len(theta_bins)-1):
-//		histograms_curr[i].update()
-//		histograms_flux[i].update()
-//		histograms_wght[i].update()
-//	### normalize dist to nps:
-//	unit_area = (y_bins[1]-y_bins[0])*(x_bins[1]-x_bins[0])
-//	surface_nps = abs(track.nps)
-//	total_weight = 0.0
-//	total_tracks = 0
-//	# divide by nps
-//	for i in range(0,len(theta_bins)-1):
-//		total_tracks = total_tracks + numpy.sum(histograms_curr[i].counts)
-//		total_weight = total_weight + numpy.sum(histograms_curr[i].values)
-//		histograms_curr[i].values = histograms_curr[i].values / surface_nps
-//		histograms_flux[i].values = histograms_flux[i].values / surface_nps
-//	npstrack_ratio = surface_nps/total_tracks
-//	# divide dists array
-//	if fluxflag:
-//		dist = dist / surface_nps / unit_area
-//	else:
-//		dist = dist / surface_nps
-
-
-	//
-
 	}
 	printf("<X>   DONE.\n\n");
 
+	// get last track nps
+	long 	surface_nps 	= abs(this_track.nps);
+
+	// sum distributions to get total weight present
+	for(long i=0;i<dist_len;i++){
+		total_weight += dist[i];
+	}
+
+	// normalize dist to nps read
+	for(long i=0;i<dist_len;i++){
+		dist[i] = dist[i] / surface_nps;
+	}
+
+	//
 	// write output
+	//
+
+	// oprn file
 	char* ofileName = new char [ int(floor(log10(input.this_sc)))+9 ];
 	sprintf(ofileName,"%ld_dist.bin",input.this_sc);
 	printf("writing output to %s \n\n",ofileName);
 	std::ofstream output_file;
 	output_file.open(ofileName, std::ios::binary);
-	double fE_len 		 = (double)       E_len;
-	double ftheta_len 	 = (double)       theta_len;
-	double fphi_len 	 = (double)       phi_len;
-	double fy_len 		 = (double) input.y_len;
-	double fx_len 		 = (double) input.x_len;
+
+	// cast integers as doubles to make the reading more regular, adjust length values to be the number of edges, not bins, which is the length of the bins vectors
+	double fE_len 		 = (double)       (E_len+1);
+	double ftheta_len 	 = (double)       (theta_len+1);
+	double fphi_len 	 = (double)       (phi_len+1);
+	double fy_len 		 = (double) (input.y_len+1);
+	double fy_min 		 = (double)  input.y_min;
+	double fy_max 		 = (double)  input.y_max;
+	double fy_res 		 = (double)  input.y_res;
+	double fx_len 		 = (double) (input.x_len+1);
+	double fx_min 		 = (double)  input.x_min;
+	double fx_max 		 = (double)  input.x_max;
+	double fx_res 		 = (double)  input.x_res;
+
+	// write the single values so all lengths can be read  before vectors
 	output_file.write((char*) &fE_len,		sizeof(double));
 	output_file.write((char*) &ftheta_len,	sizeof(double));
 	output_file.write((char*) &fphi_len,	sizeof(double));
 	output_file.write((char*) &fy_len,		sizeof(double));
+	output_file.write((char*) &fy_min,		sizeof(double));
+	output_file.write((char*) &fy_max,		sizeof(double));
+	output_file.write((char*) &fy_res,		sizeof(double));
 	output_file.write((char*) &fx_len,		sizeof(double));
+	output_file.write((char*) &fx_min,		sizeof(double));
+	output_file.write((char*) &fx_max,		sizeof(double));
+	output_file.write((char*) &fx_res,		sizeof(double));
+
+	// write vectors
+	output_file.write((char*) input.E_bins.data(),			(E_len+1)*     sizeof(double));
+	output_file.write((char*) input.theta_bins.data(),		(theta_len+1)* sizeof(double));
+	output_file.write((char*) input.phi_bins.data(),		(phi_len+1)*   sizeof(double));
+
+	// write dist
 	output_file.write((char*) &dist[0], dist_len*sizeof(double));
+
+	// close file
 	output_file.close();
 
 }

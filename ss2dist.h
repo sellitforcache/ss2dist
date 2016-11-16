@@ -129,7 +129,8 @@ public:
 	InputFile( const char*   );
 	void Init();
 	void OpenInputFile( const char* );
-	bool GetSurface( SurfaceSource*, long );
+	bool GetSurface( SurfaceSource* );
 	void Parse();
+	void PrintSummary();
 
 };
