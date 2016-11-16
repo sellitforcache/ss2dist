@@ -986,17 +986,17 @@ int main(int argc, char* argv[]){
 				total_tracks++;
 			}
 			else{
-			if (E_dex >= E_len & printflag & errorflag){ 
+			if ((E_dex >= E_len )& printflag & errorflag){ 
 				printf( "E = %6.4E index %ld is outside bin boundaries\n",this_E,E_dex);}
-			if(theta_dex >= theta_len & printflag & errorflag){ 
+			if((theta_dex >= theta_len) & printflag & errorflag){ 
 				printf(  "theta = %6.4E index %ld is outside bin boundaries\n",this_theta,theta_dex);}
-			if(phi_dex >= phi_len & printflag & errorflag){ 
+			if((phi_dex >= phi_len) & printflag & errorflag){ 
 				printf(  "phi = %6.4E index %ld is outside bin boundaries\n",this_phi,phi_dex);}
-			if(y_dex >= input.y_len & printflag & errorflag){ 
+			if((y_dex >= input.y_len) & printflag & errorflag){ 
 				printf(  "y = %6.4E index %ld is outside bin boundaries\n" ,this_pos[1],y_dex);}
-			if(x_dex >= input.x_len & printflag & errorflag){
+			if((x_dex >= input.x_len) & printflag & errorflag){
 				printf(  "x = %6.4E index %ld is outside bin boundaries\n",this_pos[0],x_dex);}
-			if(this_wgt > max_wgt & printflag & errorflag){
+			if((this_wgt > max_wgt) & printflag & errorflag){
 				printf(  "wgt = %6.4E is greater than maximum specified weight %6.4E\n",this_wgt,max_wgt);}
 			}
 		}
@@ -1004,7 +1004,7 @@ int main(int argc, char* argv[]){
 	printf("<X>   DONE.\n\n");
 
 	// get last track nps
-	long 	surface_nps 	= abs(this_track.nps);
+	long 	surface_nps 	= fabs(this_track.nps);
 
 	// sum distributions to get total weight present
 	for(long i=0;i<dist_len;i++){
