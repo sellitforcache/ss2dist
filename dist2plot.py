@@ -16,6 +16,20 @@ from matplotlib.colors import LogNorm
 ### load the dist file
 dist = numpy.fromfile(sys.argv[1],dtype=numpy.float64)
 
+### option
+if len(sys.argv) == 2:
+	logplot = False
+elif len(sys.argv) == 3:
+	if sys.argv[2] == 'log':
+		logplot = True
+	elif sys.argv[2] == 'lin':
+		logplot = False
+	else:
+		logplot = False
+else:
+	print '2 or fewer arguments please'
+	exit()
+
 ### first 11 values are the lengths, xy params
 E_len		= int(dist[ 0])
 theta_len	= int(dist[ 1])
@@ -78,13 +92,16 @@ sphere = False
 #y_AMOR=[-6,6,6,-6,-6]
 #x_FOCUS=[-1.76,-1.76,-6.76,-6.76,-1.76]
 #y_FOCUS=[-6,6,6,-6,-6]
-upper_lim=[5e9,1e10,1e10]
+upper_lim=[5e9,1e10,100]
 phi_bin=0
 for theta_bin in range(0,len(theta_bins)-1):
 	for E_bin in range(0,len(E_bins)-1):
 		f = plt.figure()
 		ax = f.add_subplot(111)
-		imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]*charge_per_milliamp          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'))#,norm=LogNorm(vmin=1e8, vmax=upper_lim[E_bin]))
+		if logplot:
+			imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]*charge_per_milliamp          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'),norm=LogNorm(vmax=upper_lim[E_bin]))
+		else:
+			imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]*charge_per_milliamp          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'),vmax=upper_lim[E_bin])
 		this_weight = numpy.sum(dist[E_bin][theta_bin][phi_bin][:][:]*charge_per_milliamp)
 		imgplot.set_interpolation('nearest')
 		theta_deg = theta_bins[theta_bin:theta_bin+2]*180.0/numpy.pi

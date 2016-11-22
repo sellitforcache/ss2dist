@@ -689,13 +689,13 @@ void InputFile::Parse(){
 				x_min	= atof(tokens[1].c_str());
 				x_max	= atof(tokens[2].c_str());
 				x_res	= atof(tokens[3].c_str());
-				x_len	=  (x_max-x_min)/x_res;
+				x_len	=  ceil((x_max-x_min)/x_res);
 			}
 			else if(!strcmp(tokens[0].c_str(),"y_params")){
 				y_min	= atof(tokens[1].c_str());
 				y_max	= atof(tokens[2].c_str());
 				y_res	= atof(tokens[3].c_str());
-				y_len	=  (y_max-y_min)/y_res;
+				y_len	=  ceil((y_max-y_min)/y_res);
 			}
 		}
 	}
