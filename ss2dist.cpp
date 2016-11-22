@@ -1020,10 +1020,14 @@ int main(int argc, char* argv[]){
 				dist[ array_dex ] = dist[ array_dex] + this_wgt;
 				// increment spec if there is one
 				if(input.spec_E_bins>0){
-					if ( (this_E >= input.spec_E_min) & (this_E <= input.spec_E_max) ) {
+					if ( (this_E      >= input.spec_E_min) & (     this_E <= input.spec_E_max) ) {
+					if ( (this_pos[0] >= input.spec_x_min) & (this_pos[0] <= input.spec_x_max) ){
+					if ( (this_pos[1] >= input.spec_y_min) & (this_pos[1] <= input.spec_y_max) ){
 						spec_dex = long( (log10(this_E) - spec_E_min_log)/( spec_E_max_log - spec_E_min_log ) *input.spec_E_bins );
 						spec[ spec_dex ] = spec[ spec_dex ] + this_wgt;
 						//printf("%6.4E %6.4E %ld \n",this_E,(log10(this_E) - spec_E_min_log)/( spec_E_max_log - spec_E_min_log ),spec_dex);
+					}
+					}
 					}
 				}
 				total_tracks++;
