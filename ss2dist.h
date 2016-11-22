@@ -113,6 +113,10 @@ public:
 	double 	x_min, x_max, x_res, y_min, y_max, y_res;
 	long 	x_len, y_len, this_sc;
 
+	// spectral binning paramters
+	double 	spec_E_min, spec_E_max, spec_x_min, spec_x_max, spec_y_min, spec_y_max;
+	long 	spec_E_bins;
+
 	// file object
 	std::string			input_file_name;
 	std::ifstream 		input_file;

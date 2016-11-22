@@ -617,6 +617,13 @@ void InputFile::Init(){
 	// init valarray vectors
 	surface_plane .resize(4,0);
 	surface_center.resize(3,0);
+	spec_E_min=0;
+	spec_E_max=0;
+	spec_x_min=0;
+	spec_x_max=0;
+	spec_y_min=0;
+	spec_y_max=0;
+	spec_E_bins=0;
 }
 void InputFile::OpenInputFile(const char* fileName){
 
@@ -697,6 +704,19 @@ void InputFile::Parse(){
 				y_res	= atof(tokens[3].c_str());
 				y_len	=  ceil((y_max-y_min)/y_res);
 			}
+			else if(!strcmp(tokens[0].c_str(),"spec_E")){
+				spec_E_min	= atof(tokens[1].c_str());
+				spec_E_max	= atof(tokens[2].c_str());
+				spec_E_bins	= atoi(tokens[3].c_str());
+			}
+			else if(!strcmp(tokens[0].c_str(),"spec_x")){
+				spec_x_min	= atof(tokens[1].c_str());
+				spec_x_max	= atof(tokens[2].c_str());
+			}
+			else if(!strcmp(tokens[0].c_str(),"spec_y")){
+				spec_y_min	= atof(tokens[1].c_str());
+				spec_y_max	= atof(tokens[2].c_str());
+			}
 		}
 	}
 	
@@ -736,6 +756,14 @@ void InputFile::PrintSummary(){
 		printf(" % 6.4E",phi_bins[i]);
 	}
 	printf("\n");
+	if(spec_E_bins>0){
+		printf("\n");
+		printf(" ======================= Spectral Binning ======================== \n");
+		printf(" E_min %6.4E E_max %6.4E bins %ld\n",spec_E_min,spec_E_max,spec_E_bins);
+		printf(" x_min %6.4E x_max %6.4E \n",spec_x_min,spec_x_max);
+		printf(" y_min %6.4E y_max %6.4E \n",spec_y_min,spec_y_max);
+		printf("\n");
+	}
 
 }
 bool InputFile::GetSurface( SurfaceSource* ss ){
@@ -878,6 +906,12 @@ int main(int argc, char* argv[]){
 	std::vector<double>::iterator theta_dex2;
 	std::vector<double>::iterator phi_dex2;
 
+	// init spec vector if there
+	std::vector<double>::vector spec (input.spec_E_bins,0);
+	long spec_dex = 0;
+	double spec_E_min_log = log10(input.spec_E_min);
+	double spec_E_max_log = log10(input.spec_E_max);
+
 	// set loop length
 	long N = ss.nrss;//std::min(ss.nrss,10000000000);
 
@@ -984,6 +1018,14 @@ int main(int argc, char* argv[]){
 			if (E_dex < INT_MAX & theta_dex < INT_MAX & phi_dex < INT_MAX & y_dex < INT_MAX & x_dex < INT_MAX & this_wgt <= max_wgt) {
 				array_dex = E_dex*E_stride + theta_dex*theta_stride + phi_dex*phi_stride + y_dex*y_stride + x_dex*x_stride;
 				dist[ array_dex ] = dist[ array_dex] + this_wgt;
+				// increment spec if there is one
+				if(input.spec_E_bins>0){
+					if ( (this_E >= input.spec_E_min) & (this_E <= input.spec_E_max) ) {
+						spec_dex = long( (log10(this_E) - spec_E_min_log)/( spec_E_max_log - spec_E_min_log ) *input.spec_E_bins );
+						spec[ spec_dex ] = spec[ spec_dex ] + this_wgt;
+						//printf("%6.4E %6.4E %ld \n",this_E,(log10(this_E) - spec_E_min_log)/( spec_E_max_log - spec_E_min_log ),spec_dex);
+					}
+				}
 				total_tracks++;
 			}
 			else{
@@ -1017,11 +1059,18 @@ int main(int argc, char* argv[]){
 		dist[i] = dist[i] / surface_nps;
 	}
 
+	// normalize spec to nps read
+	if(input.spec_E_bins>0){
+		for(long i=0;i<input.spec_E_bins;i++){
+			spec[i] = spec[i] / surface_nps;
+		}
+	}
+
 	//
 	// write output
 	//
 
-	// oprn file
+	// open dist output file
 	char* ofileName = new char [ int(floor(log10(input.this_sc)))+9 ];
 	sprintf(ofileName,"%ld_dist.bin",input.this_sc);
 	printf("writing output to %s \n\n",ofileName);
@@ -1064,5 +1113,30 @@ int main(int argc, char* argv[]){
 
 	// close file
 	output_file.close();
+
+	// open spec output file
+	sprintf(ofileName,"%ld_spec.bin",input.this_sc);
+	printf("writing output to %s \n\n",ofileName);
+	//std::ofstream output_file;
+	output_file.open(ofileName, std::ios::binary);
+
+	// cast integers as doubles to make the reading more regular, adjust length values to be the number of edges, not bins, which is the length of the bins vectors
+	double fspec_E_bins		= (double)  input.spec_E_bins;
+
+	// write the single values so all lengths can be read  before vectors
+	output_file.write((char*) &input.spec_E_min,	sizeof(double));
+	output_file.write((char*) &input.spec_E_max,	sizeof(double));
+	output_file.write((char*) &fspec_E_bins,		sizeof(double));
+	output_file.write((char*) &input.spec_x_min,	sizeof(double));
+	output_file.write((char*) &input.spec_x_max,	sizeof(double));
+	output_file.write((char*) &input.spec_y_min,	sizeof(double));
+	output_file.write((char*) &input.spec_y_max,	sizeof(double));
+
+	// write spec
+	output_file.write((char*) &spec[0], input.spec_E_bins*sizeof(double));
+
+	// close file
+	output_file.close();
+
 
 }
