@@ -121,16 +121,15 @@ except IOError:
     spec = False
 
 if spec:
-	### first 11 values are the lengths, xy params
-	E_min		= int(dist[ 0])
-	E_min = 1e-11
-	E_max		= int(dist[ 1])
-	E_bins		= int(dist[ 2])
-	x_min		= int(dist[ 3])
-	x_max		= int(dist[ 4])
-	y_min		= int(dist[ 5])
-	y_max		= int(dist[ 6])
-	dist_start	=           7
+	### load params
+	E_min		= dist[ 0]
+	E_max		= dist[ 1]
+	E_bins		= dist[ 2]
+	x_min		= dist[ 3]
+	x_max		= dist[ 4]
+	y_min		= dist[ 5]
+	y_max		= dist[ 6]
+	dist_start	=       7
 	spec_area_x=[x_min,x_max,x_max,x_min,x_min]
 	spec_area_y=[y_min,y_min,y_max,y_max,y_min]
 	
