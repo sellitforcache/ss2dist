@@ -244,16 +244,16 @@ sphere = False
 
 ### images
 
-upper_lim=[5e9,1e10,100]
+#upper_lim=[5e9,1e10,100]
 phi_bin=0
 for theta_bin in range(0,len(theta_bins)-1):
 	for E_bin in range(0,len(E_bins)-1):
 		f = plt.figure()
 		ax = f.add_subplot(111)
 		if logplot:
-			imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]*charge_per_milliamp          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'),norm=LogNorm(vmax=upper_lim[E_bin]))
+			imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]*charge_per_milliamp          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'),norm=LogNorm())#vmax=upper_lim[E_bin]))
 		else:
-			imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]*charge_per_milliamp          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'),vmax=upper_lim[E_bin])
+			imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]*charge_per_milliamp          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'))#,vmax=upper_lim[E_bin])
 		this_weight = numpy.sum(dist[E_bin][theta_bin][phi_bin][:][:]*charge_per_milliamp)
 		imgplot.set_interpolation('nearest')
 		theta_deg = theta_bins[theta_bin:theta_bin+2]*180.0/numpy.pi
