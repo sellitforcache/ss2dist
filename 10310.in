@@ -1,0 +1,25 @@
+# plane number
+surface 10310
+# center point
+center 1651.8911 -226.3105 0
+#
+#
+#
+#
+#
+E_bins     1e-11 1e-6  1e0  6e2
+x_params   -425.0  425.0  2.0
+y_params   -154.0  286.0  2.0
+theta_bins    0.0    1.57079632679
+phi_bins      0.0    6.28318530718
+#
+#
+#
+#
+#
+#
+#  this is for the spectrum!
+spec_E     1e-10   6e2   2048
+spec_x     300     425
+spec_y     -50      70
+~                           
