@@ -541,12 +541,11 @@ void SurfaceSource::PrintHeader(){
 void SurfaceSource::GetTrack(track* this_track){
 
 	// local vars
-	size_t size 	= 1;
-	size_t* sizes 	= new size_t [size];
-	sizes[0] 		= 11*sizeof(double);
+	//size_t size 	= 1;
+	size_t sizes 	= 11*sizeof(double);
 	
 	// try reading it all in at once...
-	if(!ReadRecord((void**) &this_track, sizes, size)){printf("ERROR READING TRACKS RECORD\n");std::exit(1);}
+	if(!ReadRecord((void**) &this_track, &sizes, 1)){printf("ERROR READING TRACKS RECORD\n");std::exit(1);}
 
 	// calculate missing zhat from the data
 	if ((this_track[0].xhat*this_track[0].xhat+this_track[0].yhat*this_track[0].yhat)<1.0){
