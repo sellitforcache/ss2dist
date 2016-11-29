@@ -915,8 +915,7 @@ int main(int argc, char* argv[]){
 	long N = ss.nrss;//std::min(ss.nrss,10000000000);
 
 	// stuff for status printing
-	long Nd = N%int(pow(10,floor (log10 (labs (N)))));
-	long Ns =  (N-Nd)/10;
+	long Ns =  int(N/10);
 	printf("\nBINNING TRACKS\n");
 	printf("00==10==20==30==40==50==60==70==80==90==||100%%\n");
 	printf("||");
@@ -925,7 +924,7 @@ int main(int argc, char* argv[]){
 	for(long i=0;i<N;i++){
 
 		// print a new status
-		if ( (i-Nd)%Ns == 0){printf("||||");fflush(stdout);}
+		if ( i%Ns == 0){printf("||||");fflush(stdout);}
 
 		// get track
 		ss.GetTrack(&this_track);
