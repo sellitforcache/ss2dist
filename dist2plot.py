@@ -159,6 +159,28 @@ if spec:
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (n/p)')
 	plt.show()
+
+	# write mcnp input
+	fmcnp = open(sys.argv[1][:-8]+'spec.mcnp','w')
+	fmcnp.write('siXXX  H \n')
+	for i in range(0,(len(ene)-1)/4):
+		fmcnp.write('      % 8.6E % 8.6E % 8.6E % 8.6E\n'%(ene[i*4+0+1],ene[i*4+1+1],ene[i*4+2+1],ene[i*4+3+1]))
+	string='      '
+	for i in range(0,(len(ene)-1)%4):
+		string = string + '% 8.6E '%dist[(len(ene)-1)/4+i]
+	if len(string)>6:
+		fmcnp.write(string+'\n')
+	fmcnp.write('spXXX    \n')
+	for i in range(0,len(dist)/4):
+		fmcnp.write('      % 8.6E % 8.6E % 8.6E % 8.6E\n'%(dist[i*4+0],dist[i*4+1],dist[i*4+2],dist[i*4+3]))
+	string='      '
+	for i in range(0,len(dist)%4):
+		string = string + '% 8.6E '%dist[len(dist)/4+i]
+	if len(string)>6:
+		fmcnp.write(string+'\n')
+	fmcnp.close()
+
+		
 else:
     print "No file '"+fname+"' present."
 

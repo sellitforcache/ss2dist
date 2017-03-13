@@ -558,49 +558,6 @@ void SurfaceSource::GetTrack(track* this_track){
 
 }
 
-//class histogram:
-//
-//	def __init__(self,bins):
-//		self.bins		= 	copy.deepcopy(bins)  # bins are edges
-//		self.n_bins		=	len(bins)
-//		self.values		=	numpy.zeros((self.n_bins-1,))
-//		self.sqvals		=	numpy.zeros((self.n_bins-1,))
-//		self.counts		=	numpy.zeros((self.n_bins-1,))
-//		self.err		=	numpy.zeros((self.n_bins-1,))
-//
-//	def add(self,bin_val,weight):
-//
-//		# check if in bounds
-//		valid = True
-//		if bin_val < self.bins[0] or bin_val > self.bins[-1]:
-//			valid = False
-//
-//		# add weight to bin if between bins
-//		if valid:
-//			dex = next((i for i, x in enumerate(bin_val < self.bins) if x), False) - 1
-//			self.values[dex] = self.values[dex] + weight
-//			self.sqvals[dex] = self.sqvals[dex] + weight*weight
-//			self.counts[dex] = self.counts[dex] + 1
-//
-//	def update(self):
-//
-//		# calculate error
-//		for dex in range(0,self.n_bins-1):
-//			N		= self.counts[dex]
-//			sum_xi	= self.values[dex]
-//			sum_xi2	= self.sqvals[dex]
-//			if N==1:
-//				self.err[dex] = 1.0
-//			elif N > 1:
-//				tally_err_sq =   1.0/(N-1) * ( N*sum_xi2/(sum_xi*sum_xi) - 1.0) 
-//				if tally_err_sq > 0:
-//					self.err[dex] = numpy.sqrt(tally_err_sq)
-//				else:
-//					self.err[dex] = 0.0
-//			else:
-//				self.err[dex] = 0.0
-
-
 InputFile::~InputFile(){
 	input_file.close();
 }
@@ -716,6 +673,12 @@ void InputFile::Parse(){
 				spec_y_min	= atof(tokens[1].c_str());
 				spec_y_max	= atof(tokens[2].c_str());
 			}
+			else if(!strcmp(tokens[0].c_str(),"spec_theta")){
+				//spec_theta_edges.push_back(0.0);  // don't imply anything
+				for(long i=1;i<tokens.size();i++){
+					spec_theta_edges.push_back(atof(tokens[i].c_str()));
+				}
+			}
 		}
 	}
 	
@@ -725,6 +688,7 @@ void InputFile::PrintSummary(){
 	long E_len		= E_bins.end()     - E_bins.begin()     - 1;
 	long theta_len	= theta_bins.end() - theta_bins.begin() - 1;
 	long phi_len	= phi_bins.end()   - phi_bins.begin()   - 1;
+	long i = 0;
 
 	printf(" ======================= INPUT FILE SUMMARY ======================= \n");
 	printf("Surface   %5ld\n",this_sc);
@@ -741,17 +705,17 @@ void InputFile::PrintSummary(){
 	printf("x_res	  % 6.4E\n",	x_res		);
 	printf("\n");
 	printf(" ========================= E_bins VECTOR ========================= \n");
-	for(long i=0;i<E_len+1;i++){
+	for(i=0;i<E_len+1;i++){
 		printf(" % 6.4E",E_bins[i]);
 	}
 	printf("\n\n");
 	printf(" ======================= theta_bins VECTOR ======================= \n");
-	for(long i=0;i<theta_len+1;i++){
+	for(i=0;i<theta_len+1;i++){
 		printf(" % 6.4E",theta_bins[i]);
 	}
 	printf("\n\n");
 	printf(" ======================== phi_bins VECTOR ======================== \n");
-	for(long i=0;i<phi_len+1;i++){
+	for(i=0;i<phi_len+1;i++){
 		printf(" % 6.4E",phi_bins[i]);
 	}
 	printf("\n");
@@ -759,6 +723,12 @@ void InputFile::PrintSummary(){
 		printf("\n");
 		printf(" ======================= Spectral Binning ======================== \n");
 		printf(" E_min %6.4E E_max %6.4E bins %ld\n",spec_E_min,spec_E_max,spec_E_bins);
+		printf(" theta");
+		for(i=1;i<spec_theta_edges.size()+1;i++){
+			printf(" %6.4E",spec_theta_edges[i-1]);
+			if (i%6==0){printf("\n");}
+		}
+		if (i%6!=0){printf("\n");}
 		printf(" x_min %6.4E x_max %6.4E \n",spec_x_min,spec_x_max);
 		printf(" y_min %6.4E y_max %6.4E \n",spec_y_min,spec_y_max);
 		printf("\n");
@@ -810,6 +780,86 @@ bool InputFile::GetSurface( SurfaceSource* ss ){
 	printf("Surface %ld not found in the surface source...\n",this_sc);
 	return false;
 
+}
+
+histogram_log::histogram_log(){
+	// DEFAULT TO SOMETHING REASONABLE
+	histogram_log(1e-10,1e3,1024);
+}
+
+histogram_log::histogram_log( double E_min_in, double E_max_in, long n_bins_in ){
+	// make linearly-spaced vector in log space
+	double E_min_log = log10(E_min_in);
+	double E_max_log = log10(E_max_in);
+	double stride    = (E_max_log - E_min_log)/n_bins_in;
+	for(long i=0;i<n_bins_in+1;i++){
+		edges.push_back( i*stride + E_min_log );
+	}
+	// convert back to energy  
+	for(long i=0;i<n_bins_in+1;i++){
+		edges[i] = pow(10,edges[i]);
+	}
+	// init rest to zeros
+	n_bins	=	n_bins_in;
+	E_min	=	E_min_in;
+	E_max	=	E_max_in;
+	values	=	std::vector<double> (n_bins, 0);
+	sqvals	=	std::vector<double> (n_bins, 0);
+	counts	=	std::vector<long>   (n_bins, 0);
+	err		=	std::vector<double> (n_bins, 0);
+}
+
+histogram_log::~histogram_log(){
+}
+
+void histogram_log::add( double bin_val, double weight ){
+
+	// check if in bounds
+	bool valid = true;
+	if (bin_val < E_min | bin_val > E_max){
+		valid = false;
+	}
+
+	// add weight to bin if between bins
+	long dex;
+	if (valid){
+		if (bin_val == E_min){
+			dex = 0;
+		}
+		else{
+			std::vector<double>::iterator it = std::lower_bound (edges.begin(), edges.end(), bin_val);
+			dex = it-edges.begin()-1;
+		}
+		values[dex] = values[dex] + weight;
+		sqvals[dex] = sqvals[dex] + weight*weight;
+		counts[dex] = counts[dex] + 1;
+	}
+}
+void histogram_log::update(){
+
+	// calculate error
+	double tally_err_sq, sum_xi, sum_xi2;
+	long N;
+	for (long dex=0;dex<n_bins;dex++){
+		N		= counts[dex];
+		sum_xi	= values[dex];
+		sum_xi2	= sqvals[dex];
+		if (N==1){
+			err[dex] = 1.0;
+		}
+		else if(N > 1){
+			tally_err_sq =   1.0/(N-1) * ( N*sum_xi2/(sum_xi*sum_xi) - 1.0);
+			if (tally_err_sq > 0){
+				err[dex] = sqrt(tally_err_sq);
+			}
+			else{
+				err[dex] = 0.0;
+			}
+		}
+		else{
+			err[dex] = 0.0;
+		}
+	}
 }
 
 
@@ -895,8 +945,8 @@ int main(int argc, char* argv[]){
 	int ipt				= 0;
 	int nsf				= 0;
 	//
-	double 	total_weight 	= 0.0;
-	double 	total_tracks 	= 0;
+	double 	total_weight	= 0.0;
+	double 	total_tracks	= 0;
 	//
 	bool printflag = false;
 	bool errorflag = false;
@@ -905,12 +955,12 @@ int main(int argc, char* argv[]){
 	std::vector<double>::iterator theta_dex2;
 	std::vector<double>::iterator phi_dex2;
 
-	// init spec vector if there
-	std::vector<double>::vector spec (input.spec_E_bins,0);
-	long spec_dex = 0;
-	double spec_E_min_log = log10(input.spec_E_min);
-	double spec_E_max_log = log10(input.spec_E_max);
-
+	// hitogram vector stuff
+	std::vector<histogram_log>::vector spectra;
+	for (long i=0; i<(input.spec_theta_edges.size()-1);i++){
+		spectra.push_back(histogram_log(input.spec_E_min,input.spec_E_max,input.spec_E_bins));
+	}
+	
 	// set loop length
 	long N = ss.nrss;//std::min(ss.nrss,10000000000);
 
@@ -1016,17 +1066,17 @@ int main(int argc, char* argv[]){
 			if (E_dex < INT_MAX & theta_dex < INT_MAX & phi_dex < INT_MAX & y_dex < INT_MAX & x_dex < INT_MAX & this_wgt <= max_wgt) {
 				array_dex = E_dex*E_stride + theta_dex*theta_stride + phi_dex*phi_stride + y_dex*y_stride + x_dex*x_stride;
 				dist[ array_dex ] = dist[ array_dex] + this_wgt;
-				// increment spec if there is one
-				if(input.spec_E_bins>0){
-					if ( (this_E      >= input.spec_E_min) & (     this_E <= input.spec_E_max) ) {
-					if ( (this_pos[0] >= input.spec_x_min) & (this_pos[0] <= input.spec_x_max) ){
-					if ( (this_pos[1] >= input.spec_y_min) & (this_pos[1] <= input.spec_y_max) ){
-						spec_dex = long( (log10(this_E) - spec_E_min_log)/( spec_E_max_log - spec_E_min_log ) *input.spec_E_bins );
-						spec[ spec_dex ] = spec[ spec_dex ] + this_wgt;
-						//printf("%6.4E %6.4E %ld \n",this_E,(log10(this_E) - spec_E_min_log)/( spec_E_max_log - spec_E_min_log ),spec_dex);
+				// increment specs
+				if ( (this_E      >= input.spec_E_min) & (     this_E <= input.spec_E_max) ){
+				if ( (this_pos[0] >= input.spec_x_min) & (this_pos[0] <= input.spec_x_max) ){
+				if ( (this_pos[1] >= input.spec_y_min) & (this_pos[1] <= input.spec_y_max) ){
+				for (long i=0;i<spectra.size();i++){
+					if (this_theta <= input.spec_theta_edges[i] & this_theta < input.spec_theta_edges[i+1]){
+						spectra[i].add(this_E,this_wgt);
 					}
-					}
-					}
+				}
+				}
+				}
 				}
 				total_tracks++;
 			}
@@ -1061,10 +1111,11 @@ int main(int argc, char* argv[]){
 		dist[i] = dist[i] / surface_nps;
 	}
 
-	// normalize spec to nps read
-	if(input.spec_E_bins>0){
-		for(long i=0;i<input.spec_E_bins;i++){
-			spec[i] = spec[i] / surface_nps;
+	// finalize spec, normalize spec to nps read
+	for(long i=0;i<spectra.size();i++){
+		spectra[i].update();
+		for(long j=0;j<input.spec_E_bins;j++){
+			spectra[i].values[j] = spectra[i].values[j] / surface_nps;
 		}
 	}
 
@@ -1080,9 +1131,9 @@ int main(int argc, char* argv[]){
 	output_file.open(ofileName, std::ios::binary);
 
 	// cast integers as doubles to make the reading more regular, adjust length values to be the number of edges, not bins, which is the length of the bins vectors
-	double fE_len 		 = (double)       (E_len+1);
-	double ftheta_len 	 = (double)       (theta_len+1);
-	double fphi_len 	 = (double)       (phi_len+1);
+	double fE_len 		 = (double) (      E_len+1);
+	double ftheta_len 	 = (double) (  theta_len+1);
+	double fphi_len 	 = (double) (    phi_len+1);
 	double fy_len 		 = (double) (input.y_len+1);
 	double fy_min 		 = (double)  input.y_min;
 	double fy_max 		 = (double)  input.y_max;
@@ -1135,7 +1186,7 @@ int main(int argc, char* argv[]){
 	output_file.write((char*) &input.spec_y_max,	sizeof(double));
 
 	// write spec
-	output_file.write((char*) &spec[0], input.spec_E_bins*sizeof(double));
+	output_file.write((char*) &spectra[0].values[0], input.spec_E_bins*sizeof(double));
 
 	// close file
 	output_file.close();

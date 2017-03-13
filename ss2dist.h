@@ -116,6 +116,7 @@ public:
 	// spectral binning paramters
 	double 	spec_E_min, spec_E_max, spec_x_min, spec_x_max, spec_y_min, spec_y_max;
 	long 	spec_E_bins;
+	std::vector<double> spec_theta_edges;
 
 	// file object
 	std::string			input_file_name;
@@ -136,5 +137,37 @@ public:
 	bool GetSurface( SurfaceSource* );
 	void Parse();
 	void PrintSummary();
+
+};
+
+class histogram_log {
+
+public:
+
+	//
+	//
+	// DATA
+	//
+	//
+
+	std::vector<double> edges;
+	long                n_bins;
+	std::vector<double> values;
+	std::vector<double> sqvals;
+	std::vector<long>   counts;
+	std::vector<double> err;
+	double              E_min, E_max;
+
+	//
+	//
+	// METHODS
+	//
+	//
+
+	~histogram_log();
+	histogram_log();
+	histogram_log(double,double,long);
+	void add(double,double);
+	void update();
 
 };
