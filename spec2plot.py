@@ -128,12 +128,14 @@ for i in range(0,len(sys.argv[1:])):
 		### load params
 		E_min		= dist[ 0]
 		E_max		= dist[ 1]
-		E_bins		= dist[ 2]
-		x_min		= dist[ 3]
-		x_max		= dist[ 4]
-		y_min		= dist[ 5]
-		y_max		= dist[ 6]
-		dist_start	=       7
+		E_bins		= int(dist[ 2])
+		theta_bins  = int(dist[ 3])
+		x_min		= dist[ 4]
+		x_max		= dist[ 5]
+		y_min		= dist[ 6]
+		y_max		= dist[ 7]
+		theta_start =       8
+		dist_start	=       8+theta_bins+1
 		spec_area_x=[x_min,x_max,x_max,x_min,x_min]
 		spec_area_y=[y_min,y_min,y_max,y_max,y_min]
 		
@@ -147,7 +149,9 @@ for i in range(0,len(sys.argv[1:])):
 		print "%10s %6.4E"%("y_max",	y_max	)
 		
 		### remove the header info and reshape for easier indexing
+		theta_edges = dist[theta_start:dist_start] 
 		dist = dist[dist_start:]
+		dist = numpy.reshape(dist,(theta_bins,E_bins))
 		
 		### constants
 		charge_per_amp = 6.241e18
@@ -156,7 +160,9 @@ for i in range(0,len(sys.argv[1:])):
 		### images
 		ene = numpy.power(10,numpy.linspace(numpy.log10(E_min),numpy.log10(E_max),E_bins+1))
 		colorVal = scalarMap.to_rgba(i)
-		make_steps(ax1,ene,[0],dist,options=['log'],linewidth=2, color=colorVal,label=fname)
+		for j in range(0,theta_bins):
+			print ene, dist[j,:]
+			make_steps(ax1,ene,[0],dist[j,:],options=['log'],linewidth=2, color=colorVal,label=fname)
 		ax1.grid(1)
 		ax1.set_xlabel(r'Energy (MeV)')
 		ax1.set_ylabel(r'Current (n/p)')
