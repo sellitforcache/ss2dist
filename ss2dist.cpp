@@ -1071,7 +1071,7 @@ int main(int argc, char* argv[]){
 				if ( (this_pos[0] >= input.spec_x_min) & (this_pos[0] <= input.spec_x_max) ){
 				if ( (this_pos[1] >= input.spec_y_min) & (this_pos[1] <= input.spec_y_max) ){
 				for (long i=0;i<spectra.size();i++){
-					if (this_theta >= input.spec_theta_edges[i] & this_theta < input.spec_theta_edges[i+1]){
+					if (this_theta >= pi/180.0*input.spec_theta_edges[i] & this_theta < pi/180.0*input.spec_theta_edges[i+1]){
 						spectra[i].add(this_E,this_wgt);
 					}
 				}
