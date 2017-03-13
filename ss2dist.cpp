@@ -726,9 +726,9 @@ void InputFile::PrintSummary(){
 		printf(" theta");
 		for(i=1;i<spec_theta_edges.size()+1;i++){
 			printf(" %6.4E",spec_theta_edges[i-1]);
-			if (i%6==0){printf("\n");}
+			if (i%4==0){printf("\n      ");}
 		}
-		if (i%6!=0){printf("\n");}
+		if ((i-1)%4!=0){printf("\n");}
 		printf(" x_min %6.4E x_max %6.4E \n",spec_x_min,spec_x_max);
 		printf(" y_min %6.4E y_max %6.4E \n",spec_y_min,spec_y_max);
 		printf("\n");
@@ -1175,18 +1175,25 @@ int main(int argc, char* argv[]){
 
 	// cast integers as doubles to make the reading more regular, adjust length values to be the number of edges, not bins, which is the length of the bins vectors
 	double fspec_E_bins		= (double)  input.spec_E_bins;
+	double fspec_theta_bins		= (double)  input.spec_theta_edges.size();
 
 	// write the single values so all lengths can be read  before vectors
 	output_file.write((char*) &input.spec_E_min,	sizeof(double));
 	output_file.write((char*) &input.spec_E_max,	sizeof(double));
 	output_file.write((char*) &fspec_E_bins,		sizeof(double));
+	output_file.write((char*) &fspec_theta_bins,		sizeof(double));
 	output_file.write((char*) &input.spec_x_min,	sizeof(double));
 	output_file.write((char*) &input.spec_x_max,	sizeof(double));
 	output_file.write((char*) &input.spec_y_min,	sizeof(double));
 	output_file.write((char*) &input.spec_y_max,	sizeof(double));
 
-	// write spec
-	output_file.write((char*) &spectra[0].values[0], input.spec_E_bins*sizeof(double));
+	// write theta vector
+	output_file.write((char*) &input.spec_theta_edges[0], input.spec_theta_edges.size()*sizeof(double));
+
+	// write specs
+	for(long i=0;i<spectra.size();i++){
+		output_file.write((char*) &spectra[i].values[0], input.spec_E_bins*sizeof(double));
+	}
 
 	// close file
 	output_file.close();
