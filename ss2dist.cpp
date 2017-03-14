@@ -1065,7 +1065,7 @@ int main(int argc, char* argv[]){
 				phi_dex = INT_MAX;
 			}
 				
-			// increment array
+			// increment spatial array
 			if (E_dex < INT_MAX & theta_dex < INT_MAX & phi_dex < INT_MAX & y_dex < INT_MAX & x_dex < INT_MAX & this_wgt <= max_wgt) {
 				array_dex = E_dex*E_stride + theta_dex*theta_stride + phi_dex*phi_stride + y_dex*y_stride + x_dex*x_stride;
 				dist[ array_dex ] = dist[ array_dex] + this_wgt;
@@ -1076,9 +1076,9 @@ int main(int argc, char* argv[]){
 			if ( (this_E      >= input.spec_E_min) & (     this_E <= input.spec_E_max) ){
 			if ( (this_pos[0] >= input.spec_x_min) & (this_pos[0] <= input.spec_x_max) ){
 			if ( (this_pos[1] >= input.spec_y_min) & (this_pos[1] <= input.spec_y_max) ){
-			if ( (this_theta_deg  >  *input.spec_theta_edges.begin()) & (this_theta_deg <= *input.spec_theta_edges.end()) ){
+			if ( (this_theta_deg  >  *input.spec_theta_edges.begin()) & (this_theta_deg <= *(input.spec_theta_edges.end()-1)) ){
 				spec_theta_dex2 = std::lower_bound (input.spec_theta_edges.begin(), input.spec_theta_edges.end(), this_theta_deg);
-				spec_theta_dex	= theta_dex2-input.theta_bins.begin()-1;
+				spec_theta_dex	= spec_theta_dex2-input.spec_theta_edges.begin()-1;
 				spectra[spec_theta_dex].add(this_E,this_wgt);
 			}
 			}

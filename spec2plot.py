@@ -34,7 +34,7 @@ def coarsen(values,bins,bin_red=2):
 	return numpy.array(v_out),numpy.array(b_out)
 
 
-def make_steps(ax,bins_in,avg_in,values_in,options=['log'],color=None,label='',ylim=False,linewidth=1):
+def make_steps(ax,bins_in,avg_in,values_in,options=['log'],color=None,label='',ylim=False,linewidth=1,linestyle='-'):
 	import numpy, re
 	assert(len(bins_in)==len(values_in)+1)
 
@@ -99,21 +99,21 @@ def make_steps(ax,bins_in,avg_in,values_in,options=['log'],color=None,label='',y
 	### plot with correct scale
 	if 'lin' in options:
 		if 'logy' in options:
-			ax.semilogy(x,y,color=color,label=label,linewidth=linewidth)
+			ax.semilogy(x,y,color=color,label=label,linewidth=linewidth,linestyle=linestyle)
 		else:
-			ax.plot(x,y,color=color,label=label,linewidth=linewidth)
+			ax.plot(x,y,color=color,label=label,linewidth=linewidth,linestyle=linestyle)
 	else:   #default to log if lin not present
 		if 'logy' in options:
-			ax.loglog(x,y,color=color,label=label,linewidth=linewidth)
+			ax.loglog(x,y,color=color,label=label,linewidth=linewidth,linestyle=linestyle)
 		else:
-			ax.semilogx(x,y,color=color,label=label,linewidth=linewidth)
+			ax.semilogx(x,y,color=color,label=label,linewidth=linewidth,linestyle=linestyle)
 
 
 fig  = plt.figure()
 ax1 = fig.add_subplot(111)
 cm  = plt.get_cmap('jet') 
-cNorm  = colors.Normalize(vmin=0, vmax=len(sys.argv[1:]))
-scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+stl=['-','--','.-',':']
+
 
 ### load the dist file
 for i in range(0,len(sys.argv[1:])):
@@ -144,7 +144,7 @@ for i in range(0,len(sys.argv[1:])):
 		print "%10s %6.4E"%("E_max",	E_max	)
 		print "%10s %5d"%("E_bins",	E_bins	)
 		print "%10s %6.4E"%("x_min",	x_min	)
-		print "%10s %6.4E"%("x_max",	x_max	)
+		print "%10s %6.4E"%("x_max",	x_max	)	
 		print "%10s %6.4E"%("y_min",	y_min	)
 		print "%10s %6.4E"%("y_max",	y_max	)
 		
@@ -159,10 +159,12 @@ for i in range(0,len(sys.argv[1:])):
 		
 		### images
 		ene = numpy.power(10,numpy.linspace(numpy.log10(E_min),numpy.log10(E_max),E_bins+1))
-		colorVal = scalarMap.to_rgba(i)
+		
+		cNorm  = colors.Normalize(vmin=0, vmax=theta_bins)
+		scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
 		for j in range(0,theta_bins):
-			print ene, dist[j,:]
-			make_steps(ax1,ene,[0],dist[j,:],options=['log'],linewidth=2, color=colorVal,label=fname)
+			colorVal = scalarMap.to_rgba(j)
+			make_steps(ax1,ene,[0],dist[j,:],options=['log'],linewidth=2, linestyle=stl[i] ,color=colorVal,label=fname+' %5.2f-%5.2f deg'%(theta_edges[j],theta_edges[j+1]))
 		ax1.grid(1)
 		ax1.set_xlabel(r'Energy (MeV)')
 		ax1.set_ylabel(r'Current (n/p)')
