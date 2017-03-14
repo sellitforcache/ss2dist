@@ -933,10 +933,12 @@ int main(int argc, char* argv[]){
 	double this_phi		= 0.0;
 	double sense 		= 0.0;
 	double max_wgt 		= 1e99;
+	double this_theta_deg = 0.0;
 	long E_dex			= 0;
 	long x_dex			= 0;
 	long y_dex			= 0;
 	long theta_dex		= 0;
+	long spec_theta_dex	= 0;
 	long phi_dex		= 0;
 	long array_dex		= 0;
 	//
@@ -953,6 +955,7 @@ int main(int argc, char* argv[]){
 	//
 	std::vector<double>::iterator E_dex2;
 	std::vector<double>::iterator theta_dex2;
+	std::vector<double>::iterator spec_theta_dex2;
 	std::vector<double>::iterator phi_dex2;
 
 	// hitogram vector stuff
@@ -1066,19 +1069,20 @@ int main(int argc, char* argv[]){
 			if (E_dex < INT_MAX & theta_dex < INT_MAX & phi_dex < INT_MAX & y_dex < INT_MAX & x_dex < INT_MAX & this_wgt <= max_wgt) {
 				array_dex = E_dex*E_stride + theta_dex*theta_stride + phi_dex*phi_stride + y_dex*y_stride + x_dex*x_stride;
 				dist[ array_dex ] = dist[ array_dex] + this_wgt;
-				// increment specs
-				if ( (this_E      >= input.spec_E_min) & (     this_E <= input.spec_E_max) ){
-				if ( (this_pos[0] >= input.spec_x_min) & (this_pos[0] <= input.spec_x_max) ){
-				if ( (this_pos[1] >= input.spec_y_min) & (this_pos[1] <= input.spec_y_max) ){
-				for (long i=0;i<spectra.size();i++){
-					if (this_theta >= pi/180.0*input.spec_theta_edges[i] & this_theta < pi/180.0*input.spec_theta_edges[i+1]){
-						spectra[i].add(this_E,this_wgt);
-					}
-				}
-				}
-				}
-				}
 				total_tracks++;
+			}
+			// increment specs
+			this_theta_deg = this_theta*180.0/pi;
+			if ( (this_E      >= input.spec_E_min) & (     this_E <= input.spec_E_max) ){
+			if ( (this_pos[0] >= input.spec_x_min) & (this_pos[0] <= input.spec_x_max) ){
+			if ( (this_pos[1] >= input.spec_y_min) & (this_pos[1] <= input.spec_y_max) ){
+			if ( (this_theta_deg  >  *input.spec_theta_edges.begin()) & (this_theta_deg <= *input.spec_theta_edges.end()) ){
+				spec_theta_dex2 = std::lower_bound (input.spec_theta_edges.begin(), input.spec_theta_edges.end(), this_theta_deg);
+				spec_theta_dex	= theta_dex2-input.theta_bins.begin()-1;
+				spectra[spec_theta_dex].add(this_E,this_wgt);
+			}
+			}
+			}
 			}
 			else{
 			if ((E_dex >= E_len )& printflag & errorflag){ 
