@@ -13,6 +13,7 @@
 #include <climits>
 #include <sstream>
 #include <sys/stat.h>
+#include <bitset>
 #include "ss2dist.h"
  
 /*
@@ -580,6 +581,11 @@ void InputFile::Init(){
 	spec_y_min=0;
 	spec_y_max=0;
 	spec_E_bins=0;
+	// particle naming
+	particle_symbols.resize(3,' ');
+	particle_symbols[0] = ' ';
+	particle_symbols[1] = 'n';
+	particle_symbols[2] = 'p';
 }
 void InputFile::OpenInputFile(const char* fileName){
 
@@ -673,6 +679,14 @@ void InputFile::Parse(){
 				spec_y_min	= atof(tokens[1].c_str());
 				spec_y_max	= atof(tokens[2].c_str());
 			}
+			else if(!strcmp(tokens[0].c_str(),"particle")){
+				for (long i=0;i<particle_symbols.size();i++){
+					if(*tokens[1].c_str() == particle_symbols[i]){
+						this_particle = i;
+						break;
+					}
+				};
+			}
 			else if(!strcmp(tokens[0].c_str(),"spec_theta")){
 				//spec_theta_edges.push_back(0.0);  // don't imply anything
 				for(long i=1;i<tokens.size();i++){
@@ -691,6 +705,7 @@ void InputFile::PrintSummary(){
 	long i = 0;
 
 	printf(" ======================= INPUT FILE SUMMARY ======================= \n");
+	printf("Particle  %3ld = %1c\n",this_particle,particle_symbols[this_particle]);
 	printf("Surface   %5ld\n",this_sc);
 	printf("E_len,	  %5ld\n",	E_len		);
 	printf("theta_len %5ld\n",	theta_len	);
@@ -863,6 +878,36 @@ void histogram_log::update(){
 }
 
 
+/* 
+function to decode the bitarray
+*/
+
+void decode_bitarray(unsigned bitarray, unsigned* ipt, unsigned* i_positron, unsigned* jgp){
+	// HEAVY IONS NOT IMPLEMENTED!
+	// encoding positions
+	unsigned pack_jgp   =        2; //                          2
+	unsigned pack_i_pos =        4; //                      2 * 2
+	unsigned pack_ipt   =        8; //                  2 * 2 * 2
+	unsigned pack_ion_a =      512; //             64 * 2 * 2 * 2
+	unsigned pack_ion_z =   262144; //       512 * 64 * 2 * 2 * 2
+	unsigned pack_ion_s = 33554432; // 128 * 512 * 64 * 2 * 2 * 2
+
+	unsigned b = bitarray;
+	unsigned f;
+
+	f = b%pack_ipt;
+	ipt[0]        = (b-f)/pack_ipt;
+	b=f;
+
+	f = b%pack_i_pos;
+	i_positron[0] = (b-f)/pack_i_pos;
+	b=f;
+
+	f = b%pack_jgp;
+	jgp[0]        = (b-f)/pack_jgp;
+
+}
+
 /*
 MAIN FUNCTION
 */
@@ -942,10 +987,12 @@ int main(int argc, char* argv[]){
 	long phi_dex		= 0;
 	long array_dex		= 0;
 	//
-	double b			= 0;
-	int j				= 0;
-	int ipt				= 0;
-	int nsf				= 0;
+	unsigned b			= 0;
+	unsigned j			= 0;
+	unsigned ipt		= 0;
+	unsigned nsf		= 0;
+	unsigned i_positron = 0;
+	unsigned jgp		= 0;
 	//
 	double 	total_weight	= 0.0;
 	double 	total_tracks	= 0;
@@ -958,10 +1005,13 @@ int main(int argc, char* argv[]){
 	std::vector<double>::iterator spec_theta_dex2;
 	std::vector<double>::iterator phi_dex2;
 
-	// hitogram vector stuff
+	// hitogram vector stuff 
+	// NEED TO FIX THIS - specifying no spec_theta means this becomes an infinite loop...
 	std::vector<histogram_log>::vector spectra;
-	for (long i=0; i<(input.spec_theta_edges.size()-1);i++){
-		spectra.push_back(histogram_log(input.spec_E_min,input.spec_E_max,input.spec_E_bins));
+	if (input.spec_theta_edges.size()>0){
+		for (long i=0; i<(input.spec_theta_edges.size()-1);i++){
+			spectra.push_back(histogram_log(input.spec_E_min,input.spec_E_max,input.spec_E_bins));
+		}
 	}
 	
 	// set loop length
@@ -982,17 +1032,16 @@ int main(int argc, char* argv[]){
 		// get track
 		ss.GetTrack(&this_track);
 
-		// decode bitarray, onyl for mcnpx?
-		b   = fabs(this_track.bitarray); // sign means what?
-		j   = int(b / 2e8);              // collided?  history?
-		ipt = int(b / 1e6 - j*2e2);      // particle type (1=n,2=p,3=e,4=mu-,9=proton,20=pi_+)
-		nsf = int(b - ipt*1e6 - j*2e8);  // surface
+		// decode bitarray, this decode is only for mcnpx
+		//b   = fabs(this_track.bitarray); // sign is the sign of zhat
+		//j   = int(b / 2e8);              // collided?  history?
+		//ipt = int(b / 1e6 - j*2e2);      // particle type (1=n,2=p,3=e,4=mu-,9=proton,20=pi_+)
+		//nsf = int(b - ipt*1e6 - j*2e8);  // surface
+		//printf("b %4.2f j %d ipt %d nsf %d\n",b,j,ipt,nsf);
 
-		// mcnp6
-		if (!strcmp("SF_00001",ss.id)){
-			nsf=this_track.cs;
-			ipt=1;  //have manually set, IS NOT READ HERE, SCRIPT WILL ASSUME ALL ARE NEUTRONS
-		}
+		b   = abs(int(this_track.bitarray));
+		decode_bitarray(b, &ipt, &i_positron, &jgp);
+		nsf=this_track.cs;
 
 		// get data
 		vec[0]=this_track.xhat;
@@ -1010,7 +1059,7 @@ int main(int argc, char* argv[]){
 		// calculate sense
 		sense = (surface_normal*pos).sum() - input.surface_plane[3];  // use sense almost zero for on-plane particles since I don't think mcnpx prints which surface its on!
 
-		if  ((ipt==1) & (fabs(sense)<=1e-5)){
+		if  ((ipt==input.this_particle) & (fabs(sense)<=1e-5)){
 
 			// transform vector to normal system
 			this_vec[0] = (surface_vec1*vec).sum();
@@ -1129,7 +1178,7 @@ int main(int argc, char* argv[]){
 
 	// open dist output file
 	char* ofileName = new char [ int(floor(log10(input.this_sc)))+9 ];
-	sprintf(ofileName,"%ld_dist.bin",input.this_sc);
+	sprintf(ofileName,"%ld_%1c_dist.bin",input.this_sc,input.particle_symbols[input.this_particle]);
 	printf("writing output to %s \n\n",ofileName);
 	std::ofstream output_file;
 	output_file.open(ofileName, std::ios::binary);
@@ -1172,7 +1221,7 @@ int main(int argc, char* argv[]){
 	output_file.close();
 
 	// open spec output file
-	sprintf(ofileName,"%ld_spec.bin",input.this_sc);
+	sprintf(ofileName,"%ld_%1c_spec.bin",input.this_sc,input.particle_symbols[input.this_particle]);
 	printf("writing output to %s \n\n",ofileName);
 	//std::ofstream output_file;
 	output_file.open(ofileName, std::ios::binary);

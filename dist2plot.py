@@ -125,15 +125,19 @@ except IOError:
     spec = False
 
 if spec:
-	### load params
+
+	cm  = plt.get_cmap('jet') 
+
 	E_min		= dist[ 0]
 	E_max		= dist[ 1]
-	E_bins		= dist[ 2]
-	x_min		= dist[ 3]
-	x_max		= dist[ 4]
-	y_min		= dist[ 5]
-	y_max		= dist[ 6]
-	dist_start	=       7
+	E_bins		= int(dist[ 2])
+	theta_bins  = int(dist[ 3])
+	x_min		= dist[ 4]
+	x_max		= dist[ 5]
+	y_min		= dist[ 6]
+	y_max		= dist[ 7]
+	theta_start =       8
+	dist_start	=       8+theta_bins+1
 	spec_area_x=[x_min,x_max,x_max,x_min,x_min]
 	spec_area_y=[y_min,y_min,y_max,y_max,y_min]
 	
@@ -142,12 +146,14 @@ if spec:
 	print "%10s %6.4E"%("E_max",	E_max	)
 	print "%10s %5d"%("E_bins",	E_bins	)
 	print "%10s %6.4E"%("x_min",	x_min	)
-	print "%10s %6.4E"%("x_max",	x_max	)
+	print "%10s %6.4E"%("x_max",	x_max	)	
 	print "%10s %6.4E"%("y_min",	y_min	)
 	print "%10s %6.4E"%("y_max",	y_max	)
 	
 	### remove the header info and reshape for easier indexing
+	theta_edges = dist[theta_start:dist_start] 
 	dist = dist[dist_start:]
+	dist = numpy.reshape(dist,(theta_bins,E_bins))
 	
 	### constants
 	charge_per_amp = 6.241e18
@@ -156,33 +162,37 @@ if spec:
 	### images
 	fig  = plt.figure()
 	ene = numpy.power(10,numpy.linspace(numpy.log10(E_min),numpy.log10(E_max),E_bins+1))
-	print ene
 	ax1 = fig.add_subplot(111)
-	make_steps(ax1,ene,[0],dist,options=['log'],linewidth=2)
+	cNorm  = colors.Normalize(vmin=0, vmax=theta_bins)
+	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+	for j in range(0,theta_bins):
+		colorVal = scalarMap.to_rgba(j)
+		print len(ene),len(dist[j,:])
+		make_steps(ax1,ene,[0],dist[j,:],options=['log'],linewidth=2, color=colorVal,label=fname+' %5.2f-%5.2f deg'%(theta_edges[j],theta_edges[j+1]))
 	ax1.grid(1)
 	ax1.set_xlabel(r'Energy (MeV)')
-	ax1.set_ylabel(r'Current (n/p)')
+	ax1.set_ylabel(r'Current (particles/source)')
 	plt.show()
 
 	# write mcnp input
-	fmcnp = open(sys.argv[1][:-8]+'spec.mcnp','w')
-	fmcnp.write('siXXX  H \n')
-	for i in range(0,(len(ene)-1)/4):
-		fmcnp.write('      % 8.6E % 8.6E % 8.6E % 8.6E\n'%(ene[i*4+0+1],ene[i*4+1+1],ene[i*4+2+1],ene[i*4+3+1]))
-	string='      '
-	for i in range(0,(len(ene)-1)%4):
-		string = string + '% 8.6E '%dist[(len(ene)-1)/4+i]
-	if len(string)>6:
-		fmcnp.write(string+'\n')
-	fmcnp.write('spXXX    \n')
-	for i in range(0,len(dist)/4):
-		fmcnp.write('      % 8.6E % 8.6E % 8.6E % 8.6E\n'%(dist[i*4+0],dist[i*4+1],dist[i*4+2],dist[i*4+3]))
-	string='      '
-	for i in range(0,len(dist)%4):
-		string = string + '% 8.6E '%dist[len(dist)/4+i]
-	if len(string)>6:
-		fmcnp.write(string+'\n')
-	fmcnp.close()
+	#fmcnp = open(sys.argv[1][:-8]+'spec.mcnp','w')
+	#fmcnp.write('siXXX  H \n')
+	#for i in range(0,(len(ene)-1)/4):
+	#	fmcnp.write('      % 8.6E % 8.6E % 8.6E % 8.6E\n'%(ene[i*4+0+1],ene[i*4+1+1],ene[i*4+2+1],ene[i*4+3+1]))
+	#string='      '
+	#for i in range(0,(len(ene)-1)%4):
+	#	string = string + '% 8.6E '%dist[(len(ene)-1)/4+i]
+	#if len(string)>6:
+	#	fmcnp.write(string+'\n')
+	#fmcnp.write('spXXX    \n')
+	#for i in range(0,len(dist)/4):
+	#	fmcnp.write('      % 8.6E % 8.6E % 8.6E % 8.6E\n'%(dist[i*4+0],dist[i*4+1],dist[i*4+2],dist[i*4+3]))
+	#string='      '
+	#for i in range(0,len(dist)%4):
+	#	string = string + '% 8.6E '%dist[len(dist)/4+i]
+	#if len(string)>6:
+	#	fmcnp.write(string+'\n')
+	#fmcnp.close()
 
 		
 else:

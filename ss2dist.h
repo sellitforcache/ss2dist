@@ -1,6 +1,7 @@
 struct track
 {
 	double nps, bitarray, wgt, erg, tme, x, y, z, xhat, yhat, cs, zhat;		
+
 };
 
 struct surface
@@ -108,6 +109,10 @@ public:
 	std::vector<double> E_bins;
 	std::vector<double> theta_bins;
 	std::vector<double> phi_bins;
+
+	// particle naming
+	std::valarray<char> particle_symbols;
+	long this_particle;
 
 	// regular xy binning paramters
 	double 	x_min, x_max, x_res, y_min, y_max, y_res;
