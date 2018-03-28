@@ -152,7 +152,7 @@ def make_independent_distribution(file_obj,dist_number,*args):
 	total_len = len(string0)
 	for k in range(0,len(vector_vars)):
 		#if vector_probs[k]>0.0:
-		string1=' % 8.7E'%vector_vars[k]
+		string1=' % 10.8E'%vector_vars[k]
 		total_len = total_len + len(string1)
 		if total_len > 80:
 			file_obj.write('\n'+' '*max(5,len(string0)))
@@ -163,12 +163,12 @@ def make_independent_distribution(file_obj,dist_number,*args):
 		string0 = 'SP%d      '%dist_number
 		file_obj.write(string0)
 		total_len = len(string0)
-		string1=' %6.4E'%0.0
+		string1=' %10.8E'%0.0
 		total_len = total_len + len(string1)
 		file_obj.write(string1)
 		for k in range(0,len(vector_probs)):
 			#if vector_probs[k]>0.0:
-			string1=' %6.4E'%vector_probs[k]
+			string1=' %10.8E'%vector_probs[k]
 			total_len = total_len + len(string1)
 			if total_len > 80:
 				file_obj.write('\n'+' '*max(5,len(string0)))
@@ -196,7 +196,7 @@ def make_dependent_distribution(file_obj,dist_number,secondary_dist_start,vector
 
 	# write secondary distributions themselves
 	if datatype == 'float':
-		data_string=' %6.4E'
+		data_string=' % 10.8E'
 	elif datatype == 'int':
 		data_string = ' %d'
 	for k in range(0,len(vector_probs)):
@@ -217,11 +217,11 @@ def make_dependent_distribution(file_obj,dist_number,secondary_dist_start,vector
 		string0 = 'SP%d    '%(k+secondary_dist_start)
 		file_obj.write(string0)
 		total_len = len(string0)
-		string1=' %6.4E'%0.0
+		string1=' %10.8E'%0.0
 		total_len = total_len + len(string1)
 		file_obj.write(string1)  
 		for j in range(0,len(vector_probs[k])):
-			string1=' %6.4E'%vector_probs[k][j]
+			string1=' %10.8E'%vector_probs[k][j]
 			total_len = total_len + len(string1)
 			if total_len > 80:
 				file_obj.write('\n'+' '*max(5,len(string0)))
@@ -236,9 +236,9 @@ def make_dependent_variable(file_obj,dist_number,vector_vars,option='H',datatype
 
 	# write distributions 
 	if datatype == '3float':
-		data_string=' %6.4E %6.4E %6.4E'
+		data_string=' %10.8E %10.8E %10.8E'
 	if datatype == 'float':
-		data_string=' %6.4E'
+		data_string=' %10.8E'
 	elif datatype == 'int':
 		data_string = ' %d'
 	# SI card first
@@ -567,7 +567,7 @@ for theta_bin in range(0,len(theta_bins)-1):
 			ax.plot(spec_area_x,spec_area_y,linewidth=2,color=[0.8,0.8,0.8])
 		#
 		#
-		#plt.show()
+		plt.show()
 
 
 # sum over any energy bins for spatial dists
@@ -583,10 +583,14 @@ for theta_bin in range(0,len(theta_bins)-1):
 #
 surface_center = numpy.array([surf_cx,surf_cy,surf_cz]) 
 surface_normal = numpy.array([surf_a,surf_b,surf_c]) 
-surface_rotation_xy = numpy.arctan(surface_normal[1]/surface_normal[0])*180.0/numpy.pi
-#surface_rotation_yz = numpy.arccos(surface_normal[2])  # not implemented yet
+surface_vec1 = numpy.array([surf_b,surf_a,0.0]) 
+surface_vec2 = numpy.array([0.0,0.0,1.0]) 
+surface_vec3 = numpy.cross(surface_vec1,surface_vec2) 
+#surface_rotation_xy = numpy.arctan(surface_normal[1]/surface_normal[0])*180.0/numpy.pi
+#surface_rotation_yz = numpy.arccos(surface_normal[2])*180.0/numpy.pi  # not implemented yet
 
-offset_factor=-1e-6
+offset_factor=1e-6
+xform_num = 999
 
 # figure out angular probabilities
 weight_totals=[]
@@ -620,21 +624,22 @@ fsdef.write('        tr=999\n')
 fsdef.write('        rad=d1\n')
 fsdef.write('        dir=d2\n')
 fsdef.write('        erg=fdir=d3\n')
-fsdef.write('        ccc=fdir=d4')
+fsdef.write('        ccc=fdir=d4\n')
 fsdef.write('        pos=fccc=d5\n')
 fsdef.write('        wgt=%10.8E\n'%numpy.sum(weight_totals))
 fsdef.write('c \n')
 fsdef.write('c TRANSFORM\n')
 fsdef.write('c \n')
-fsdef.write('*tr999  % 6.7E  % 6.7E  % 6.7E\n'%((1.0+offset_factor)*surface_center[0],(1.0+offset_factor)*surface_center[1],(1.0+offset_factor)*surface_center[2]))
-fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_rotation_xy,90-surface_rotation_xy,90))
-fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(90+surface_rotation_xy,surface_rotation_xy,90))
-fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(90,90,0))
+fsdef.write('tr%3d   % 6.7E  % 6.7E  % 6.7E\n'%(xform_num,(1.0+offset_factor)*surface_center[0],(1.0+offset_factor)*surface_center[1],(1.0+offset_factor)*surface_center[2]))
+fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec1[0],surface_vec1[1],surface_vec1[2])) # (surface_rotation_xy,90-surface_rotation_xy,90))
+fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec2[0],surface_vec2[1],surface_vec2[2])) # (90+surface_rotation_xy,surface_rotation_xy,90))
+fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec3[0],surface_vec3[1],surface_vec3[2])) # (90,90,surface_rotation_yz))
 #
 # 
 # make CCC surfaces/cells
 #
 # surfs
+mcnp_cell_helper.surface_transform = xform_num
 helper = mcnp_cell_helper('helper')
 x_nums = []
 y_nums = []
