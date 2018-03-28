@@ -934,7 +934,7 @@ int main(int argc, char* argv[]){
 	input.PrintSummary();
 
 	// constants
-	int 	this_sc = 0;
+	//int 	this_sc = 0;
 	bool 	sphere = false;
 
 	// init dist vector
@@ -1007,7 +1007,7 @@ int main(int argc, char* argv[]){
 
 	// hitogram vector stuff 
 	// NEED TO FIX THIS - specifying no spec_theta means this becomes an infinite loop...
-	std::vector<histogram_log>::vector spectra;
+	std::vector<histogram_log> spectra;
 	if (input.spec_theta_edges.size()>0){
 		for (long i=0; i<(input.spec_theta_edges.size()-1);i++){
 			spectra.push_back(histogram_log(input.spec_E_min,input.spec_E_max,input.spec_E_bins));
@@ -1073,6 +1073,7 @@ int main(int argc, char* argv[]){
 			// calc angular values
 			this_theta  = acos(this_vec[2]);
 			this_phi 	= atan2(this_vec[1],this_vec[0]);
+			this_theta_deg = this_theta*180.0/pi;
 			
 			if (this_phi < 0.0){
 				this_phi = 2.0*pi + this_phi;
@@ -1099,8 +1100,8 @@ int main(int argc, char* argv[]){
 			else{
 				y_dex = INT_MAX;
 			}
-			if (this_theta > *input.theta_bins.begin() & this_theta < *(input.theta_bins.end()-1)){
-				theta_dex2 	= std::lower_bound (input.theta_bins.begin(), input.theta_bins.end(), this_theta);
+			if (this_theta_deg > *input.theta_bins.begin() & this_theta_deg < *(input.theta_bins.end()-1)){
+				theta_dex2 	= std::lower_bound (input.theta_bins.begin(), input.theta_bins.end(), this_theta_deg);
 				theta_dex	= theta_dex2-input.theta_bins.begin()-1;
 			}
 			else{
@@ -1121,7 +1122,6 @@ int main(int argc, char* argv[]){
 				total_tracks++;
 			}
 			// increment specs
-			this_theta_deg = this_theta*180.0/pi;
 			if ( (this_E      >= input.spec_E_min) & (     this_E <= input.spec_E_max) ){
 			if ( (this_pos[0] >= input.spec_x_min) & (this_pos[0] <= input.spec_x_max) ){
 			if ( (this_pos[1] >= input.spec_y_min) & (this_pos[1] <= input.spec_y_max) ){
@@ -1195,19 +1195,37 @@ int main(int argc, char* argv[]){
 	double fx_min 		 = (double)  input.x_min;
 	double fx_max 		 = (double)  input.x_max;
 	double fx_res 		 = (double)  input.x_res;
+	double surf_a		 = (double)  input.surface_plane[0];
+	double surf_b		 = (double)  input.surface_plane[1];
+	double surf_c		 = (double)  input.surface_plane[2];
+	double surf_d		 = (double)  input.surface_plane[3];
+	double this_sc		 = (double)  input.this_sc;
+	double surf_cx		 = (double)  input.surface_center[0];
+	double surf_cy		 = (double)  input.surface_center[1];
+	double surf_cz		 = (double)  input.surface_center[2];
+	double this_particle = (double)  input.this_particle;
 
 	// write the single values so all lengths can be read  before vectors
-	output_file.write((char*) &fE_len,		sizeof(double));
-	output_file.write((char*) &ftheta_len,	sizeof(double));
-	output_file.write((char*) &fphi_len,	sizeof(double));
-	output_file.write((char*) &fy_len,		sizeof(double));
-	output_file.write((char*) &fy_min,		sizeof(double));
-	output_file.write((char*) &fy_max,		sizeof(double));
-	output_file.write((char*) &fy_res,		sizeof(double));
-	output_file.write((char*) &fx_len,		sizeof(double));
-	output_file.write((char*) &fx_min,		sizeof(double));
-	output_file.write((char*) &fx_max,		sizeof(double));
-	output_file.write((char*) &fx_res,		sizeof(double));
+	output_file.write((char*) &fE_len,			sizeof(double));
+	output_file.write((char*) &ftheta_len,		sizeof(double));
+	output_file.write((char*) &fphi_len,		sizeof(double));
+	output_file.write((char*) &fy_len,			sizeof(double));
+	output_file.write((char*) &fy_min,			sizeof(double));
+	output_file.write((char*) &fy_max,			sizeof(double));
+	output_file.write((char*) &fy_res,			sizeof(double));
+	output_file.write((char*) &fx_len,			sizeof(double));
+	output_file.write((char*) &fx_min,			sizeof(double));
+	output_file.write((char*) &fx_max,			sizeof(double));
+	output_file.write((char*) &fx_res,			sizeof(double));
+	output_file.write((char*) &surf_a,			sizeof(double));
+	output_file.write((char*) &surf_b,			sizeof(double));
+	output_file.write((char*) &surf_c,			sizeof(double));
+	output_file.write((char*) &surf_d,			sizeof(double));
+	output_file.write((char*) &this_sc,			sizeof(double));
+	output_file.write((char*) &surf_cx,			sizeof(double));
+	output_file.write((char*) &surf_cy,			sizeof(double));
+	output_file.write((char*) &surf_cz,			sizeof(double));
+	output_file.write((char*) &this_particle,	sizeof(double));
 
 	// write vectors
 	output_file.write((char*) input.E_bins.data(),			(E_len+1)*     sizeof(double));
