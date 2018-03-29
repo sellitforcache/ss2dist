@@ -163,12 +163,12 @@ def make_independent_distribution(file_obj,dist_number,*args):
 		string0 = 'SP%d      '%dist_number
 		file_obj.write(string0)
 		total_len = len(string0)
-		string1=' %10.8E'%0.0
+		string1=' % 10.8E'%0.0
 		total_len = total_len + len(string1)
 		file_obj.write(string1)
 		for k in range(0,len(vector_probs)):
 			#if vector_probs[k]>0.0:
-			string1=' %10.8E'%vector_probs[k]
+			string1=' % 10.8E'%vector_probs[k]
 			total_len = total_len + len(string1)
 			if total_len > 80:
 				file_obj.write('\n'+' '*max(5,len(string0)))
@@ -195,7 +195,9 @@ def make_dependent_distribution(file_obj,dist_number,secondary_dist_start,vector
 	file_obj.write('c\nc\nc\n')
 
 	# write secondary distributions themselves
-	if datatype == 'float':
+	if datatype == '3float':
+		data_string=' % 10.8E % 10.8E % 10.8E'
+	elif datatype == 'float':
 		data_string=' % 10.8E'
 	elif datatype == 'int':
 		data_string = ' %d'
@@ -206,7 +208,10 @@ def make_dependent_distribution(file_obj,dist_number,secondary_dist_start,vector
 		file_obj.write(string0)
 		total_len = len(string0)  
 		for j in range(0,len(vector_vars[k])):
-			string1=data_string%vector_vars[k][j]
+			if datatype == '3float':
+				string1=data_string%(vector_vars[k][j][0],vector_vars[k][j][1],vector_vars[k][j][2])
+			else:
+				string1=data_string%vector_vars[k][j]
 			total_len = total_len + len(string1)
 			if total_len > 80:
 				file_obj.write('\n'+' '*max(5,len(string0)))
@@ -217,11 +222,14 @@ def make_dependent_distribution(file_obj,dist_number,secondary_dist_start,vector
 		string0 = 'SP%d    '%(k+secondary_dist_start)
 		file_obj.write(string0)
 		total_len = len(string0)
-		string1=' %10.8E'%0.0
+		if option=='H':
+			string1=' % 10.8E'%0.0
+		else:
+			string1=''
 		total_len = total_len + len(string1)
-		file_obj.write(string1)  
+		file_obj.write(string1)
 		for j in range(0,len(vector_probs[k])):
-			string1=' %10.8E'%vector_probs[k][j]
+			string1=' % 10.8E'%vector_probs[k][j]
 			total_len = total_len + len(string1)
 			if total_len > 80:
 				file_obj.write('\n'+' '*max(5,len(string0)))
@@ -236,9 +244,9 @@ def make_dependent_variable(file_obj,dist_number,vector_vars,option='H',datatype
 
 	# write distributions 
 	if datatype == '3float':
-		data_string=' %10.8E %10.8E %10.8E'
+		data_string=' % 10.8E % 10.8E % 10.8E'
 	if datatype == 'float':
-		data_string=' %10.8E'
+		data_string=' % 10.8E'
 	elif datatype == 'int':
 		data_string = ' %d'
 	# SI card first
@@ -599,33 +607,32 @@ for k in range(0,len(cosine_bins)-1):
 probs = numpy.array(weight_totals)/numpy.sum(weight_totals)
 # files
 sdef_name='%s.sdef'%sys.argv[1][:-9]
-cell_name='%s.sdef.cell'%sys.argv[1][:-9]
-surf_name='%s.sdef.surf'%sys.argv[1][:-9]
+#cell_name='%s.sdef.cell'%sys.argv[1][:-9]
+#surf_name='%s.sdef.surf'%sys.argv[1][:-9]
 print "\nWriting MCNP SDEF to '"+sdef_name+"'..."
-print "\nWriting MCNP SDEF CCC CELLS to '"+cell_name+"'..."
-print "\nWriting MCNP SDEF CCC SURFS to '"+surf_name+"'..."
+#print "\nWriting MCNP SDEF CCC CELLS to '"+cell_name+"'..."
+#print "\nWriting MCNP SDEF CCC SURFS to '"+surf_name+"'..."
 if sphere:
 	pass
 else:
 	print "\nSDEF plane offset by % 3.2E...\n"%offset_factor
 fsdef=open(sdef_name,'w')
-fcell=open(cell_name,'w')
-fsurf=open(surf_name,'w')
+#fcell=open(cell_name,'w')
+#fsurf=open(surf_name,'w')
 # write easy stuff
 fsdef.write('c\n')
 fsdef.write('c SDEF from %s, '%sys.argv[1]+time.strftime("%d.%m.%Y, %H:%M")+'\n')
 fsdef.write('c\n')
 fsdef.write('sdef    par=%s\n'%particle_symbols[this_particle])
 fsdef.write('c        sur=%5d\n'%this_sc)
-fsdef.write('        axs=1 0 0\n')
-fsdef.write('        vec=1 0 0\n')
+fsdef.write('        axs=0 0 1\n')
+fsdef.write('        vec=0 0 1\n')
 fsdef.write('        ext=0\n')
-fsdef.write('        tr=999\n')
+fsdef.write('        tr=%3d\n'%xform_num)
 fsdef.write('        rad=d1\n')
 fsdef.write('        dir=d2\n')
 fsdef.write('        erg=fdir=d3\n')
-fsdef.write('        ccc=fdir=d4\n')
-fsdef.write('        pos=fccc=d5\n')
+fsdef.write('        pos=fdir=d4\n')
 fsdef.write('        wgt=%10.8E\n'%numpy.sum(weight_totals))
 fsdef.write('c \n')
 fsdef.write('c TRANSFORM\n')
@@ -648,27 +655,27 @@ ccc_nums = []
 pos_coord = []
 for i in range(0,len(x_bins)):
 	this_number, this_card = helper._make_plane(1,0,0,x_bins[i])
-	fsurf.write(this_card)
+#	fsurf.write(this_card)
 	x_nums.append(this_number)
 for i in range(0,len(y_bins)):
 	this_number, this_card = helper._make_plane(0,1,0,y_bins[i])
-	fsurf.write(this_card)
+#	fsurf.write(this_card)
 	y_nums.append(this_number)
 this_number, this_card = helper._make_plane(0,0,1,-0.5)
-fsurf.write(this_card)
+#fsurf.write(this_card)
 z_nums.append(this_number)
 this_number, this_card = helper._make_plane(0,0,1, 0.5)
-fsurf.write(this_card)
+#fsurf.write(this_card)
 z_nums.append(this_number)
-fsurf.close()
+#fsurf.close()
 # cells
 for j in range(0,len(y_bins)-1):
 	for i in range(0,len(x_bins)-1):
 		this_number, this_card = helper._make_cell(0,0,[[x_nums[i],-x_nums[i+1],y_nums[j],-y_nums[j+1],z_nums[0],-z_nums[1]]],universe=1)
-		fcell.write(this_card)
+#		fcell.write(this_card)
 		ccc_nums.append(this_number)
-		pos_coord.append([(x_nums[i]+x_nums[i+1])/2.,(y_nums[j]+y_nums[j+1])/2.,0.])
-fcell.close()
+		pos_coord.append([(x_bins[i]+x_bins[i+1])/2.,(y_bins[j]+y_bins[j+1])/2.,0.])
+#fcell.close()
 #
 #
 #
@@ -712,23 +719,145 @@ fsdef.write('c ENERGY DISTRIBUTIONS\n')
 fsdef.write('c \n')
 make_dependent_distribution(fsdef,3,indexing_start+(len(cosine_bins)-1)*0,bins[::-1],values[::-1])
 #
-# ccc
+# pos
 bins=[]
 values=[]
 for i in range(0,(len(cosine_bins)-1)):
-	bins.append(      ccc_nums)
+	bins.append(pos_coord)
 	values.append(numpy.reshape( dist_reduced[i], dist_reduced[i].size, order='C'))
-fsdef.write('c \n')
-fsdef.write('c CCC\n')
-fsdef.write('c \n')
-make_dependent_distribution(fsdef,4,indexing_start+(len(cosine_bins)-1)*1,bins[::-1],values[::-1],option='L',datatype='int')
-#
-# pos
 fsdef.write('c \n')
 fsdef.write('c POS\n')
 fsdef.write('c \n')
-make_dependent_variable(fsdef,5,pos_coord,datatype='3float')
+make_dependent_distribution(fsdef,4,indexing_start+(len(cosine_bins)-1)*1,bins[::-1],values[::-1],datatype='3float',option='L')
 #
 fsdef.write('c \n')
 fsdef.close()
 print "\nDONE.\n"
+
+#  
+#
+# THIS IS THE OLD ONE WHERE I THOUGHT THE POS COUD DEPENDON ON THE FINAL CCC (IT CAN'T -> MCNP COMPLAINS WHEN DEPENDENT ON A DEPENDENT)
+# 
+#
+# write easy stuff
+#fsdef.write('c\n')
+#fsdef.write('c SDEF from %s, '%sys.argv[1]+time.strftime("%d.%m.%Y, %H:%M")+'\n')
+#fsdef.write('c\n')
+#fsdef.write('sdef    par=%s\n'%particle_symbols[this_particle])
+#fsdef.write('c        sur=%5d\n'%this_sc)
+#fsdef.write('        axs=1 0 0\n')
+#fsdef.write('        vec=1 0 0\n')
+#fsdef.write('        ext=0\n')
+#fsdef.write('        tr=999\n')
+#fsdef.write('        rad=d1\n')
+#fsdef.write('        dir=d2\n')
+#fsdef.write('        erg=fdir=d3\n')
+#fsdef.write('        ccc=fdir=d4\n')
+#fsdef.write('        pos=fccc=d5\n')
+#fsdef.write('        wgt=%10.8E\n'%numpy.sum(weight_totals))
+#fsdef.write('c \n')
+#fsdef.write('c TRANSFORM\n')
+#fsdef.write('c \n')
+#fsdef.write('tr%3d   % 6.7E  % 6.7E  % 6.7E\n'%(xform_num,(1.0+offset_factor)*surface_center[0],(1.0+offset_factor)*surface_center[1],(1.0+offset_factor)*surface_center[2]))
+#fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec1[0],surface_vec1[1],surface_vec1[2])) # (surface_rotation_xy,90-surface_rotation_xy,90))
+#fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec2[0],surface_vec2[1],surface_vec2[2])) # (90+surface_rotation_xy,surface_rotation_xy,90))
+#fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec3[0],surface_vec3[1],surface_vec3[2])) # (90,90,surface_rotation_yz))
+##
+## 
+## make CCC surfaces/cells
+##
+## surfs
+#mcnp_cell_helper.surface_transform = xform_num
+#helper = mcnp_cell_helper('helper')
+#x_nums = []
+#y_nums = []
+#z_nums = []
+#ccc_nums = []
+#pos_coord = []
+#for i in range(0,len(x_bins)):
+#	this_number, this_card = helper._make_plane(1,0,0,x_bins[i])
+#	fsurf.write(this_card)
+#	x_nums.append(this_number)
+#for i in range(0,len(y_bins)):
+#	this_number, this_card = helper._make_plane(0,1,0,y_bins[i])
+#	fsurf.write(this_card)
+#	y_nums.append(this_number)
+#this_number, this_card = helper._make_plane(0,0,1,-0.5)
+#fsurf.write(this_card)
+#z_nums.append(this_number)
+#this_number, this_card = helper._make_plane(0,0,1, 0.5)
+#fsurf.write(this_card)
+#z_nums.append(this_number)
+#fsurf.close()
+## cells
+#for j in range(0,len(y_bins)-1):
+#	for i in range(0,len(x_bins)-1):
+#		this_number, this_card = helper._make_cell(0,0,[[x_nums[i],-x_nums[i+1],y_nums[j],-y_nums[j+1],z_nums[0],-z_nums[1]]],universe=1)
+#		fcell.write(this_card)
+#		ccc_nums.append(this_number)
+#		pos_coord.append([(x_nums[i]+x_nums[i+1])/2.,(y_nums[j]+y_nums[j+1])/2.,0.])
+#fcell.close()
+##
+##
+##
+## write dist cards
+##
+## radius
+#values=[]
+#for i in range(0,(len(cosine_bins)-1)):
+#    values.append(weight_totals[i])
+#fsdef.write('c \n')
+#fsdef.write('c PIXEL "RADIUS"\n')
+#fsdef.write('c \n')
+#radius = numpy.linalg.norm( [ x_bins[1]-x_bins[0] , y_bins[1]-y_bins[0] ], ord=2)
+#make_independent_distribution(fsdef,1,[0.,radius])
+#indexing_start = 100
+#additive = 0.0
+##
+## angle
+#values=[]
+#for i in range(0,(len(cosine_bins)-1)):
+#    values.append(weight_totals[i])
+#fsdef.write('c \n')
+#fsdef.write('c ANGULAR DISTRIBUTION (COSINES => REVERSED ORDER FROM ANGLE)\n')
+#fsdef.write('c \n')
+#make_independent_distribution(fsdef,2,cosine_bins[::-1],values[::-1])
+#indexing_start = 100
+#additive = 0.0
+##
+## energy
+#bins=[]
+#values=[]
+#for i in range(0,(len(cosine_bins)-1)):
+#	if weight_totals[i] > 0.0:
+#		additive = 0.0
+#	else:
+#		additive = 1e-30
+#	bins.append(  ene)
+#	values.append(spec[i]+additive)
+#fsdef.write('c \n')
+#fsdef.write('c ENERGY DISTRIBUTIONS\n')
+#fsdef.write('c \n')
+#make_dependent_distribution(fsdef,3,indexing_start+(len(cosine_bins)-1)*0,bins[::-1],values[::-1])
+##
+## ccc
+#bins=[]
+#values=[]
+#for i in range(0,(len(cosine_bins)-1)):
+#	bins.append(      ccc_nums)
+#	values.append(numpy.reshape( dist_reduced[i], dist_reduced[i].size, order='C'))
+#fsdef.write('c \n')
+#fsdef.write('c CCC\n')
+#fsdef.write('c \n')
+#make_dependent_distribution(fsdef,4,indexing_start+(len(cosine_bins)-1)*1,bins[::-1],values[::-1],option='L',datatype='int')
+##
+## pos
+#fsdef.write('c \n')
+#fsdef.write('c POS\n')
+#fsdef.write('c \n')
+#make_dependent_variable(fsdef,5,pos_coord,datatype='3float')
+##
+#fsdef.write('c \n')
+#fsdef.close()
+#print "\nDONE.\n"
+#
