@@ -1257,6 +1257,8 @@ int main(int argc, char* argv[]){
 	output_file.write((char*) &input.spec_x_max,	sizeof(double));
 	output_file.write((char*) &input.spec_y_min,	sizeof(double));
 	output_file.write((char*) &input.spec_y_max,	sizeof(double));
+	output_file.write((char*) &this_sc,				sizeof(double));
+	output_file.write((char*) &this_particle,		sizeof(double));
 
 	// write theta vector
 	output_file.write((char*) &input.spec_theta_edges[0], input.spec_theta_edges.size()*sizeof(double));
