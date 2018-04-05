@@ -582,10 +582,45 @@ void InputFile::Init(){
 	spec_y_max=0;
 	spec_E_bins=0;
 	// particle naming
-	particle_symbols.resize(3,' ');
+	particle_symbols.resize(38,' ');
 	particle_symbols[0] = ' ';
-	particle_symbols[1] = 'n';
-	particle_symbols[2] = 'p';
+	particle_symbols[ 1] = 'n';
+	particle_symbols[ 5] = 'q';
+	particle_symbols[ 2] = 'p';
+	particle_symbols[ 3] = 'e';
+	particle_symbols[ 8] = 'f';
+	particle_symbols[ 4] = '|';
+	particle_symbols[16] = '!';
+	particle_symbols[ 6] = 'u';
+	particle_symbols[17] = '<';
+	particle_symbols[ 7] = 'v';
+	particle_symbols[18] = '>';
+	particle_symbols[ 9] = 'h';
+	particle_symbols[19] = 'g';
+	particle_symbols[10] = 'l';
+	particle_symbols[25] = 'b';
+	particle_symbols[11] = '+';
+	particle_symbols[26] = '_';
+	particle_symbols[12] = '-';
+	particle_symbols[27] = '~';
+	particle_symbols[13] = 'x';
+	particle_symbols[28] = 'c';
+	particle_symbols[14] = 'y';
+	particle_symbols[29] = 'w';
+	particle_symbols[15] = 'o';
+	particle_symbols[30] = '@';
+	particle_symbols[20] = '/';
+	particle_symbols[35] = '*';
+	particle_symbols[21] = 'z';
+	particle_symbols[22] = 'k';
+	particle_symbols[36] = '?';
+	particle_symbols[23] = '%';
+	particle_symbols[24] = '^';
+	particle_symbols[31] = 'd';
+	particle_symbols[32] = 't';
+	particle_symbols[33] = 's';
+	particle_symbols[34] = 'a';
+	particle_symbols[37] = '#';
 }
 void InputFile::OpenInputFile(const char* fileName){
 
