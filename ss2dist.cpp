@@ -583,7 +583,7 @@ void InputFile::Init(){
 	spec_E_bins=0;
 	// particle naming
 	particle_symbols.resize(38,' ');
-	particle_symbols[0] = ' ';
+	particle_symbols[ 0] = ' ';
 	particle_symbols[ 1] = 'n';
 	particle_symbols[ 5] = 'q';
 	particle_symbols[ 2] = 'p';
