@@ -503,6 +503,7 @@ except IOError:
     exit()
 
 ### option
+plot=False
 if len(sys.argv) == 2:
 	logplot = False
 elif len(sys.argv) == 3:
@@ -512,30 +513,41 @@ elif len(sys.argv) == 3:
 		logplot = False
 	else:
 		logplot = False
-        vmax_in = 1e6
+	vmax_in = 1e6
 	vmin_in = 1e0
 elif len(sys.argv) == 4:
 	if sys.argv[2] == 'log':
-                logplot = True
-        elif sys.argv[2] == 'lin':
-                logplot = False
-        else:
-                logplot = False
+		logplot = True
+	elif sys.argv[2] == 'lin':
+		logplot = False
+	else:
+		logplot = False
 	#
 	vmax_in = float(sys.argv[3])
 	vmin_in = 1e0
 elif len(sys.argv) == 5:
-        if sys.argv[2] == 'log':
-                logplot = True
-        elif sys.argv[2] == 'lin':
-                logplot = False
-        else:
-                logplot = False
-        #
-        vmax_in = float(sys.argv[4])
+	if sys.argv[2] == 'log':
+		logplot = True
+	elif sys.argv[2] == 'lin':
+		logplot = False
+	else:
+		logplot = False
+	#
+	vmax_in = float(sys.argv[4])
 	vmin_in = float(sys.argv[3])
+elif len(sys.argv) == 6:
+	if sys.argv[2] == 'log':
+		logplot = True
+	elif sys.argv[2] == 'lin':
+		logplot = False
+	else:
+		logplot = False
+	#
+	vmax_in = float(sys.argv[4])
+	vmin_in = float(sys.argv[3])
+	plot=True
 else:
-	print '4 or fewer arguments please'
+	print '5 or fewer arguments please'
 	exit()
 
 ### first 18 values are the lengths, xy params, surface params
