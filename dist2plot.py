@@ -406,9 +406,57 @@ particle_symbols[33] = 's'
 particle_symbols[34] = 'a'
 particle_symbols[37] = '#'
 
+### option
+plot=False
+if len(sys.argv) == 2:
+	logplot = False
+elif len(sys.argv) == 3:
+	if sys.argv[2] == 'log':
+		logplot = True
+	elif sys.argv[2] == 'lin':
+		logplot = False
+	else:
+		logplot = False
+	vmax_in = 1e6
+	vmin_in = 1e0
+elif len(sys.argv) == 4:
+	if sys.argv[2] == 'log':
+		logplot = True
+	elif sys.argv[2] == 'lin':
+		logplot = False
+	else:
+		logplot = False
+	#
+	vmax_in = float(sys.argv[3])
+	vmin_in = 1e0
+elif len(sys.argv) == 5:
+	if sys.argv[2] == 'log':
+		logplot = True
+	elif sys.argv[2] == 'lin':
+		logplot = False
+	else:
+		logplot = False
+	#
+	vmax_in = float(sys.argv[4])
+	vmin_in = float(sys.argv[3])
+elif len(sys.argv) == 6:
+	if sys.argv[2] == 'log':
+		logplot = True
+	elif sys.argv[2] == 'lin':
+		logplot = False
+	else:
+		logplot = False
+	#
+	vmax_in = float(sys.argv[4])
+	vmin_in = float(sys.argv[3])
+	plot=True
+else:
+	print '5 or fewer arguments please'
+	exit()
 
 
-### load the dist file
+
+### load the spec file
 fname = sys.argv[1][:-8]+'spec.bin'
 spec_present= True
 try:
@@ -468,7 +516,8 @@ if spec_present:
 	ax1.set_ylabel(r'Current (particles/source)')
 	ax1.legend(loc='best')
 	fig.savefig('%d-%s-specs.png'%(this_sc,particle_symbols[this_particle]))
-	plt.show()
+	if plot:
+		plt.show()
 
 	### images, normalized to theta bin
 	fig  = plt.figure()
@@ -486,7 +535,8 @@ if spec_present:
 	ax1.set_ylabel(r'Current (particles/source/sterad)')
 	ax1.legend(loc='best')
 	fig.savefig('%d-%s-specs-sa_normed.png'%(this_sc,particle_symbols[this_particle]))
-	plt.show()
+	if plot:
+		plt.show()
 		
 else:
     print "No file '"+fname+"' present."
@@ -501,54 +551,6 @@ try:
 except IOError:
     print "No file '"+sys.argv[1]+"' present."
     exit()
-
-### option
-plot=False
-if len(sys.argv) == 2:
-	logplot = False
-elif len(sys.argv) == 3:
-	if sys.argv[2] == 'log':
-		logplot = True
-	elif sys.argv[2] == 'lin':
-		logplot = False
-	else:
-		logplot = False
-	vmax_in = 1e6
-	vmin_in = 1e0
-elif len(sys.argv) == 4:
-	if sys.argv[2] == 'log':
-		logplot = True
-	elif sys.argv[2] == 'lin':
-		logplot = False
-	else:
-		logplot = False
-	#
-	vmax_in = float(sys.argv[3])
-	vmin_in = 1e0
-elif len(sys.argv) == 5:
-	if sys.argv[2] == 'log':
-		logplot = True
-	elif sys.argv[2] == 'lin':
-		logplot = False
-	else:
-		logplot = False
-	#
-	vmax_in = float(sys.argv[4])
-	vmin_in = float(sys.argv[3])
-elif len(sys.argv) == 6:
-	if sys.argv[2] == 'log':
-		logplot = True
-	elif sys.argv[2] == 'lin':
-		logplot = False
-	else:
-		logplot = False
-	#
-	vmax_in = float(sys.argv[4])
-	vmin_in = float(sys.argv[3])
-	plot=True
-else:
-	print '5 or fewer arguments please'
-	exit()
 
 ### first 18 values are the lengths, xy params, surface params
 E_len			=   int(dist[ 0])
@@ -646,7 +648,8 @@ for theta_bin in range(0,len(theta_bins)-1):
 		#
 		ax.set_title('%d : %s : %5.2f-%5.2f MeV : %5.2f-%5.2f deg'%(this_sc,particle_symbols[this_particle],E_bins[E_bin],E_bins[E_bin+1],theta_bins_deg[theta_bin],theta_bins_deg[theta_bin+1]))
 		fig.savefig('%d-%s-dist-E%d-Theta%d.png'%(this_sc,particle_symbols[this_particle],E_bin,theta_bin))
-		plt.show()
+		if plot:
+			plt.show()
 
 
 # sum over any energy bins for spatial dists
