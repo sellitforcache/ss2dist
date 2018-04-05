@@ -367,7 +367,6 @@ def make_steps(ax,bins_in,avg_in,values_in,options=['log'],color=None,label='',y
 			ax.semilogx(x,y,color=color,label=label,linewidth=linewidth)
 
 particle_symbols = {}
-
 particle_symbols[ 0] = ' '
 particle_symbols[ 1] = 'n'
 particle_symbols[ 5] = 'q'
@@ -408,6 +407,7 @@ particle_symbols[34] = 'a'
 particle_symbols[37] = '#'
 
 
+
 ### load the dist file
 fname = sys.argv[1][:-8]+'spec.bin'
 spec_present= True
@@ -420,16 +420,18 @@ if spec_present:
 
 	cm  = plt.get_cmap('jet') 
 
-	E_min		= spec[ 0]
-	E_max		= spec[ 1]
-	E_bins		= int(spec[ 2])
-	theta_bins  = int(spec[ 3])
-	x_min		= spec[ 4]
-	x_max		= spec[ 5]
-	y_min		= spec[ 6]
-	y_max		= spec[ 7]
-	theta_start =       8
-	spec_start	=       8+theta_bins+1
+	E_min			=     spec[ 0]
+	E_max			=     spec[ 1]
+	E_bins			= int(spec[ 2])
+	theta_bins  	= int(spec[ 3])
+	x_min			=     spec[ 4]
+	x_max			=     spec[ 5]
+	y_min			=     spec[ 6]
+	y_max			=     spec[ 7]
+	this_sc			= int(spec[ 8])
+	this_particle	= int(spec[ 9])
+	theta_start		=      10
+	spec_start		=      10+theta_bins+1
 	spec_area_x=[x_min,x_max,x_max,x_min,x_min]
 	spec_area_y=[y_min,y_min,y_max,y_max,y_min]
 	
@@ -460,11 +462,30 @@ if spec_present:
 	for j in range(0,theta_bins):
 		colorVal = scalarMap.to_rgba(j)
 		#print len(ene),len(spec[j,:])
-		make_steps(ax1,ene,[0],spec[j,:],options=['log'],linewidth=2, color=colorVal,label=fname+' %5.2f-%5.2f deg'%(theta_edges[j],theta_edges[j+1]))
+		make_steps(ax1,ene,[0],spec[j,:],options=['log'],linewidth=2, color=colorVal,label='%d : %s : %5.2f-%5.2f deg'%(this_sc,particle_symbols[this_particle],theta_edges[j],theta_edges[j+1]))
 	ax1.grid(1)
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source)')
 	ax1.legend(loc='best')
+	fig.savefig('%d-%s-specs.png'%(this_sc,particle_symbols[this_particle]))
+	plt.show()
+
+	### images, normalized to theta bin
+	fig  = plt.figure()
+	ene = numpy.power(10,numpy.linspace(numpy.log10(E_min),numpy.log10(E_max),E_bins+1))
+	ax1 = fig.add_subplot(111)
+	cNorm  = colors.Normalize(vmin=0, vmax=theta_bins)
+	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+	for j in range(0,theta_bins):
+		colorVal = scalarMap.to_rgba(j)
+		#print len(ene),len(spec[j,:])
+		sa = 2.0*numpy.pi*(numpy.cos(theta_edges[j]/180*numpy.pi)-numpy.cos(theta_edges[j+1]/180*numpy.pi))
+		make_steps(ax1,ene,[0],spec[j,:]/sa,options=['log'],linewidth=2, color=colorVal,label='%d : %s : %5.2f-%5.2f deg'%(this_sc,particle_symbols[this_particle],theta_edges[j],theta_edges[j+1]))
+	ax1.grid(1)
+	ax1.set_xlabel(r'Energy (MeV)')
+	ax1.set_ylabel(r'Current (particles/source/sterad)')
+	ax1.legend(loc='best')
+	fig.savefig('%d-%s-specs-sa_normed.png'%(this_sc,particle_symbols[this_particle]))
 	plt.show()
 		
 else:
@@ -611,6 +632,8 @@ for theta_bin in range(0,len(theta_bins)-1):
 			ax.plot(spec_area_x,spec_area_y,linewidth=2,color=[0.8,0.8,0.8])
 		#
 		#
+		ax.set_title('%d : %s : %5.2f-%5.2f MeV : %5.2f-%5.2f deg'%(this_sc,particle_symbols[this_particle],E_bins[E_bin],E_bins[E_bin+1],theta_bins_deg[theta_bin],theta_bins_deg[theta_bin+1]))
+		fig.savefig('%d-%s-dist-E%d-Theta%d.png'%(this_sc,particle_symbols[this_particle],E_bin,theta_bin))
 		plt.show()
 
 
