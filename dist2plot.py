@@ -393,7 +393,7 @@ particle_symbols[14] = 'y'
 particle_symbols[29] = 'w'
 particle_symbols[15] = 'o'
 particle_symbols[30] = '@'
-particle_symbols[20] = '/'
+particle_symbols[20] = 'pi0'
 particle_symbols[35] = '*'
 particle_symbols[21] = 'z'
 particle_symbols[22] = 'k'
@@ -697,7 +697,7 @@ fsdef=open(sdef_name,'w')
 fsdef.write('c\n')
 fsdef.write('c SDEF from %s, '%sys.argv[1]+time.strftime("%d.%m.%Y, %H:%M")+'\n')
 fsdef.write('c\n')
-fsdef.write('sdef    par=%s\n'%particle_symbols[this_particle])
+fsdef.write('sdef    par=%d\n'%this_particle)
 fsdef.write('c        sur=%5d\n'%this_sc)
 fsdef.write('        axs=0 0 1\n')
 fsdef.write('        vec=0 0 1\n')
