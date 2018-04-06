@@ -1213,7 +1213,12 @@ int main(int argc, char* argv[]){
 
 	// open dist output file
 	char* ofileName = new char [ int(floor(log10(input.this_sc)))+9 ];
-	sprintf(ofileName,"%ld_%1c_dist.bin",input.this_sc,input.particle_symbols[input.this_particle]);
+	if(input.this_particle==20){
+		sprintf(ofileName,"%ld_%s_dist.bin",input.this_sc,"pi0");
+	}
+	else{
+		sprintf(ofileName,"%ld_%1c_dist.bin",input.this_sc,input.particle_symbols[input.this_particle]);
+	}
 	printf("writing output to %s \n\n",ofileName);
 	std::ofstream output_file;
 	output_file.open(ofileName, std::ios::binary);
@@ -1274,7 +1279,12 @@ int main(int argc, char* argv[]){
 	output_file.close();
 
 	// open spec output file
-	sprintf(ofileName,"%ld_%1c_spec.bin",input.this_sc,input.particle_symbols[input.this_particle]);
+	if(input.this_particle==20){
+		sprintf(ofileName,"%ld_%s_spec.bin",input.this_sc,"pi0");
+	}
+	else{
+		sprintf(ofileName,"%ld_%1c_spec.bin",input.this_sc,input.particle_symbols[input.this_particle]);
+	}
 	printf("writing output to %s \n\n",ofileName);
 	//std::ofstream output_file;
 	output_file.open(ofileName, std::ios::binary);
