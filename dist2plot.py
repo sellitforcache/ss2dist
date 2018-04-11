@@ -435,6 +435,7 @@ particle_symbols[37] = '#'
 
 ### option
 plot=False
+smooth=0
 if len(sys.argv) == 2:
 	logplot = False
 elif len(sys.argv) == 3:
@@ -480,8 +481,6 @@ elif len(sys.argv) == 6:
 	sline=sys.argv[5].split('=')
 	if sline[0]=='smooth':
 		smooth=int(sline[1])
-	else:
-		smooth=0
 else:
 	print '5 or fewer arguments please'
 	exit()
