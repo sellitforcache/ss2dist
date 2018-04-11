@@ -51,13 +51,13 @@ class mcnp_cell_helper(object):
 	def _make_plane(self, a, b, c, d):
 		#surf     97 plane        0.000     0.000    1.000   -10 
 		if a==1. and b==0. and c==0.:
-			out_string =  '%5d %2s px % 10.8E'%(mcnp_cell_helper.plane_surface_number,mcnp_cell_helper.surface_transform_string,d)
+			out_string =  '%5d %2s px % 14.12E'%(mcnp_cell_helper.plane_surface_number,mcnp_cell_helper.surface_transform_string,d)
 		elif a==0. and b==1. and c==0.:
-			out_string =  '%5d %2s py % 10.8E'%(mcnp_cell_helper.plane_surface_number,mcnp_cell_helper.surface_transform_string,d)
+			out_string =  '%5d %2s py % 14.12E'%(mcnp_cell_helper.plane_surface_number,mcnp_cell_helper.surface_transform_string,d)
 		elif a==0. and b==0. and c==1.:
-			out_string =  '%5d %2s pz % 10.8E'%(mcnp_cell_helper.plane_surface_number,mcnp_cell_helper.surface_transform_string,d)
+			out_string =  '%5d %2s pz % 14.12E'%(mcnp_cell_helper.plane_surface_number,mcnp_cell_helper.surface_transform_string,d)
 		else:
-			out_string =  '%5d %2s p % 10.8E % 10.8E % 10.8E % 10.8E'%(mcnp_cell_helper.plane_surface_number,mcnp_cell_helper.surface_transform_string,a,b,c,d)
+			out_string =  '%5d %2s p % 14.12E % 14.12E % 14.12E % 14.12E'%(mcnp_cell_helper.plane_surface_number,mcnp_cell_helper.surface_transform_string,a,b,c,d)
 		mcnp_cell_helper.plane_surface_number = mcnp_cell_helper.plane_surface_number + 1
 		return mcnp_cell_helper.plane_surface_number-1, out_string+'\n'
 
@@ -95,9 +95,9 @@ class mcnp_cell_helper(object):
 	def _make_cylx(self, y0, z0, r):
 		assert(r>0.)
 		if y0==0. and z0==0.:
-			out_string = '%5d %2s cx   % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
+			out_string = '%5d %2s cx   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
 		else:
-			out_string = '%5d %2s c/x  % 10.8E % 10.8E % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,y0,z0,r)
+			out_string = '%5d %2s c/x  % 14.12E % 14.12E % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,y0,z0,r)
 		# 
 		mcnp_cell_helper.cyl_surface_number = mcnp_cell_helper.cyl_surface_number + 1
 		return mcnp_cell_helper.cyl_surface_number-1, out_string+'\n'
@@ -105,9 +105,9 @@ class mcnp_cell_helper(object):
 	def _make_cyly(self, x0, z0, r):
 		assert(r>0.)
 		if x0==0. and z0==0.:
-			out_string = '%5d %2s cy   % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
+			out_string = '%5d %2s cy   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
 		else:
-			out_string = '%5d %2s c/y  % 10.8E % 10.8E % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,z0,r)
+			out_string = '%5d %2s c/y  % 14.12E % 14.12E % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,z0,r)
 		# 
 		mcnp_cell_helper.cyl_surface_number = mcnp_cell_helper.cyl_surface_number + 1
 		return mcnp_cell_helper.cyl_surface_number-1, out_string+'\n'
@@ -115,9 +115,9 @@ class mcnp_cell_helper(object):
 	def _make_cylz(self, x0, y0, r):
 		assert(r>0.)
 		if x0==0. and y0==0.:
-			out_string = '%5d %2s cz   % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
+			out_string = '%5d %2s cz   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
 		else:
-			out_string = '%5d %2s c/z  % 10.8E % 10.8E % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,y0,r)
+			out_string = '%5d %2s c/z  % 14.12E % 14.12E % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,y0,r)
 		# 
 		mcnp_cell_helper.cyl_surface_number = mcnp_cell_helper.cyl_surface_number + 1
 		return mcnp_cell_helper.cyl_surface_number-1, out_string+'\n'
@@ -125,15 +125,15 @@ class mcnp_cell_helper(object):
 	def _make_sphere(self, x0, y0, z0, r):
 		assert(r>0.)
 		if x0==0. and y0==0. and z0==0.:
-			out_string = '%5d %2s so   % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
+			out_string = '%5d %2s so   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
 		elif y0==0. and z0==0.:
-			out_string = '%5d %2s sx   % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,r)
+			out_string = '%5d %2s sx   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,r)
 		elif x0==0. and z0==0.:
-			out_string = '%5d %2s sy   % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,y0,r)
+			out_string = '%5d %2s sy   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,y0,r)
 		elif x0==0. and y0==0.:
-			out_string = '%5d %2s sz   % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,z0,r)
+			out_string = '%5d %2s sz   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,z0,r)
 		else:
-			out_string = '%5d %2s s    % 10.8E % 10.8E % 10.8E % 10.8E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,y0,z0,r)
+			out_string = '%5d %2s s    % 14.12E % 14.12E % 14.12E % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,y0,z0,r)
 		# 
 		mcnp_cell_helper.cyl_surface_number = mcnp_cell_helper.cyl_surface_number + 1
 		return mcnp_cell_helper.cyl_surface_number-1, out_string+'\n'
@@ -152,7 +152,7 @@ def make_independent_distribution(file_obj,dist_number,*args):
 	total_len = len(string0)
 	for k in range(0,len(vector_vars)):
 		#if vector_probs[k]>0.0:
-		string1=' % 10.8E'%vector_vars[k]
+		string1=' % 14.12E'%vector_vars[k]
 		total_len = total_len + len(string1)
 		if total_len > 80:
 			file_obj.write('\n'+' '*max(5,len(string0)))
@@ -163,12 +163,12 @@ def make_independent_distribution(file_obj,dist_number,*args):
 		string0 = 'SP%d      '%dist_number
 		file_obj.write(string0)
 		total_len = len(string0)
-		string1=' % 10.8E'%0.0
+		string1=' % 14.12E'%0.0
 		total_len = total_len + len(string1)
 		file_obj.write(string1)
 		for k in range(0,len(vector_probs)):
 			#if vector_probs[k]>0.0:
-			string1=' % 10.8E'%vector_probs[k]
+			string1=' % 14.12E'%vector_probs[k]
 			total_len = total_len + len(string1)
 			if total_len > 80:
 				file_obj.write('\n'+' '*max(5,len(string0)))
@@ -196,9 +196,9 @@ def make_dependent_distribution(file_obj,dist_number,secondary_dist_start,vector
 
 	# write secondary distributions themselves
 	if datatype == '3float':
-		data_string=' % 10.8E % 10.8E % 10.8E'
+		data_string=' % 14.12E % 14.12E % 14.12E'
 	elif datatype == 'float':
-		data_string=' % 10.8E'
+		data_string=' % 14.12E'
 	elif datatype == 'int':
 		data_string = ' %d'
 	for k in range(0,len(vector_probs)):
@@ -223,13 +223,13 @@ def make_dependent_distribution(file_obj,dist_number,secondary_dist_start,vector
 		file_obj.write(string0)
 		total_len = len(string0)
 		if option=='H':
-			string1=' % 10.8E'%0.0
+			string1=' % 14.12E'%0.0
 		else:
 			string1=''
 		total_len = total_len + len(string1)
 		file_obj.write(string1)
 		for j in range(0,len(vector_probs[k])):
-			string1=' % 10.8E'%vector_probs[k][j]
+			string1=' % 14.12E'%vector_probs[k][j]
 			total_len = total_len + len(string1)
 			if total_len > 80:
 				file_obj.write('\n'+' '*max(5,len(string0)))
@@ -244,9 +244,9 @@ def make_dependent_variable(file_obj,dist_number,vector_vars,option='H',datatype
 
 	# write distributions 
 	if datatype == '3float':
-		data_string=' % 10.8E % 10.8E % 10.8E'
+		data_string=' % 14.12E % 14.12E % 14.12E'
 	if datatype == 'float':
-		data_string=' % 10.8E'
+		data_string=' % 14.12E'
 	elif datatype == 'int':
 		data_string = ' %d'
 	# SI card first
@@ -640,7 +640,10 @@ surface_vector2_3	= float(dist[25])
 surface_vector3_1	= float(dist[26])
 surface_vector3_2	= float(dist[27])
 surface_vector3_3	= float(dist[28])
-dist_start			=            29
+principle_vector_1	= float(dist[29])
+principle_vector_2	= float(dist[30])
+principle_vector_3	= float(dist[31])
+dist_start			=            32
 
 # copy vectors 
 E_bins			= dist[dist_start:dist_start+E_len] 
@@ -735,7 +738,11 @@ surface_normal 	= numpy.array([surf_a,surf_b,surf_c])
 surface_vec1 	= numpy.array([surface_vector1_1,surface_vector1_2,surface_vector1_3]) 
 surface_vec2 	= numpy.array([surface_vector2_1,surface_vector2_2,surface_vector2_3]) 
 surface_vec3 	= numpy.array([surface_vector3_1,surface_vector3_2,surface_vector3_3]) 
-pvec = surface_vec1-surface_normal
+principle_vector= numpy.array([principle_vector_1,principle_vector_2,principle_vector_3])
+pvec = principle_vector-surface_normal
+print principle_vector
+print surface_normal
+pvec = pvec / numpy.linalg.norm(pvec)
 
 offset_factor=1e-6
 xform_num = 999
@@ -765,14 +772,14 @@ fsdef.write('c\n')
 fsdef.write('sdef    par=%s\n'%particle_symbols[this_particle])
 fsdef.write('c        sur=%5d\n'%this_sc)
 fsdef.write('        axs=0 0 1\n')
-fsdef.write('        vec=% 10.8E % 10.8E % 10.8E\n'%(pvec[0],pvec[1],pvec[2]))
+fsdef.write('        vec=% 14.12E % 14.12E % 14.12E\n'%(pvec[0],pvec[1],pvec[2]))
 fsdef.write('        ext=0\n')
 fsdef.write('        tr=%3d\n'%xform_num)
 fsdef.write('        rad=d1\n')
 fsdef.write('        dir=d2\n')
 fsdef.write('        erg=fdir=d3\n')
 fsdef.write('        pos=fdir=d4\n')
-fsdef.write('        wgt=%10.8E\n'%numpy.sum(weight_totals))
+fsdef.write('        wgt=%14.12E\n'%numpy.sum(weight_totals))
 fsdef.write('c \n')
 fsdef.write('c TRANSFORM\n')
 fsdef.write('c \n')

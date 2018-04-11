@@ -1036,20 +1036,25 @@ int main(int argc, char* argv[]){
 	std::valarray<double> surface_vec2   	(3);
 	std::valarray<double> surface_vec3   	(3);
 	std::valarray<double> surface_vec_avg	(3);
+	std::valarray<double> principle_vector 	(3);
 	surface_normal[0]	=  input.surface_plane[0];
 	surface_normal[1]	=  input.surface_plane[1];
 	surface_normal[2]	=  input.surface_plane[2];
 	double principle_vector_mag = sqrtf( input.principle_vector[0]*input.principle_vector[0] + input.principle_vector[1]*input.principle_vector[1] + input.principle_vector[2]*input.principle_vector[2] );
 	if (principle_vector_mag == 0.0){
-		surface_vec1[0]	=  input.surface_plane[0];
-		surface_vec1[1]	=  input.surface_plane[1];
-		surface_vec1[2]	=  input.surface_plane[2];
+		principle_vector[0]	=  input.surface_plane[0];
+		principle_vector[1]	=  input.surface_plane[1];
+		principle_vector[2]	=  input.surface_plane[2];
 	}
 	else{
-		surface_vec1[0]	=  input.principle_vector[0]/principle_vector_mag;
-		surface_vec1[1]	=  input.principle_vector[1]/principle_vector_mag;
-		surface_vec1[2]	=  input.principle_vector[2]/principle_vector_mag;
+		principle_vector[0]	=  input.principle_vector[0]/principle_vector_mag;
+		principle_vector[1]	=  input.principle_vector[1]/principle_vector_mag;
+		principle_vector[2]	=  input.principle_vector[2]/principle_vector_mag;
 	}
+	// main vector is surface normal
+	surface_vec1[0]	=  input.surface_plane[0];
+	surface_vec1[1]	=  input.surface_plane[1];
+	surface_vec1[2]	=  input.surface_plane[2];
 	// second vector is rotation of y axis that is orthogonal
 	double xy_rot_angle = atanf(surface_vec1[1]/surface_vec1[0]);
 	surface_vec2[0]	= cosf(xy_rot_angle+pi/2.);
@@ -1069,6 +1074,9 @@ int main(int argc, char* argv[]){
 	printf("V1: % 10.8E % 10.8E % 10.8E \n"  , surface_vec1[0], surface_vec1[1], surface_vec1[2]);
 	printf("V2: % 10.8E % 10.8E % 10.8E \n"  , surface_vec2[0], surface_vec2[1], surface_vec2[2]);
 	printf("V3: % 10.8E % 10.8E % 10.8E \n\n", surface_vec3[0], surface_vec3[1], surface_vec3[2]);
+
+	printf(" ====================== PRINCIPLE VECTOR ======================== \n");
+	printf("V1: % 10.8E % 10.8E % 10.8E \n"  , principle_vector[0], principle_vector[1], principle_vector[2]);
 
 	// init dist vector
 	long E_len		= input.E_bins.end()     - input.E_bins.begin()     - 1;
@@ -1190,7 +1198,7 @@ int main(int argc, char* argv[]){
 			// transform vector to normal system
 			this_vec[0] = (surface_vec2*vec).sum();
 			this_vec[1] = (surface_vec3*vec).sum();
-			this_vec[2] = (surface_vec1*vec).sum();
+			this_vec[2] = (principle_vector*vec).sum();
 
 			// transform position to surface coordinates using basis vectors specified
 			this_pos[0] = (surface_vec2*xfm_pos).sum();
@@ -1307,6 +1315,9 @@ int main(int argc, char* argv[]){
 	}
 
 	// renormalize average vector and print
+	surface_vec_avg[0] = surface_vec_avg[0]/N;
+	surface_vec_avg[1] = surface_vec_avg[1]/N;
+	surface_vec_avg[2] = surface_vec_avg[2]/N;
 	double avg_vec_mag = sqrtf(surface_vec_avg[0]*surface_vec_avg[0]+surface_vec_avg[1]*surface_vec_avg[1]+surface_vec_avg[2]*surface_vec_avg[2]);
 	surface_vec_avg[0] = surface_vec_avg[0] / avg_vec_mag;
 	surface_vec_avg[1] = surface_vec_avg[1] / avg_vec_mag;
@@ -1382,6 +1393,9 @@ int main(int argc, char* argv[]){
 	output_file.write((char*) &surface_vec3[0],	sizeof(double));
 	output_file.write((char*) &surface_vec3[1],	sizeof(double));
 	output_file.write((char*) &surface_vec3[2],	sizeof(double));
+	output_file.write((char*) &principle_vector[0],	sizeof(double));
+	output_file.write((char*) &principle_vector[1],	sizeof(double));
+	output_file.write((char*) &principle_vector[2],	sizeof(double));
 
 	// write vectors
 	output_file.write((char*) input.E_bins.data(),			(E_len+1)*     sizeof(double));
