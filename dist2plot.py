@@ -287,6 +287,33 @@ def coarsen(values,bins,bin_red=2):
 	b_out.append(bins[-1])
 	return numpy.array(v_out),numpy.array(b_out)
 
+def _smooth(x,window_len=11,window='flat'):
+	# take from stackexchange
+	import numpy
+
+	if x.ndim != 1:
+		raise ValueError, "smooth only accepts 1 dimension arrays."
+
+	if x.size < window_len:
+		raise ValueError, "Input vector needs to be bigger than window size."
+
+
+	if window_len<3:
+		return x
+
+	if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+		raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+
+
+	s=numpy.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
+	#print(len(s))
+	if window == 'flat': #moving average
+		w=numpy.ones(window_len,'d')
+	else:
+		w=eval('numpy.'+window+'(window_len)')
+
+	y=numpy.convolve(w/w.sum(),s,mode='valid')
+	return y
 
 def make_steps(ax,bins_in,avg_in,values_in,options=['log'],color=None,label='',ylim=False,linewidth=1):
 	import numpy, re
@@ -319,7 +346,7 @@ def make_steps(ax,bins_in,avg_in,values_in,options=['log'],color=None,label='',y
 				wlen = wlen + 1
 			print "smoothing %d bins..."%wlen
 			label = label + ' SMOOTHED %d BINS'%wlen
-			values = self._smooth(numpy.array(values),window_len=wlen)
+			values = _smooth(numpy.array(values),window_len=wlen)
 			values = values[(wlen-1)/2:-(wlen-1)/2]   # trim to original length
 
 	### coarsen data?  parse format
@@ -450,6 +477,11 @@ elif len(sys.argv) == 6:
 	vmax_in = float(sys.argv[4])
 	vmin_in = float(sys.argv[3])
 	plot=True
+	sline=sys.argv[5].split('=')
+	if sline[0]=='smooth':
+		smooth=int(sline[1])
+	else:
+		smooth=0
 else:
 	print '5 or fewer arguments please'
 	exit()
@@ -516,13 +548,20 @@ if spec_present:
 	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
 	make_steps(ax1,angle_spec_edges,[0],angle_spec_value,options=['lin'],linewidth=2, color='b')
 	ax1.grid(1)
-	ax1.set_xlabel(r'Angle (deg)')
+	ax1.set_xlabel(r'Angle from Principle Vector (deg)')
 	ax1.set_ylabel(r'Number (particles/source)')
 	#ax1.legend(loc=2)#'best')
 	fig.savefig('angular-spec.png')
 	if plot:
 		plt.show()
 	
+	### smoothing
+	if smooth:
+		print "SMOOTHING SPECTRUM DATA BY %d BINS..."%smooth
+		for j in range(0,theta_bins):
+			this_spec = _smooth(spec[j,:],window_len=smooth)
+			spec[j,:] = this_spec[(smooth-1)/2:-(smooth-1)/2]
+
 	### images
 	fig  = plt.figure()
 	ene = numpy.power(10,numpy.linspace(numpy.log10(E_min),numpy.log10(E_max),E_bins+1))
@@ -739,10 +778,12 @@ surface_vec1 	= numpy.array([surface_vector1_1,surface_vector1_2,surface_vector1
 surface_vec2 	= numpy.array([surface_vector2_1,surface_vector2_2,surface_vector2_3]) 
 surface_vec3 	= numpy.array([surface_vector3_1,surface_vector3_2,surface_vector3_3]) 
 principle_vector= numpy.array([principle_vector_1,principle_vector_2,principle_vector_3])
-pvec = principle_vector-surface_normal
-print principle_vector
-print surface_normal
-pvec = pvec / numpy.linalg.norm(pvec)
+
+# rotate central vector for source into reference frame
+pvec = numpy.array([0.,0.,0.])
+pvec[0]	= surface_vec1[0]*principle_vector[0]+surface_vec2[0]*principle_vector[1]+surface_vec3[0]*principle_vector[2]
+pvec[1]	= surface_vec1[1]*principle_vector[0]+surface_vec2[1]*principle_vector[1]+surface_vec3[1]*principle_vector[2]
+pvec[2]	= surface_vec1[2]*principle_vector[0]+surface_vec2[2]*principle_vector[1]+surface_vec3[2]*principle_vector[2]
 
 offset_factor=1e-6
 xform_num = 999
