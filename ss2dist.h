@@ -104,6 +104,7 @@ public:
 	//  surface vectors
 	std::valarray<double> surface_plane;
 	std::valarray<double> surface_center;
+	std::valarray<double> principle_vector;
 
 	// bin vectors
 	std::vector<double> E_bins;
@@ -145,7 +146,7 @@ public:
 
 };
 
-class histogram_log {
+class histogram {
 
 public:
 
@@ -169,9 +170,14 @@ public:
 	//
 	//
 
-	~histogram_log();
-	histogram_log();
-	histogram_log(double,double,long);
+	~histogram();
+	histogram();
+	void set_grid_log();
+	void set_grid_log(double,double,long);
+	void set_grid_lin();
+	void set_grid_lin(double,double,long);
+	void set_grid_cos();
+	void set_grid_cos(double,double,long);
 	void add(double,double);
 	void update();
 

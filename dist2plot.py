@@ -460,7 +460,7 @@ else:
 fname = sys.argv[1][:-8]+'spec.bin'
 spec_present= True
 try:
-	spec = numpy.fromfile(fname,dtype=numpy.float64)
+	spec_data = numpy.fromfile(fname,dtype=numpy.float64)
 except IOError:
     spec_present = False
 
@@ -468,18 +468,21 @@ if spec_present:
 
 	cm  = plt.get_cmap('jet') 
 
-	E_min			=     spec[ 0]
-	E_max			=     spec[ 1]
-	E_bins			= int(spec[ 2])
-	theta_bins  	= int(spec[ 3])
-	x_min			=     spec[ 4]
-	x_max			=     spec[ 5]
-	y_min			=     spec[ 6]
-	y_max			=     spec[ 7]
-	this_sc			= int(spec[ 8])
-	this_particle	= int(spec[ 9])
-	theta_start		=      10
-	spec_start		=      10+theta_bins+1
+	E_min			=     spec_data[ 0]
+	E_max			=     spec_data[ 1]
+	E_bins			= int(spec_data[ 2])
+	theta_bins  	= int(spec_data[ 3])
+	x_min			=     spec_data[ 4]
+	x_max			=     spec_data[ 5]
+	y_min			=     spec_data[ 6]
+	y_max			=     spec_data[ 7]
+	this_sc			= int(spec_data[ 8])
+	this_particle	= int(spec_data[ 9])
+	angle_spec_bins	= int(spec_data[10])
+	theta_start		=      11
+	spec_start		=      11+theta_bins+1
+	spec_end 		=spec_start+theta_bins*E_bins
+	angle_spec_start=spec_end
 	spec_area_x=[x_min,x_max,x_max,x_min,x_min]
 	spec_area_y=[y_min,y_min,y_max,y_max,y_min]
 	
@@ -493,13 +496,32 @@ if spec_present:
 	print "%10s %6.4E"%("y_max",	y_max	)
 	
 	### remove the header info and reshape for easier indexing
-	theta_edges = spec[theta_start:spec_start] 
-	spec = spec[spec_start:]
+	theta_edges = spec_data[theta_start:spec_start] 
+	spec = spec_data[spec_start:spec_end]
 	spec = numpy.reshape(spec,(theta_bins,E_bins))
+
+	### also for angle histogram
+	angle_spec_edges = spec_data[angle_spec_start:angle_spec_start+angle_spec_bins+1] 
+	angle_spec_value = spec_data[angle_spec_start+angle_spec_bins+1:]
 	
 	### constants
 	charge_per_amp = 6.241e18
 	charge_per_milliamp = charge_per_amp/1000.0
+
+	### angle histogram
+	fig  = plt.figure()
+	ene = numpy.power(10,numpy.linspace(numpy.log10(E_min),numpy.log10(E_max),E_bins+1))
+	ax1 = fig.add_subplot(111)
+	cNorm  = colors.Normalize(vmin=0, vmax=theta_bins)
+	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+	make_steps(ax1,angle_spec_edges,[0],angle_spec_value,options=['lin'],linewidth=2, color='b')
+	ax1.grid(1)
+	ax1.set_xlabel(r'Angle (deg)')
+	ax1.set_ylabel(r'Number (particles/source)')
+	#ax1.legend(loc=2)#'best')
+	fig.savefig('angular-spec.png')
+	if plot:
+		plt.show()
 	
 	### images
 	fig  = plt.figure()
@@ -514,7 +536,7 @@ if spec_present:
 	ax1.grid(1)
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source)')
-	ax1.legend(loc='best')
+	ax1.legend(loc=2)#'best')
 	fig.savefig('%d-%s-specs.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
 		plt.show()
@@ -533,8 +555,44 @@ if spec_present:
 	ax1.grid(1)
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source/sterad)')
-	ax1.legend(loc='best')
+	ax1.legend(loc=2)#'best')
 	fig.savefig('%d-%s-specs-sa_normed.png'%(this_sc,particle_symbols[this_particle]))
+	if plot:
+		plt.show()
+		
+	fig  = plt.figure()
+	ene = numpy.power(10,numpy.linspace(numpy.log10(E_min),numpy.log10(E_max),E_bins+1))
+	ax1 = fig.add_subplot(111)
+	cNorm  = colors.Normalize(vmin=0, vmax=theta_bins)
+	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+	for j in range(0,theta_bins):
+		colorVal = scalarMap.to_rgba(j)
+		#print len(ene),len(spec[j,:])
+		make_steps(ax1,ene,[0],spec[j,:],options=['log','logy'],linewidth=2, color=colorVal,label='%d : %s : %5.2f-%5.2f deg'%(this_sc,particle_symbols[this_particle],theta_edges[j],theta_edges[j+1]))
+	ax1.grid(1)
+	ax1.set_xlabel(r'Energy (MeV)')
+	ax1.set_ylabel(r'Current (particles/source)')
+	ax1.legend(loc=2)#'best')
+	fig.savefig('%d-%s-specs_loglog.png'%(this_sc,particle_symbols[this_particle]))
+	if plot:
+		plt.show()
+
+	### images, normalized to theta bin
+	fig  = plt.figure()
+	ene = numpy.power(10,numpy.linspace(numpy.log10(E_min),numpy.log10(E_max),E_bins+1))
+	ax1 = fig.add_subplot(111)
+	cNorm  = colors.Normalize(vmin=0, vmax=theta_bins)
+	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+	for j in range(0,theta_bins):
+		colorVal = scalarMap.to_rgba(j)
+		#print len(ene),len(spec[j,:])
+		sa = 2.0*numpy.pi*(numpy.cos(theta_edges[j]/180*numpy.pi)-numpy.cos(theta_edges[j+1]/180*numpy.pi))
+		make_steps(ax1,ene,[0],spec[j,:]/sa,options=['log','logy'],linewidth=2, color=colorVal,label='%d : %s : %5.2f-%5.2f deg'%(this_sc,particle_symbols[this_particle],theta_edges[j],theta_edges[j+1]))
+	ax1.grid(1)
+	ax1.set_xlabel(r'Energy (MeV)')
+	ax1.set_ylabel(r'Current (particles/source/sterad)')
+	ax1.legend(loc=2)#'best')
+	fig.savefig('%d-%s-specs-sa_normed_loglog.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
 		plt.show()
 		
@@ -553,27 +611,36 @@ except IOError:
     exit()
 
 ### first 18 values are the lengths, xy params, surface params
-E_len			=   int(dist[ 0])
-theta_len		=   int(dist[ 1])
-phi_len			=   int(dist[ 2])
-y_len			=   int(dist[ 3])
-y_min			=   int(dist[ 4])
-y_max			=   int(dist[ 5])
-y_res			=   int(dist[ 6])
-x_len			=   int(dist[ 7])
-x_min			=   int(dist[ 8])
-x_max			=   int(dist[ 9])
-x_res			=   int(dist[10])
-surf_a			= float(dist[11])
-surf_b			= float(dist[12])
-surf_c			= float(dist[13])
-surf_d			= float(dist[14])
-this_sc			=   int(dist[15])
-surf_cx			= float(dist[16])
-surf_cy			= float(dist[17])
-surf_cz			= float(dist[18])
-this_particle	=   int(dist[19])
-dist_start		=            20
+E_len				=   int(dist[ 0])
+theta_len			=   int(dist[ 1])
+phi_len				=   int(dist[ 2])
+y_len				=   int(dist[ 3])
+y_min				=   int(dist[ 4])
+y_max				=   int(dist[ 5])
+y_res				=   int(dist[ 6])
+x_len				=   int(dist[ 7])
+x_min				=   int(dist[ 8])
+x_max				=   int(dist[ 9])
+x_res				=   int(dist[10])
+surf_a				= float(dist[11])
+surf_b				= float(dist[12])
+surf_c				= float(dist[13])
+surf_d				= float(dist[14])
+this_sc				=   int(dist[15])
+surf_cx				= float(dist[16])
+surf_cy				= float(dist[17])
+surf_cz				= float(dist[18])
+this_particle		=   int(dist[19])
+surface_vector1_1	= float(dist[20])
+surface_vector1_2	= float(dist[21])
+surface_vector1_3	= float(dist[22])
+surface_vector2_1	= float(dist[23])
+surface_vector2_2	= float(dist[24])
+surface_vector2_3	= float(dist[25])
+surface_vector3_1	= float(dist[26])
+surface_vector3_2	= float(dist[27])
+surface_vector3_3	= float(dist[28])
+dist_start			=            29
 
 # copy vectors 
 E_bins			= dist[dist_start:dist_start+E_len] 
@@ -663,13 +730,12 @@ for theta_bin in range(0,len(theta_bins)-1):
 #
 # write mcnp sdef
 #
-surface_center = numpy.array([surf_cx,surf_cy,surf_cz]) 
-surface_normal = numpy.array([surf_a,surf_b,surf_c]) 
-surface_vec1 = numpy.array([surf_b,surf_a,0.0]) 
-surface_vec2 = numpy.array([0.0,0.0,1.0]) 
-surface_vec3 = numpy.cross(surface_vec1,surface_vec2) 
-#surface_rotation_xy = numpy.arctan(surface_normal[1]/surface_normal[0])*180.0/numpy.pi
-#surface_rotation_yz = numpy.arccos(surface_normal[2])*180.0/numpy.pi  # not implemented yet
+surface_center 	= numpy.array([surf_cx,surf_cy,surf_cz]) 
+surface_normal 	= numpy.array([surf_a,surf_b,surf_c]) 
+surface_vec1 	= numpy.array([surface_vector1_1,surface_vector1_2,surface_vector1_3]) 
+surface_vec2 	= numpy.array([surface_vector2_1,surface_vector2_2,surface_vector2_3]) 
+surface_vec3 	= numpy.array([surface_vector3_1,surface_vector3_2,surface_vector3_3]) 
+pvec = surface_vec1-surface_normal
 
 offset_factor=1e-6
 xform_num = 999
@@ -677,30 +743,29 @@ xform_num = 999
 # figure out angular probabilities
 weight_totals=[]
 for k in range(0,len(cosine_bins)-1):
-    weight_totals.append(numpy.sum(dist_reduced[k][0]))
+    weight_totals.append(numpy.sum(dist_reduced[k]))
+print "total weight in dist",numpy.sum(weight_totals)
 probs = numpy.array(weight_totals)/numpy.sum(weight_totals)
 # files
 sdef_name='%s.sdef'%sys.argv[1][:-9]
-#cell_name='%s.sdef.cell'%sys.argv[1][:-9]
-#surf_name='%s.sdef.surf'%sys.argv[1][:-9]
 print "\nWriting MCNP SDEF to '"+sdef_name+"'..."
-#print "\nWriting MCNP SDEF CCC CELLS to '"+cell_name+"'..."
-#print "\nWriting MCNP SDEF CCC SURFS to '"+surf_name+"'..."
 if sphere:
 	pass
 else:
 	print "\nSDEF plane offset by % 3.2E...\n"%offset_factor
 fsdef=open(sdef_name,'w')
-#fcell=open(cell_name,'w')
-#fsurf=open(surf_name,'w')
+
+
+
+
 # write easy stuff
 fsdef.write('c\n')
 fsdef.write('c SDEF from %s, '%sys.argv[1]+time.strftime("%d.%m.%Y, %H:%M")+'\n')
 fsdef.write('c\n')
-fsdef.write('sdef    par=%d\n'%this_particle)
+fsdef.write('sdef    par=%s\n'%particle_symbols[this_particle])
 fsdef.write('c        sur=%5d\n'%this_sc)
 fsdef.write('        axs=0 0 1\n')
-fsdef.write('        vec=0 0 1\n')
+fsdef.write('        vec=% 10.8E % 10.8E % 10.8E\n'%(pvec[0],pvec[1],pvec[2]))
 fsdef.write('        ext=0\n')
 fsdef.write('        tr=%3d\n'%xform_num)
 fsdef.write('        rad=d1\n')
@@ -810,7 +875,7 @@ print "\nDONE.\n"
 
 #  
 #
-# THIS IS THE OLD ONE WHERE I THOUGHT THE POS COUD DEPENDON ON THE FINAL CCC (IT CAN'T -> MCNP COMPLAINS WHEN DEPENDENT ON A DEPENDENT)
+# THIS IS THE OLD ONE WHERE I THOUGHT THE POS COULD DEPEND ON ON THE FINAL CCC (IT CAN'T -> MCNP COMPLAINS WHEN DEPENDENT ON A DEPENDENT)
 # 
 #
 # write easy stuff

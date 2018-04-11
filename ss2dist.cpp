@@ -574,6 +574,7 @@ void InputFile::Init(){
 	// init valarray vectors
 	surface_plane .resize(4,0);
 	surface_center.resize(3,0);
+	principle_vector.resize(3,0);
 	spec_E_min=0;
 	spec_E_max=0;
 	spec_x_min=0;
@@ -673,6 +674,11 @@ void InputFile::Parse(){
 				surface_center[0] = atof(tokens[1].c_str());
 				surface_center[1] = atof(tokens[2].c_str());
 				surface_center[2] = atof(tokens[3].c_str());
+			}
+			else if(!strcmp(tokens[0].c_str(),"principle_vector")){
+				principle_vector[0] = atof(tokens[1].c_str());
+				principle_vector[1] = atof(tokens[2].c_str());
+				principle_vector[2] = atof(tokens[3].c_str());
 			}
 			else if(!strcmp(tokens[0].c_str(),"E_bins")){
 				for(long i=1;i<tokens.size();i++){
@@ -832,12 +838,17 @@ bool InputFile::GetSurface( SurfaceSource* ss ){
 
 }
 
-histogram_log::histogram_log(){
-	// DEFAULT TO SOMETHING REASONABLE
-	histogram_log(1e-10,1e3,1024);
+histogram::histogram(){
+}
+histogram::~histogram(){
 }
 
-histogram_log::histogram_log( double E_min_in, double E_max_in, long n_bins_in ){
+void histogram::set_grid_log(){
+	// DEFAULT TO SOMETHING REASONABLE
+	set_grid_log(1e-10,1e3,1024);
+}
+
+void histogram::set_grid_log( double E_min_in, double E_max_in, long n_bins_in ){
 	// make linearly-spaced vector in log space
 	double E_min_log = log10(E_min_in);
 	double E_max_log = log10(E_max_in);
@@ -859,10 +870,57 @@ histogram_log::histogram_log( double E_min_in, double E_max_in, long n_bins_in )
 	err		=	std::vector<double> (n_bins, 0);
 }
 
-histogram_log::~histogram_log(){
+void histogram::set_grid_lin(){
+	// DEFAULT TO SOMETHING REASONABLE
+	set_grid_lin(0,90,100);
 }
 
-void histogram_log::add( double bin_val, double weight ){
+void histogram::set_grid_lin( double E_min_in, double E_max_in, long n_bins_in ){
+	// make linearly-spaced vector in log space
+	double stride    = (E_max_in - E_min_in)/n_bins_in;
+	for(long i=0;i<n_bins_in+1;i++){
+		edges.push_back( i*stride + E_min_in );
+	}
+	// init rest to zeros
+	n_bins	=	n_bins_in;
+	E_min	=	E_min_in;
+	E_max	=	E_max_in;
+	values	=	std::vector<double> (n_bins, 0);
+	sqvals	=	std::vector<double> (n_bins, 0);
+	counts	=	std::vector<long>   (n_bins, 0);
+	err		=	std::vector<double> (n_bins, 0);
+}
+
+void histogram::set_grid_cos(){
+	// DEFAULT TO SOMETHING REASONABLE
+	set_grid_cos(0,90,100);
+}
+
+void histogram::set_grid_cos( double E_min_in, double E_max_in, long n_bins_in ){
+	// make linearly-spaced vector in log space
+	double E_min_cos = cosf(E_min_in/180.0*pi);
+	double E_max_cos = cosf(E_max_in/180.0*pi);
+	double stride    = (E_max_cos - E_min_cos)/n_bins_in;
+	for(long i=0;i<n_bins_in+1;i++){
+		edges.push_back( i*stride + E_min_cos );
+	}
+	// convert back to angle  
+	for(long i=0;i<n_bins_in+1;i++){
+		edges[i] = acosf(edges[i])/pi*180.0;
+	}
+	// init rest to zeros
+	n_bins	=	n_bins_in;
+	E_min	=	E_min_in;
+	E_max	=	E_max_in;
+	values	=	std::vector<double> (n_bins, 0);
+	sqvals	=	std::vector<double> (n_bins, 0);
+	counts	=	std::vector<long>   (n_bins, 0);
+	err		=	std::vector<double> (n_bins, 0);
+}
+
+
+
+void histogram::add( double bin_val, double weight ){
 
 	// check if in bounds
 	bool valid = true;
@@ -885,7 +943,7 @@ void histogram_log::add( double bin_val, double weight ){
 		counts[dex] = counts[dex] + 1;
 	}
 }
-void histogram_log::update(){
+void histogram::update(){
 
 	// calculate error
 	double tally_err_sq, sum_xi, sum_xi2;
@@ -972,12 +1030,52 @@ int main(int argc, char* argv[]){
 	//int 	this_sc = 0;
 	bool 	sphere = false;
 
+	// calculate the other vectors from plane vectors or input principle vector
+	std::valarray<double> surface_normal 	(3);
+	std::valarray<double> surface_vec1	 	(3);
+	std::valarray<double> surface_vec2   	(3);
+	std::valarray<double> surface_vec3   	(3);
+	std::valarray<double> surface_vec_avg	(3);
+	surface_normal[0]	=  input.surface_plane[0];
+	surface_normal[1]	=  input.surface_plane[1];
+	surface_normal[2]	=  input.surface_plane[2];
+	double principle_vector_mag = sqrtf( input.principle_vector[0]*input.principle_vector[0] + input.principle_vector[1]*input.principle_vector[1] + input.principle_vector[2]*input.principle_vector[2] );
+	if (principle_vector_mag == 0.0){
+		surface_vec1[0]	=  input.surface_plane[0];
+		surface_vec1[1]	=  input.surface_plane[1];
+		surface_vec1[2]	=  input.surface_plane[2];
+	}
+	else{
+		surface_vec1[0]	=  input.principle_vector[0]/principle_vector_mag;
+		surface_vec1[1]	=  input.principle_vector[1]/principle_vector_mag;
+		surface_vec1[2]	=  input.principle_vector[2]/principle_vector_mag;
+	}
+	// second vector is rotation of y axis that is orthogonal
+	double xy_rot_angle = atanf(surface_vec1[1]/surface_vec1[0]);
+	surface_vec2[0]	= cosf(xy_rot_angle+pi/2.);
+	surface_vec2[1]	= sinf(xy_rot_angle+pi/2.);
+	surface_vec2[2]	=  0.0;
+	// compute third vector from cross product
+	surface_vec3[0]= ( surface_vec1[1]*surface_vec2[2] - surface_vec1[2]*surface_vec2[1] );
+	surface_vec3[1]= ( surface_vec1[2]*surface_vec2[0] - surface_vec1[0]*surface_vec2[2] );
+	surface_vec3[2]= ( surface_vec1[0]*surface_vec2[1] - surface_vec1[1]*surface_vec2[0] );
+
+	// init average vector
+	surface_vec_avg[0]= 0.0;
+	surface_vec_avg[1]= 0.0;
+	surface_vec_avg[2]= 0.0;
+
+	printf(" ======================== BASIS VECTORS ========================= \n");
+	printf("V1: % 10.8E % 10.8E % 10.8E \n"  , surface_vec1[0], surface_vec1[1], surface_vec1[2]);
+	printf("V2: % 10.8E % 10.8E % 10.8E \n"  , surface_vec2[0], surface_vec2[1], surface_vec2[2]);
+	printf("V3: % 10.8E % 10.8E % 10.8E \n\n", surface_vec3[0], surface_vec3[1], surface_vec3[2]);
+
 	// init dist vector
 	long E_len		= input.E_bins.end()     - input.E_bins.begin()     - 1;
 	long theta_len	= input.theta_bins.end() - input.theta_bins.begin() - 1;
 	long phi_len	= input.phi_bins.end()   - input.phi_bins.begin()   - 1;
 	long dist_len	= E_len*theta_len*phi_len*input.x_len*input.y_len;
-	printf("\n DISTRIBUTION ARRAY LENGTH = %ld elements =  %ld B, %5.1f MB\n",dist_len,dist_len*sizeof(double),double(dist_len)*double(sizeof(double))/1048576.0);
+	printf("\n DISTRIBUTION ARRAY LENGTH = %ld elements =  %ld B, %5.1f MB\n\n",dist_len,dist_len*sizeof(double),double(dist_len)*double(sizeof(double))/1048576.0);
 	std::vector<double> dist ( dist_len );
 
 	// claculate strides for indexing
@@ -987,26 +1085,12 @@ int main(int argc, char* argv[]){
 	long 	y_stride		=  input.x_len;
 	long 	x_stride		=  1;
 
-	// calculate the other vectors from plane vectors
-	std::valarray<double> surface_normal (3);
-	std::valarray<double> surface_vec1   (3);
-	std::valarray<double> surface_vec2   (3);
-	surface_normal[0]=input.surface_plane[0];
-	surface_normal[1]=input.surface_plane[1];
-	surface_normal[2]=input.surface_plane[2];
-	surface_vec1[0]=-input.surface_plane[1];
-	surface_vec1[1]= input.surface_plane[0];
-	surface_vec1[2]=0.0;
-	surface_vec2[0]= 0.0;
-	surface_vec2[1]= 0.0;
-	surface_vec2[2]= 1.0;
-
 	// init binning variables
-	std::valarray<double> vec		(3);
-	std::valarray<double> pos		(3);
-	std::valarray<double> xfm_pos	(3);
-	std::valarray<double> this_vec	(3);
-	std::valarray<double> this_pos	(2);
+	std::valarray<double> vec			(3);
+	std::valarray<double> pos			(3);
+	std::valarray<double> xfm_pos		(3);
+	std::valarray<double> this_vec		(3);
+	std::valarray<double> this_pos		(2);
 	double this_E 		= 0.0;
 	double this_wgt		= 0.0;
 	double this_theta	= 0.0;
@@ -1040,14 +1124,21 @@ int main(int argc, char* argv[]){
 	std::vector<double>::iterator spec_theta_dex2;
 	std::vector<double>::iterator phi_dex2;
 
-	// hitogram vector stuff 
+	// histogram vector stuff 
 	// NEED TO FIX THIS - specifying no spec_theta means this becomes an infinite loop...
-	std::vector<histogram_log> spectra;
+	std::vector<histogram> spectra;
+	histogram this_histogram;
 	if (input.spec_theta_edges.size()>0){
 		for (long i=0; i<(input.spec_theta_edges.size()-1);i++){
-			spectra.push_back(histogram_log(input.spec_E_min,input.spec_E_max,input.spec_E_bins));
+			this_histogram = histogram();
+			this_histogram.set_grid_log(input.spec_E_min,input.spec_E_max,input.spec_E_bins);
+			spectra.push_back(this_histogram);
 		}
 	}
+
+	// angle histogram for whole angle range
+	histogram angle_spectrum = histogram();
+	angle_spectrum.set_grid_cos(input.spec_theta_edges.front(),input.spec_theta_edges.back(),1000);
 	
 	// set loop length
 	long N = ss.nrss;//std::min(ss.nrss,10000000000);
@@ -1097,13 +1188,13 @@ int main(int argc, char* argv[]){
 		if  ((ipt==input.this_particle) & (fabs(sense)<=1e-5)){
 
 			// transform vector to normal system
-			this_vec[0] = (surface_vec1*vec).sum();
-			this_vec[1] = (surface_vec2*vec).sum();
-			this_vec[2] = (surface_normal*vec).sum();
+			this_vec[0] = (surface_vec2*vec).sum();
+			this_vec[1] = (surface_vec3*vec).sum();
+			this_vec[2] = (surface_vec1*vec).sum();
 
 			// transform position to surface coordinates using basis vectors specified
-			this_pos[0] = (surface_vec1*xfm_pos).sum();
-			this_pos[1] = (surface_vec2*xfm_pos).sum();
+			this_pos[0] = (surface_vec2*xfm_pos).sum();
+			this_pos[1] = (surface_vec3*xfm_pos).sum();
 		
 			// calc angular values
 			this_theta  = acos(this_vec[2]);
@@ -1156,11 +1247,19 @@ int main(int argc, char* argv[]){
 				dist[ array_dex ] = dist[ array_dex] + this_wgt;
 				total_tracks++;
 			}
-			// increment specs
+
+			// increment spectra
 			if ( (this_E      >= input.spec_E_min) & (     this_E <= input.spec_E_max) ){
 			if ( (this_pos[0] >= input.spec_x_min) & (this_pos[0] <= input.spec_x_max) ){
 			if ( (this_pos[1] >= input.spec_y_min) & (this_pos[1] <= input.spec_y_max) ){
 			if ( (this_theta_deg  >  *input.spec_theta_edges.begin()) & (this_theta_deg <= *(input.spec_theta_edges.end()-1)) ){
+				// keep track of average vector
+				surface_vec_avg[0] += this_wgt*vec[0];
+				surface_vec_avg[1] += this_wgt*vec[1];
+				surface_vec_avg[2] += this_wgt*vec[2];
+				// increment total angle spec
+				angle_spectrum.add(this_theta_deg,this_wgt);
+				// increment energy spectra
 				spec_theta_dex2 = std::lower_bound (input.spec_theta_edges.begin(), input.spec_theta_edges.end(), this_theta_deg);
 				spec_theta_dex	= spec_theta_dex2-input.spec_theta_edges.begin()-1;
 				spectra[spec_theta_dex].add(this_E,this_wgt);
@@ -1206,6 +1305,14 @@ int main(int argc, char* argv[]){
 			spectra[i].values[j] = spectra[i].values[j] / surface_nps;
 		}
 	}
+
+	// renormalize average vector and print
+	double avg_vec_mag = sqrtf(surface_vec_avg[0]*surface_vec_avg[0]+surface_vec_avg[1]*surface_vec_avg[1]+surface_vec_avg[2]*surface_vec_avg[2]);
+	surface_vec_avg[0] = surface_vec_avg[0] / avg_vec_mag;
+	surface_vec_avg[1] = surface_vec_avg[1] / avg_vec_mag;
+	surface_vec_avg[2] = surface_vec_avg[2] / avg_vec_mag;
+
+	printf("AVERAGE VECTOR OF SURFACE: % 10.8E % 10.8E % 10.8E \n\n",surface_vec_avg[0],surface_vec_avg[1],surface_vec_avg[2]);
 
 	//
 	// write output
@@ -1266,6 +1373,15 @@ int main(int argc, char* argv[]){
 	output_file.write((char*) &surf_cy,			sizeof(double));
 	output_file.write((char*) &surf_cz,			sizeof(double));
 	output_file.write((char*) &this_particle,	sizeof(double));
+	output_file.write((char*) &surface_vec1[0],	sizeof(double));
+	output_file.write((char*) &surface_vec1[1],	sizeof(double));
+	output_file.write((char*) &surface_vec1[2],	sizeof(double));
+	output_file.write((char*) &surface_vec2[0],	sizeof(double));
+	output_file.write((char*) &surface_vec2[1],	sizeof(double));
+	output_file.write((char*) &surface_vec2[2],	sizeof(double));
+	output_file.write((char*) &surface_vec3[0],	sizeof(double));
+	output_file.write((char*) &surface_vec3[1],	sizeof(double));
+	output_file.write((char*) &surface_vec3[2],	sizeof(double));
 
 	// write vectors
 	output_file.write((char*) input.E_bins.data(),			(E_len+1)*     sizeof(double));
@@ -1294,16 +1410,18 @@ int main(int argc, char* argv[]){
 	double fspec_theta_bins	= (double)   input.spec_theta_edges.size()-1;
 
 	// write the single values so all lengths can be read  before vectors
-	output_file.write((char*) &input.spec_E_min,	sizeof(double));
-	output_file.write((char*) &input.spec_E_max,	sizeof(double));
-	output_file.write((char*) &fspec_E_bins,		sizeof(double));
-	output_file.write((char*) &fspec_theta_bins,	sizeof(double));
-	output_file.write((char*) &input.spec_x_min,	sizeof(double));
-	output_file.write((char*) &input.spec_x_max,	sizeof(double));
-	output_file.write((char*) &input.spec_y_min,	sizeof(double));
-	output_file.write((char*) &input.spec_y_max,	sizeof(double));
-	output_file.write((char*) &this_sc,				sizeof(double));
-	output_file.write((char*) &this_particle,		sizeof(double));
+	output_file.write((char*) &input.spec_E_min,			sizeof(double));
+	output_file.write((char*) &input.spec_E_max,			sizeof(double));
+	output_file.write((char*) &fspec_E_bins,				sizeof(double));
+	output_file.write((char*) &fspec_theta_bins,			sizeof(double));
+	output_file.write((char*) &input.spec_x_min,			sizeof(double));
+	output_file.write((char*) &input.spec_x_max,			sizeof(double));
+	output_file.write((char*) &input.spec_y_min,			sizeof(double));
+	output_file.write((char*) &input.spec_y_max,			sizeof(double));
+	output_file.write((char*) &this_sc,						sizeof(double));
+	output_file.write((char*) &this_particle,				sizeof(double));
+	double this_val = angle_spectrum.values.size();
+	output_file.write((char*) &this_val,					sizeof(double));
 
 	// write theta vector
 	output_file.write((char*) &input.spec_theta_edges[0], input.spec_theta_edges.size()*sizeof(double));
@@ -1312,6 +1430,10 @@ int main(int argc, char* argv[]){
 	for(long i=0;i<spectra.size();i++){
 		output_file.write((char*) &spectra[i].values[0], input.spec_E_bins*sizeof(double));
 	}
+
+	// write total angle spectrum grid and values 
+	output_file.write((char*) &angle_spectrum.edges[0],  angle_spectrum.edges.size()*sizeof(double));
+	output_file.write((char*) &angle_spectrum.values[0], angle_spectrum.values.size()*sizeof(double)); 
 
 	// close file
 	output_file.close();
