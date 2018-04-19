@@ -928,15 +928,19 @@ void histogram::add( double bin_val, double weight ){
 		valid = false;
 	}
 
-	// add weight to bin if between bins
+	// add weight to bin if between bin edges
 	long dex;
+	std::vector<double>::iterator it;
+	std::vector<double>::iterator beg = edges.begin(); 
+	std::vector<double>::iterator end = edges.end();
 	if (valid){
 		if (bin_val == E_min){
 			dex = 0;
 		}
 		else{
-			std::vector<double>::iterator it = std::lower_bound (edges.begin(), edges.end(), bin_val);
-			dex = (it-edges.begin())/sizeof(double);
+			it = std::lower_bound (beg, end, bin_val);
+			dex = (*it-*beg);//sizeof(double);
+			printf("% 10.8E % 10.8E % 10.8E %6ld % 10.8E\n", edges.front(), edges.back(), bin_val, dex, edges[300]);
 		}
 		values[dex] = values[dex] + weight;
 		sqvals[dex] = sqvals[dex] + weight*weight;
