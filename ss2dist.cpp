@@ -1171,7 +1171,7 @@ int main(int argc, char* argv[]){
 
 	// angle histogram for whole angle range
 	histogram angle_spectrum = histogram();
-	angle_spectrum.set_grid_cos(input.spec_theta_edges.front(),input.spec_theta_edges.back(),1000);
+	angle_spectrum.set_grid_lin(input.spec_theta_edges.front(),input.spec_theta_edges.back(),10000);
 	
 	// set loop length
 	long N = ss.nrss;//std::min(ss.nrss,10000000000);

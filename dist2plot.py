@@ -546,10 +546,20 @@ if spec_present:
 	ax1 = fig.add_subplot(111)
 	cNorm  = colors.Normalize(vmin=0, vmax=theta_bins)
 	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
-	make_steps(ax1,angle_spec_edges,[0],angle_spec_value,options=['lin'],linewidth=2, color='b')
+	sa = -2.*numpy.pi*numpy.diff(numpy.cos(angle_spec_edges))
+	angle_spec_value_normed = numpy.divide(angle_spec_value,sa)
+	if smooth:
+		print "SMOOTHING ANGLE SPECTRUM DATA BY %d BINS..."%smooth
+		this_spec = _smooth(angle_spec_value_normed,window_len=smooth)
+		angle_spec_value_normed = this_spec[(smooth-1)/2:-(smooth-1)/2]
+	maxdex = numpy.argmax(angle_spec_value_normed)
+	maxval = angle_spec_value_normed[maxdex]
+	maxx   = (angle_spec_edges[maxdex]+angle_spec_edges[maxdex+1])/2.
+	make_steps(ax1,angle_spec_edges,[0],angle_spec_value_normed,options=['lin'],linewidth=2, color='b')
+	ax1.annotate('x %6.4E y %6.4E'%(maxx,maxval), xy=(maxx,maxval), xytext=(maxx*1.1,maxval*1.1), arrowprops=dict(facecolor='black', shrink=0.5))
 	ax1.grid(1)
 	ax1.set_xlabel(r'Angle from Principle Vector (deg)')
-	ax1.set_ylabel(r'Number (particles/source)')
+	ax1.set_ylabel(r'Number Density (particles/source/sa)')
 	#ax1.legend(loc=2)#'best')
 	if png:
 		fig.savefig('angular-spec.png')
@@ -558,7 +568,7 @@ if spec_present:
 	
 	### smoothing
 	if smooth:
-		print "SMOOTHING SPECTRUM DATA BY %d BINS..."%smooth
+		print "SMOOTHING SPECTRAL DATA BY %d BINS..."%smooth
 		for j in range(0,theta_bins):
 			this_spec = _smooth(spec[j,:],window_len=smooth)
 			spec[j,:] = this_spec[(smooth-1)/2:-(smooth-1)/2]
