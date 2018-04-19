@@ -435,6 +435,7 @@ particle_symbols[37] = '#'
 
 ### option
 plot=False
+png=False
 smooth=0
 if len(sys.argv) == 2:
 	logplot = False
@@ -467,7 +468,7 @@ elif len(sys.argv) == 5:
 	#
 	vmax_in = float(sys.argv[4])
 	vmin_in = float(sys.argv[3])
-elif len(sys.argv) == 6:
+elif len(sys.argv) >= 6:
 	if sys.argv[2] == 'log':
 		logplot = True
 	elif sys.argv[2] == 'lin':
@@ -477,15 +478,15 @@ elif len(sys.argv) == 6:
 	#
 	vmax_in = float(sys.argv[4])
 	vmin_in = float(sys.argv[3])
-	plot=True
-	sline=sys.argv[5].split('=')
-	if sline[0]=='smooth':
-		smooth=int(sline[1])
-else:
-	print '5 or fewer arguments please'
-	exit()
-
-
+	#
+	for i in range(5,len(sys.argv)):
+		if sys.argv[i] == 'plot':
+			plot=True
+		if sys.argv[i] == 'png':
+			png=True
+		sline=sys.argv[i].split('=')
+		if sline[0]=='smooth':
+			smooth=int(sline[1])
 
 ### load the spec file
 fname = sys.argv[1][:-8]+'spec.bin'
@@ -550,7 +551,8 @@ if spec_present:
 	ax1.set_xlabel(r'Angle from Principle Vector (deg)')
 	ax1.set_ylabel(r'Number (particles/source)')
 	#ax1.legend(loc=2)#'best')
-	fig.savefig('angular-spec.png')
+	if png:
+		fig.savefig('angular-spec.png')
 	if plot:
 		plt.show()
 	
@@ -575,7 +577,8 @@ if spec_present:
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source)')
 	ax1.legend(loc=2)#'best')
-	fig.savefig('%d-%s-specs.png'%(this_sc,particle_symbols[this_particle]))
+	if png:
+		fig.savefig('%d-%s-specs.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
 		plt.show()
 
@@ -594,7 +597,8 @@ if spec_present:
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source/sterad)')
 	ax1.legend(loc=2)#'best')
-	fig.savefig('%d-%s-specs-sa_normed.png'%(this_sc,particle_symbols[this_particle]))
+	if png:
+		fig.savefig('%d-%s-specs-sa_normed.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
 		plt.show()
 		
@@ -611,7 +615,8 @@ if spec_present:
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source)')
 	ax1.legend(loc=2)#'best')
-	fig.savefig('%d-%s-specs_loglog.png'%(this_sc,particle_symbols[this_particle]))
+	if png:
+		fig.savefig('%d-%s-specs_loglog.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
 		plt.show()
 
@@ -630,7 +635,8 @@ if spec_present:
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source/sterad)')
 	ax1.legend(loc=2)#'best')
-	fig.savefig('%d-%s-specs-sa_normed_loglog.png'%(this_sc,particle_symbols[this_particle]))
+	if png:
+		fig.savefig('%d-%s-specs-sa_normed_loglog.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
 		plt.show()
 		
@@ -727,7 +733,6 @@ fluxflag = False
 sphere = False
 
 ### images
-
 phi_bin=0
 for theta_bin in range(0,len(theta_bins)-1):
 	for E_bin in range(0,len(E_bins)-1):
@@ -755,7 +760,8 @@ for theta_bin in range(0,len(theta_bins)-1):
 		#
 		#
 		ax.set_title('%d : %s : %5.2f-%5.2f MeV : %5.2f-%5.2f deg : wgt %10.8E'%(this_sc,particle_symbols[this_particle],E_bins[E_bin],E_bins[E_bin+1],theta_bins_deg[theta_bin],theta_bins_deg[theta_bin+1],this_weight))
-		fig.savefig('%d-%s-dist-E%d-Theta%d.png'%(this_sc,particle_symbols[this_particle],E_bin,theta_bin))
+		if png:
+			fig.savefig('%d-%s-dist-E%d-Theta%d.png'%(this_sc,particle_symbols[this_particle],E_bin,theta_bin))
 		if plot:
 			plt.show()
 
