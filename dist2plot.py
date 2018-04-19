@@ -534,8 +534,6 @@ if spec_present:
 	### also for angle histogram
 	angle_spec_edges = spec_data[angle_spec_start:angle_spec_start+angle_spec_bins+1] 
 	angle_spec_value = spec_data[angle_spec_start+angle_spec_bins+1:]
-	print len(angle_spec_value)
-	print angle_spec_value
 	
 	### constants
 	charge_per_amp = 6.241e18
@@ -756,7 +754,7 @@ for theta_bin in range(0,len(theta_bins)-1):
 			ax.plot(spec_area_x,spec_area_y,linewidth=2,color=[0.8,0.8,0.8])
 		#
 		#
-		ax.set_title('%d : %s : %5.2f-%5.2f MeV : %5.2f-%5.2f deg'%(this_sc,particle_symbols[this_particle],E_bins[E_bin],E_bins[E_bin+1],theta_bins_deg[theta_bin],theta_bins_deg[theta_bin+1]))
+		ax.set_title('%d : %s : %5.2f-%5.2f MeV : %5.2f-%5.2f deg : wgt %10.8E'%(this_sc,particle_symbols[this_particle],E_bins[E_bin],E_bins[E_bin+1],theta_bins_deg[theta_bin],theta_bins_deg[theta_bin+1],this_weight))
 		fig.savefig('%d-%s-dist-E%d-Theta%d.png'%(this_sc,particle_symbols[this_particle],E_bin,theta_bin))
 		if plot:
 			plt.show()

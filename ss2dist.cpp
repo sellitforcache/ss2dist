@@ -8,6 +8,7 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 #include <iterator>
 #include <valarray>
 #include <climits>
@@ -906,7 +907,7 @@ void histogram::set_grid_cos( double E_min_in, double E_max_in, long n_bins_in )
 	}
 	// convert back to degree  
 	for(long i=0;i<n_bins_in+1;i++){
-		edges[i] = acosf(edges[i])/pi*180.0;
+		edges[i] = acos(edges[i])/pi*180.0;
 	}
 	// init rest to zeros
 	n_bins	=	n_bins_in;
@@ -939,13 +940,13 @@ void histogram::add( double bin_val, double weight ){
 		}
 		else{
 			it = std::lower_bound (beg, end, bin_val);
-			dex = (*it-*beg);//sizeof(double);
-			printf("% 10.8E % 10.8E % 10.8E %6ld % 10.8E\n", edges.front(), edges.back(), bin_val, dex, edges[300]);
+			dex = it-beg-1; //dex = std::distance(beg,it)-1;
 		}
 		values[dex] = values[dex] + weight;
 		sqvals[dex] = sqvals[dex] + weight*weight;
 		counts[dex] = counts[dex] + 1;
 	}
+
 }
 void histogram::update(double norm_val){
 
@@ -1291,11 +1292,10 @@ int main(int argc, char* argv[]){
 				surface_vec_avg[2] += this_wgt*vec[2];
 				// increment total angle spec
 				angle_spectrum.add(this_theta_deg,this_wgt);
-				//printf("%10.8E\n",this_theta_deg);
 				// increment energy spectra
 				spec_theta_dex2 = std::lower_bound (input.spec_theta_edges.begin(), input.spec_theta_edges.end(), this_theta_deg);
 				spec_theta_dex	= spec_theta_dex2-input.spec_theta_edges.begin()-1;
-				//spectra[spec_theta_dex].add(this_E,this_wgt);
+				spectra[spec_theta_dex].add(this_E,this_wgt);
 			}
 			}
 			}
