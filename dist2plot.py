@@ -534,6 +534,8 @@ if spec_present:
 	### also for angle histogram
 	angle_spec_edges = spec_data[angle_spec_start:angle_spec_start+angle_spec_bins+1] 
 	angle_spec_value = spec_data[angle_spec_start+angle_spec_bins+1:]
+	print len(angle_spec_value)
+	print angle_spec_value
 	
 	### constants
 	charge_per_amp = 6.241e18
@@ -780,9 +782,9 @@ principle_vector= numpy.array([principle_vector_1,principle_vector_2,principle_v
 
 # rotate central vector for source into reference frame
 pvec = numpy.array([0.,0.,0.])
-pvec[0]	= surface_vec1[0]*principle_vector[0]+surface_vec2[0]*principle_vector[1]+surface_vec3[0]*principle_vector[2]
-pvec[1]	= surface_vec1[1]*principle_vector[0]+surface_vec2[1]*principle_vector[1]+surface_vec3[1]*principle_vector[2]
-pvec[2]	= surface_vec1[2]*principle_vector[0]+surface_vec2[2]*principle_vector[1]+surface_vec3[2]*principle_vector[2]
+pvec[0]	= surface_vec2[0]*principle_vector[0]+surface_vec2[1]*principle_vector[1]+surface_vec2[2]*principle_vector[2]
+pvec[1]	= surface_vec3[0]*principle_vector[0]+surface_vec3[1]*principle_vector[1]+surface_vec3[2]*principle_vector[2]
+pvec[2]	= surface_vec1[0]*principle_vector[0]+surface_vec1[1]*principle_vector[1]+surface_vec1[2]*principle_vector[2]
 
 offset_factor=1e-6
 xform_num = 999
@@ -824,9 +826,9 @@ fsdef.write('c \n')
 fsdef.write('c TRANSFORM\n')
 fsdef.write('c \n')
 fsdef.write('tr%3d   % 6.7E  % 6.7E  % 6.7E\n'%(xform_num,(1.0+offset_factor)*surface_center[0],(1.0+offset_factor)*surface_center[1],(1.0+offset_factor)*surface_center[2]))
-fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec1[0],surface_vec1[1],surface_vec1[2])) # (surface_rotation_xy,90-surface_rotation_xy,90))
-fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec2[0],surface_vec2[1],surface_vec2[2])) # (90+surface_rotation_xy,surface_rotation_xy,90))
-fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec3[0],surface_vec3[1],surface_vec3[2])) # (90,90,surface_rotation_yz))
+fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec2[0],surface_vec2[1],surface_vec2[2])) # (surface_rotation_xy,90-surface_rotation_xy,90))
+fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec3[0],surface_vec3[1],surface_vec3[2])) # (90+surface_rotation_xy,surface_rotation_xy,90))
+fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec1[0],surface_vec1[1],surface_vec1[2])) # (90,90,surface_rotation_yz))
 #
 # 
 # make CCC surfaces/cells

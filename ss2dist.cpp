@@ -876,7 +876,7 @@ void histogram::set_grid_lin(){
 }
 
 void histogram::set_grid_lin( double E_min_in, double E_max_in, long n_bins_in ){
-	// make linearly-spaced vector in log space
+	// make linearly-spaced vector in lin space
 	double stride    = (E_max_in - E_min_in)/n_bins_in;
 	for(long i=0;i<n_bins_in+1;i++){
 		edges.push_back( i*stride + E_min_in );
@@ -897,14 +897,14 @@ void histogram::set_grid_cos(){
 }
 
 void histogram::set_grid_cos( double E_min_in, double E_max_in, long n_bins_in ){
-	// make linearly-spaced vector in log space
+	// make linearly-spaced vector in cos space
 	double E_min_cos = cosf(E_min_in/180.0*pi);
 	double E_max_cos = cosf(E_max_in/180.0*pi);
 	double stride    = (E_max_cos - E_min_cos)/n_bins_in;
 	for(long i=0;i<n_bins_in+1;i++){
 		edges.push_back( i*stride + E_min_cos );
 	}
-	// convert back to angle  
+	// convert back to degree  
 	for(long i=0;i<n_bins_in+1;i++){
 		edges[i] = acosf(edges[i])/pi*180.0;
 	}
@@ -936,14 +936,14 @@ void histogram::add( double bin_val, double weight ){
 		}
 		else{
 			std::vector<double>::iterator it = std::lower_bound (edges.begin(), edges.end(), bin_val);
-			dex = it-edges.begin()-1;
+			dex = (it-edges.begin())/sizeof(double);
 		}
 		values[dex] = values[dex] + weight;
 		sqvals[dex] = sqvals[dex] + weight*weight;
 		counts[dex] = counts[dex] + 1;
 	}
 }
-void histogram::update(){
+void histogram::update(double norm_val){
 
 	// calculate error
 	double tally_err_sq, sum_xi, sum_xi2;
@@ -967,6 +967,9 @@ void histogram::update(){
 		else{
 			err[dex] = 0.0;
 		}
+		// apply norm
+		values[dex] = values[dex] / norm_val;
+		sqvals[dex] = sqvals[dex] / norm_val;
 	}
 }
 
@@ -1036,27 +1039,44 @@ int main(int argc, char* argv[]){
 	std::valarray<double> surface_vec2   	(3);
 	std::valarray<double> surface_vec3   	(3);
 	std::valarray<double> surface_vec_avg	(3);
-	std::valarray<double> principle_vector 	(3);
+	std::valarray<double> principle_vector1	(3);
+	std::valarray<double> principle_vector2	(3);
+	std::valarray<double> principle_vector3	(3);
 	surface_normal[0]	=  input.surface_plane[0];
 	surface_normal[1]	=  input.surface_plane[1];
 	surface_normal[2]	=  input.surface_plane[2];
+	//
+	//
+	// FOR ANGULAR DISTRIBUTION
 	double principle_vector_mag = sqrtf( input.principle_vector[0]*input.principle_vector[0] + input.principle_vector[1]*input.principle_vector[1] + input.principle_vector[2]*input.principle_vector[2] );
 	if (principle_vector_mag == 0.0){
-		principle_vector[0]	=  input.surface_plane[0];
-		principle_vector[1]	=  input.surface_plane[1];
-		principle_vector[2]	=  input.surface_plane[2];
+		principle_vector1[0]	=  input.surface_plane[0];
+		principle_vector1[1]	=  input.surface_plane[1];
+		principle_vector1[2]	=  input.surface_plane[2];
 	}
 	else{
-		principle_vector[0]	=  input.principle_vector[0]/principle_vector_mag;
-		principle_vector[1]	=  input.principle_vector[1]/principle_vector_mag;
-		principle_vector[2]	=  input.principle_vector[2]/principle_vector_mag;
+		principle_vector1[0]	=  input.principle_vector[0]/principle_vector_mag;
+		principle_vector1[1]	=  input.principle_vector[1]/principle_vector_mag;
+		principle_vector1[2]	=  input.principle_vector[2]/principle_vector_mag;
 	}
+	// second vector is rotation of y axis that is orthogonal
+	double xy_rot_angle = atanf(principle_vector1[1]/principle_vector1[0]);
+	principle_vector2[0]	= cosf(xy_rot_angle+pi/2.);
+	principle_vector2[1]	= sinf(xy_rot_angle+pi/2.);
+	principle_vector2[2]	=  0.0;
+	// compute third vector from cross product
+	principle_vector3[0]= ( principle_vector1[1]*principle_vector2[2] - principle_vector1[2]*principle_vector2[1] );
+	principle_vector3[1]= ( principle_vector1[2]*principle_vector2[0] - principle_vector1[0]*principle_vector2[2] );
+	principle_vector3[2]= ( principle_vector1[0]*principle_vector2[1] - principle_vector1[1]*principle_vector2[0] );
+	//
+	//
+	// FOR SPATIAL DISTRIBUTION
 	// main vector is surface normal
 	surface_vec1[0]	=  input.surface_plane[0];
 	surface_vec1[1]	=  input.surface_plane[1];
 	surface_vec1[2]	=  input.surface_plane[2];
 	// second vector is rotation of y axis that is orthogonal
-	double xy_rot_angle = atanf(surface_vec1[1]/surface_vec1[0]);
+	xy_rot_angle = atanf(surface_vec1[1]/surface_vec1[0]);
 	surface_vec2[0]	= cosf(xy_rot_angle+pi/2.);
 	surface_vec2[1]	= sinf(xy_rot_angle+pi/2.);
 	surface_vec2[2]	=  0.0;
@@ -1071,12 +1091,12 @@ int main(int argc, char* argv[]){
 	surface_vec_avg[2]= 0.0;
 
 	printf(" ======================== BASIS VECTORS ========================= \n");
-	printf("V1: % 10.8E % 10.8E % 10.8E \n"  , surface_vec1[0], surface_vec1[1], surface_vec1[2]);
-	printf("V2: % 10.8E % 10.8E % 10.8E \n"  , surface_vec2[0], surface_vec2[1], surface_vec2[2]);
-	printf("V3: % 10.8E % 10.8E % 10.8E \n\n", surface_vec3[0], surface_vec3[1], surface_vec3[2]);
+	printf("V1: % 10.8E % 10.8E % 10.8E \n"  , surface_vec2[0], surface_vec2[1], surface_vec2[2]);
+	printf("V2: % 10.8E % 10.8E % 10.8E \n"  , surface_vec3[0], surface_vec3[1], surface_vec3[2]);
+	printf("V3: % 10.8E % 10.8E % 10.8E \n\n", surface_vec1[0], surface_vec1[1], surface_vec1[2]);
 
 	printf(" ====================== PRINCIPLE VECTOR ======================== \n");
-	printf("V1: % 10.8E % 10.8E % 10.8E \n"  , principle_vector[0], principle_vector[1], principle_vector[2]);
+	printf("V1: % 10.8E % 10.8E % 10.8E \n"  , principle_vector1[0], principle_vector1[1], principle_vector1[2]);
 
 	// init dist vector
 	long E_len		= input.E_bins.end()     - input.E_bins.begin()     - 1;
@@ -1198,15 +1218,15 @@ int main(int argc, char* argv[]){
 			// transform vector to normal system
 			this_vec[0] = (surface_vec2*vec).sum();
 			this_vec[1] = (surface_vec3*vec).sum();
-			this_vec[2] = (principle_vector*vec).sum();
+			this_vec[2] = (surface_vec1*vec).sum();
 
 			// transform position to surface coordinates using basis vectors specified
 			this_pos[0] = (surface_vec2*xfm_pos).sum();
 			this_pos[1] = (surface_vec3*xfm_pos).sum();
 		
-			// calc angular values
-			this_theta  = acos(this_vec[2]);
-			this_phi 	= atan2(this_vec[1],this_vec[0]);
+			// calc angular values from the principle vector
+			this_theta  = acos((principle_vector1*vec).sum());
+			this_phi 	= atan2((principle_vector3*vec).sum(),(principle_vector2*vec).sum());
 			this_theta_deg = this_theta*180.0/pi;
 			
 			if (this_phi < 0.0){
@@ -1267,10 +1287,11 @@ int main(int argc, char* argv[]){
 				surface_vec_avg[2] += this_wgt*vec[2];
 				// increment total angle spec
 				angle_spectrum.add(this_theta_deg,this_wgt);
+				//printf("%10.8E\n",this_theta_deg);
 				// increment energy spectra
 				spec_theta_dex2 = std::lower_bound (input.spec_theta_edges.begin(), input.spec_theta_edges.end(), this_theta_deg);
 				spec_theta_dex	= spec_theta_dex2-input.spec_theta_edges.begin()-1;
-				spectra[spec_theta_dex].add(this_E,this_wgt);
+				//spectra[spec_theta_dex].add(this_E,this_wgt);
 			}
 			}
 			}
@@ -1308,11 +1329,9 @@ int main(int argc, char* argv[]){
 
 	// finalize spec, normalize spec to nps read
 	for(long i=0;i<spectra.size();i++){
-		spectra[i].update();
-		for(long j=0;j<input.spec_E_bins;j++){
-			spectra[i].values[j] = spectra[i].values[j] / surface_nps;
-		}
+		spectra[i].update(surface_nps);
 	}
+	angle_spectrum.update(surface_nps);
 
 	// renormalize average vector and print
 	surface_vec_avg[0] = surface_vec_avg[0]/N;
@@ -1393,9 +1412,9 @@ int main(int argc, char* argv[]){
 	output_file.write((char*) &surface_vec3[0],	sizeof(double));
 	output_file.write((char*) &surface_vec3[1],	sizeof(double));
 	output_file.write((char*) &surface_vec3[2],	sizeof(double));
-	output_file.write((char*) &principle_vector[0],	sizeof(double));
-	output_file.write((char*) &principle_vector[1],	sizeof(double));
-	output_file.write((char*) &principle_vector[2],	sizeof(double));
+	output_file.write((char*) &principle_vector1[0],	sizeof(double));
+	output_file.write((char*) &principle_vector1[1],	sizeof(double));
+	output_file.write((char*) &principle_vector1[2],	sizeof(double));
 
 	// write vectors
 	output_file.write((char*) input.E_bins.data(),			(E_len+1)*     sizeof(double));

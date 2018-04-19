@@ -179,6 +179,6 @@ public:
 	void set_grid_cos();
 	void set_grid_cos(double,double,long);
 	void add(double,double);
-	void update();
+	void update(double);
 
 };
