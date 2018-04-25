@@ -313,6 +313,15 @@ def _smooth(x,window_len=11,window='flat'):
 		w=eval('numpy.'+window+'(window_len)')
 
 	y=numpy.convolve(w/w.sum(),s,mode='valid')
+
+	# trim to range where data is nonzero
+	nonzeros = numpy.where(numpy.array(x)!=0.0)[0]
+	firstdex = nonzeros[ 0]
+	lastdex  = nonzeros[-1]
+	y=y[(window_len-1)/2:-(window_len-1)/2]
+	y[:firstdex] = 0.0
+	y[lastdex+1:] = 0.0
+	
 	return y
 
 def make_steps(ax,bins_in,avg_in,values_in,options=['log'],color=None,label='',ylim=False,linewidth=1):
@@ -347,7 +356,7 @@ def make_steps(ax,bins_in,avg_in,values_in,options=['log'],color=None,label='',y
 			print "smoothing %d bins..."%wlen
 			label = label + ' SMOOTHED %d BINS'%wlen
 			values = _smooth(numpy.array(values),window_len=wlen)
-			values = values[(wlen-1)/2:-(wlen-1)/2]   # trim to original length
+			#values = values[(wlen-1)/2:-(wlen-1)/2]   # trim to original length
 
 	### coarsen data?  parse format
 	for opt in options:
@@ -551,7 +560,7 @@ if spec_present:
 	if smooth:
 		print "SMOOTHING ANGLE SPECTRUM DATA BY %d BINS..."%smooth
 		this_spec = _smooth(angle_spec_value_normed,window_len=smooth)
-		angle_spec_value_normed = this_spec[(smooth-1)/2:-(smooth-1)/2]
+		angle_spec_value_normed = this_spec
 	maxdex = numpy.argmax(angle_spec_value_normed)
 	maxval = angle_spec_value_normed[maxdex]
 	maxx   = (angle_spec_edges[maxdex]+angle_spec_edges[maxdex+1])/2.
@@ -571,7 +580,7 @@ if spec_present:
 		print "SMOOTHING SPECTRAL DATA BY %d BINS..."%smooth
 		for j in range(0,theta_bins):
 			this_spec = _smooth(spec[j,:],window_len=smooth)
-			spec[j,:] = this_spec[(smooth-1)/2:-(smooth-1)/2]
+			spec[j,:] = this_spec
 
 	### images
 	fig  = plt.figure()
