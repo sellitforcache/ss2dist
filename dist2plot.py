@@ -555,7 +555,7 @@ if spec_present:
 	ax1 = fig.add_subplot(111)
 	cNorm  = colors.Normalize(vmin=0, vmax=theta_bins)
 	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
-	sa = -2.*numpy.pi*numpy.diff(numpy.cos(angle_spec_edges))
+	sa = -2.*numpy.pi*numpy.diff(numpy.cos(angle_spec_edges/180.*numpy.pi))
 	angle_spec_value_normed = numpy.divide(angle_spec_value,sa)
 	if smooth:
 		print "SMOOTHING ANGLE SPECTRUM DATA BY %d BINS..."%smooth

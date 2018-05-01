@@ -1319,7 +1319,9 @@ int main(int argc, char* argv[]){
 	printf("<X>   DONE.\n\n");
 
 	// get last track nps
-	long 	surface_nps 	= fabs(this_track.nps);
+	// long 	surface_nps 	= fabs(this_track.nps);
+	// get surface source nps
+	long 	surface_nps 	= abs(ss.np1);
 
 	// sum distributions to get total weight present
 	for(long i=0;i<dist_len;i++){
