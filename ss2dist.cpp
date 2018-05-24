@@ -1285,7 +1285,7 @@ int main(int argc, char* argv[]){
 			if ( (this_E      >= input.spec_E_min) & (     this_E <= input.spec_E_max) ){
 			if ( (this_pos[0] >= input.spec_x_min) & (this_pos[0] <= input.spec_x_max) ){
 			if ( (this_pos[1] >= input.spec_y_min) & (this_pos[1] <= input.spec_y_max) ){
-			if ( (this_theta_deg  >  *input.spec_theta_edges.begin()) & (this_theta_deg <= *(input.spec_theta_edges.end()-1)) ){
+			if ( (this_theta_deg  >=  *input.spec_theta_edges.begin()) & (this_theta_deg <= *(input.spec_theta_edges.end()-1)) ){
 				// keep track of average vector
 				surface_vec_avg[0] += this_wgt*vec[0];
 				surface_vec_avg[1] += this_wgt*vec[1];
@@ -1295,6 +1295,7 @@ int main(int argc, char* argv[]){
 				// increment energy spectra
 				spec_theta_dex2 = std::lower_bound (input.spec_theta_edges.begin(), input.spec_theta_edges.end(), this_theta_deg);
 				spec_theta_dex	= spec_theta_dex2-input.spec_theta_edges.begin()-1;
+				if (spec_theta_dex<0){spec_theta_dex+=1;}
 				spectra[spec_theta_dex].add(this_E,this_wgt);
 			}
 			}
