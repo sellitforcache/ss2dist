@@ -595,7 +595,7 @@ if spec_present:
 	ax1.grid(1)
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source)')
-	ax1.legend(loc=2)#'best')
+	ax1.legend(loc='best')
 	if png:
 		fig.savefig('%d-%s-specs.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
@@ -615,7 +615,7 @@ if spec_present:
 	ax1.grid(1)
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source/sterad)')
-	ax1.legend(loc=2)#'best')
+	ax1.legend(loc='best')
 	if png:
 		fig.savefig('%d-%s-specs-sa_normed.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
@@ -633,7 +633,7 @@ if spec_present:
 	ax1.grid(1)
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source)')
-	ax1.legend(loc=2)#'best')
+	ax1.legend(loc='best')
 	if png:
 		fig.savefig('%d-%s-specs_loglog.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
@@ -653,7 +653,7 @@ if spec_present:
 	ax1.grid(1)
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source/sterad)')
-	ax1.legend(loc=2)#'best')
+	ax1.legend(loc='best')
 	if png:
 		fig.savefig('%d-%s-specs-sa_normed_loglog.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
