@@ -15,6 +15,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <bitset>
+#include <random>
 #include "histogram.h"
 #include "helpers.h"
 
@@ -154,5 +155,22 @@ void histogram::update(double norm_val){
 		// apply norm
 		values[dex] = values[dex] / norm_val;
 		sqvals[dex] = sqvals[dex] / norm_val;
+
 	}
+
+	// calculate normalized cumulative probability distribution
+	double total_value = std::accumulate(values.begin(), values.end(), 0.0);
+	cumsum_normed = values;
+	std::partial_sum(cumsum_normed.begin(), cumsum_normed.end(), cumsum_normed.begin());   // compute cumulative sum in-place
+	std::transform  (cumsum_normed.begin(), cumsum_normed.end(), cumsum_normed.begin(), std::bind2nd (std::divides <double> () , total_value)) ;  // binds the second argument to the total value
+
+}
+double  histogram::get_rn(){
+	// simply return the value from the lib 
+	return distribution(generator);
+}
+double histogram::sample(){
+
+	double rn = get_rn();
+
 }

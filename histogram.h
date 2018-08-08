@@ -1,5 +1,11 @@
 class histogram {
 
+	//
+	// RNG objects
+	//
+	std::mt19937_64 generator;
+	std::uniform_real_distribution<double> distribution{0.0,1.0};
+
 public:
 
 	//
@@ -13,8 +19,10 @@ public:
 	std::vector<double> values;
 	std::vector<double> sqvals;
 	std::vector<long>   counts;
+	std::vector<double> cumsum_normed;
 	std::vector<double> err;
 	double              E_min, E_max;
+
 
 	//
 	//
@@ -32,5 +40,7 @@ public:
 	void set_grid_cos(double,double,long);
 	void add(double,double);
 	void update(double);
+	double get_rn();
+	double sample();
 
 };
