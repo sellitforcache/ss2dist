@@ -10,6 +10,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 include_directories(${.})
 
+
 set (CMAKE_CXX_STANDARD 11)
 
 # Sources:
@@ -21,3 +22,6 @@ set(base_srcs
 
 # actual target:
 add_executable(ss2dist ${base_srcs} ss2dist.cpp)
+add_executable(ss2more ${base_srcs} ss2more.cpp)
+
+target_link_libraries(ss2more flann)
