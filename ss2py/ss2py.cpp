@@ -89,8 +89,8 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 	}
 
 
-	PyObject*  array_obj = PyArray_SimpleNewFromData(1, &Ndataset, NPY_FLOAT64, data_matrix);
-	return array_obj;
+	return PyArray_SimpleNewFromData(1, &Ndataset, NPY_FLOAT64, data_matrix);
+
 }
 
 
@@ -100,12 +100,11 @@ static PyMethodDef ss2py_methods[] = {
 	{NULL,		NULL}		/* sentinel */
 };
 
-extern void init_ss2py(void)
+extern void initss2py(void)
 {
 	PyImport_AddModule("ss2py");
 	Py_InitModule("ss2py", ss2py_methods);
 }
-
 
 int main(int argc, char **argv)
 {
@@ -113,7 +112,7 @@ int main(int argc, char **argv)
 
 	Py_Initialize();
 
-	init_ss2py();
+	initss2py();
 
 	Py_Exit(0);
 }

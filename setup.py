@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 import os
 import numpy as np
 
-ss2py_module = Extension('ss2py', sources=['ss2py/ss2py.cpp'])
+ss2py_module = Extension('ss2py', sources=['ss2py/ss2py.cpp','SurfaceSource.cpp','helpers.cpp'])
 
 setup(name='ss2py',
       version='1.0',
