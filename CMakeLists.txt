@@ -5,7 +5,7 @@ project(ss2dist)
 cmake_minimum_required(VERSION 3.1)
 
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} LD_LIBRARY_PATH)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake") 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 include_directories(${CMAKE_SOURCE_DIR})
 
 include_directories(${.})
