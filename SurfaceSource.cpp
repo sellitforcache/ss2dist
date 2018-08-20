@@ -198,7 +198,7 @@ void SurfaceSource::OpenWssaFile(const char* fileName){
 	}
 	else{
 		printf("problem opening %s.  Aborting\n",fileName);
-		exit(1);
+		return;
 	}
 
 }
@@ -643,7 +643,7 @@ void InputFile::OpenInputFile(const char* fileName){
 	}
 	else{
 		printf("problem opening %s.  Aborting\n",fileName);
-		exit(1);
+		return;
 	}
 }
 std::vector<std::string> InputFile::SplitString(const std::string &s, char delim) {

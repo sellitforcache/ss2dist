@@ -24,15 +24,20 @@
 //#include <Python/Python.h>
 
 extern "C" {
-    void initstd(void);
+    void initss2py(void);
 }
 
 
 static PyObject* read_wssa(PyObject *self, PyObject* args){
 
+	// get arguments
+	const char *input_string;
+	if (!PyArg_ParseTuple(args, "s", &input_string))
+		return NULL;
+
 	// init some data
 	track this_track;
-	SurfaceSource ss("test");//argv[1]);
+	SurfaceSource ss(input_string);//argv[1]);
 
 	// load up WSSA file
 	ss.ReadHeader();
