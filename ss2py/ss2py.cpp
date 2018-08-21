@@ -35,12 +35,34 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 	if (!PyArg_ParseTuple(args, "s", &input_string))
 		return NULL;
 
-	// init some data
+	// init surface source data
 	track this_track;
-	SurfaceSource ss(input_string);//argv[1]);
+	SurfaceSource ss(input_string);
 
-	// load up WSSA file
+	// init python objects
+	PyObject* header_dict 		= PyDict_New();
+	PyObject* container_list	= PyList_New(2);
+
+	// load WSSA header
 	ss.ReadHeader();
+
+	// put the header data into dict
+	PyDict_SetItem(header_dict, PyString_FromString("WSSA ID string")  , 																PyString_FromString(	ss.id));
+	PyDict_SetItem(header_dict, PyString_FromString("code name")  , 																		PyString_FromString(	ss.kods));
+	PyDict_SetItem(header_dict, PyString_FromString("code version")  , 																	PyString_FromString(	ss.vers));
+	PyDict_SetItem(header_dict, PyString_FromString("LODDAT of code that wrote surface source file")  , PyString_FromString(	ss.lods));
+	PyDict_SetItem(header_dict, PyString_FromString("IDTM of the surface source write run")  , 					PyString_FromString(	ss.idtms));
+	PyDict_SetItem(header_dict, PyString_FromString("probid, problem id")  , 														PyString_FromString(	ss.probs));
+	PyDict_SetItem(header_dict, PyString_FromString("title string of the creation run")  , 							PyString_FromString(	ss.aids));
+	PyDict_SetItem(header_dict, PyString_FromString("ending dump number")  , 														PyInt_FromInt(				ss.knods));
+	PyDict_SetItem(header_dict, PyString_FromString("total number of histories in SS write run")  , 		PyLong_FromLong(			ss.np1));
+	PyDict_SetItem(header_dict, PyString_FromString("the total number of tracks recorded")  , 					PyLong_FromLong(			ss.nrss));
+	PyDict_SetItem(header_dict, PyString_FromString("Number of values in a surface-source record")  , 	PyInt_FromInt(				ss.nrcd));
+	PyDict_SetItem(header_dict, PyString_FromString("Number of surfaces in JASW")  , 										PyInt_FromInt(				ss.njsw));
+	PyDict_SetItem(header_dict, PyString_FromString("Number of histories in input surface source")  , 	PyLong_FromLong(			ss.niss));
+	PyDict_SetItem(header_dict, PyString_FromString("Number of cells in RSSA file")  , 									PyInt_FromInt(				ss.niwr));
+	PyDict_SetItem(header_dict, PyString_FromString("Source particle type")  ,								 					PyInt_FromInt(				ss.mipts));
+	PyDict_SetItem(header_dict, PyString_FromString("Flag for macrobody facets on source tape")  , 			PyInt_FromInt(				ss.kjaq));
 
 	//
 	unsigned b			= 0;
@@ -50,8 +72,8 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 	unsigned i_positron = 0;
 	unsigned jgp		= 0;
 	//
-	//double 	total_weight	= 0.0;
-	//double 	total_tracks	= 0;
+	double 	total_weight	= 0.0;
+	double 	total_tracks	= 0;
 	//
 	bool printflag = false;
 	bool errorflag = false;
@@ -65,8 +87,7 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 	npy_intp dims[2];
 	dims[0] = N;
 	dims[1] = n_per_element;
-	//PyArrayObject* data_object   = PyArray_SimpleNew(Ndataset, dims, NPY_DOUBLE);
-	double* data_matrix	= (double*) malloc(Ndataset*sizeof(double));//new double [Ndataset];
+	double* data_matrix	= new double [Ndataset];
 
 	// loop over tracks
 	for(long i=0;i<N;i++){
@@ -98,10 +119,14 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 
 	}
 
+	// make numpy array from the already-initialized array
+	PyObject* data_array = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT64, data_matrix);
 
-	//std::cout << "DONE." << std::endl;
+	// add the header and data into PyList_New
+	PyList_SetItem(container_list, 0, header_dict);
+	PyList_SetItem(container_list, 1, data_array);
 
-	return PyArray_SimpleNewFromData(2, dims, NPY_FLOAT64, data_matrix);
+	return container_list;
 
 }
 
