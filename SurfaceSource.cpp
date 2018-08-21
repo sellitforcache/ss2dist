@@ -181,16 +181,10 @@ SurfaceSource::SurfaceSource(const char*        fileName){
 void SurfaceSource::OpenWssaFile(const char* fileName){
 
 	// for file check
-	struct stat buffer;   
+	struct stat buffer;
 
 	// set object name
 	input_file_name.assign(fileName);
-
-	// print the name
-	std::string title_file = "======> " + input_file_name + " <======";
-	std::cout << "\n" << std::string(title_file.length(), '=') << std::endl;
-	std::cout << title_file <<std::endl;
-	std::cout << std::string(title_file.length(), '=') << "\n" << std::endl;
 
 	// open file
 	if( (stat (fileName, &buffer) == 0)){
@@ -198,7 +192,7 @@ void SurfaceSource::OpenWssaFile(const char* fileName){
 	}
 	else{
 		printf("problem opening %s.  Aborting\n",fileName);
-		return;
+		return ;
 	}
 
 }
@@ -544,7 +538,7 @@ void SurfaceSource::GetTrack(track* this_track){
 	// local vars
 	//size_t size 	= 1;
 	size_t sizes 	= 11*sizeof(double);
-	
+
 	// try reading it all in at once...
 	if(!ReadRecord((void**) &this_track, &sizes, 1)){printf("ERROR READING TRACKS RECORD\n");std::exit(1);}
 
@@ -626,7 +620,7 @@ void InputFile::Init(){
 void InputFile::OpenInputFile(const char* fileName){
 
 	// for file check
-	struct stat buffer;   
+	struct stat buffer;
 
 	// set object name
 	input_file_name.assign(fileName);
@@ -736,7 +730,7 @@ void InputFile::Parse(){
 			}
 		}
 	}
-	
+
 }
 void InputFile::PrintSummary(){
 
@@ -803,7 +797,7 @@ bool InputFile::GetSurface( SurfaceSource* ss ){
 					surface_plane[0] = ss[0].surface_parameters[i].value[0];
 					surface_plane[1] = ss[0].surface_parameters[i].value[1];
 					surface_plane[2] = ss[0].surface_parameters[i].value[2];
-					surface_plane[3] = ss[0].surface_parameters[i].value[3]; 
+					surface_plane[3] = ss[0].surface_parameters[i].value[3];
 					return true;
 				case 2 :   // px
 					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %d parameters!",ss[0].surface_card[ss[0].surface_types[i]].symbol,ss[0].surface_parameters_lengths[i]);return false;}
@@ -837,6 +831,3 @@ bool InputFile::GetSurface( SurfaceSource* ss ){
 	return false;
 
 }
-
-
-

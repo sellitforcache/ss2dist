@@ -18,7 +18,7 @@
 #include "SurfaceSource.h"
 #include "histogram.h"
 #include "helpers.h"
- 
+
 
 /*
 MAIN FUNCTION
@@ -28,6 +28,12 @@ int main(int argc, char* argv[]){
 
 	//
 	if (argc!=3) { printf("A wssa filename and a surface description file must be given.\n"); return 1;}
+
+  // print the name
+  std::string title_file = "======> " + argv[1] + " <======";
+  std::cout << "\n" << std::string(title_file.length(), '=') << std::endl;
+  std::cout << title_file <<std::endl;
+  std::cout << std::string(title_file.length(), '=') << "\n" << std::endl;
 
 	// init some data
 	track this_track;
@@ -168,7 +174,7 @@ int main(int argc, char* argv[]){
 	std::vector<double>::iterator spec_theta_dex2;
 	std::vector<double>::iterator phi_dex2;
 
-	// histogram vector stuff 
+	// histogram vector stuff
 	// NEED TO FIX THIS - specifying no spec_theta means this becomes an infinite loop...
 	std::vector<histogram> spectra;
 	histogram this_histogram;
@@ -183,7 +189,7 @@ int main(int argc, char* argv[]){
 	// angle histogram for whole angle range
 	histogram angle_spectrum = histogram();
 	angle_spectrum.set_grid_lin(input.spec_theta_edges.front(),input.spec_theta_edges.back(),10000);
-	
+
 	// set loop length
 	long N = ss.nrss;//std::min(ss.nrss,10000000000);
 
@@ -239,16 +245,16 @@ int main(int argc, char* argv[]){
 			// transform position to surface coordinates using basis vectors specified
 			this_pos[0] = (surface_vec2*xfm_pos).sum();
 			this_pos[1] = (surface_vec3*xfm_pos).sum();
-		
+
 			// calc angular values from the principle vector
 			this_theta  = acos((principle_vector1*vec).sum());
 			this_phi 	= atan2((principle_vector3*vec).sum(),(principle_vector2*vec).sum());
 			this_theta_deg = this_theta*180.0/pi;
-			
+
 			if (this_phi < 0.0){
 				this_phi = 2.0*pi + this_phi;
 			}
-		
+
 
 			// find the bin indices
 			if (this_E > *input.E_bins.begin() & this_E < *(input.E_bins.end()-1)){
@@ -284,7 +290,7 @@ int main(int argc, char* argv[]){
 			else{
 				phi_dex = INT_MAX;
 			}
-				
+
 			// increment spatial array
 			if (E_dex < INT_MAX & theta_dex < INT_MAX & phi_dex < INT_MAX & y_dex < INT_MAX & x_dex < INT_MAX & this_wgt <= max_wgt) {
 				array_dex = E_dex*E_stride + theta_dex*theta_stride + phi_dex*phi_stride + y_dex*y_stride + x_dex*x_stride;
@@ -313,13 +319,13 @@ int main(int argc, char* argv[]){
 			}
 			}
 			else{
-			if ((E_dex >= E_len )& printflag & errorflag){ 
+			if ((E_dex >= E_len )& printflag & errorflag){
 				printf( "E = %6.4E index %ld is outside bin boundaries\n",this_E,E_dex);}
-			if((theta_dex >= theta_len) & printflag & errorflag){ 
+			if((theta_dex >= theta_len) & printflag & errorflag){
 				printf(  "theta = %6.4E index %ld is outside bin boundaries\n",this_theta,theta_dex);}
-			if((phi_dex >= phi_len) & printflag & errorflag){ 
+			if((phi_dex >= phi_len) & printflag & errorflag){
 				printf(  "phi = %6.4E index %ld is outside bin boundaries\n",this_phi,phi_dex);}
-			if((y_dex >= input.y_len) & printflag & errorflag){ 
+			if((y_dex >= input.y_len) & printflag & errorflag){
 				printf(  "y = %6.4E index %ld is outside bin boundaries\n" ,this_pos[1],y_dex);}
 			if((x_dex >= input.x_len) & printflag & errorflag){
 				printf(  "x = %6.4E index %ld is outside bin boundaries\n",this_pos[0],x_dex);}
@@ -482,9 +488,9 @@ int main(int argc, char* argv[]){
 		output_file.write((char*) &spectra[i].values[0], input.spec_E_bins*sizeof(double));
 	}
 
-	// write total angle spectrum grid and values 
+	// write total angle spectrum grid and values
 	output_file.write((char*) &angle_spectrum.edges[0],  angle_spectrum.edges.size()*sizeof(double));
-	output_file.write((char*) &angle_spectrum.values[0], angle_spectrum.values.size()*sizeof(double)); 
+	output_file.write((char*) &angle_spectrum.values[0], angle_spectrum.values.size()*sizeof(double));
 
 	// close file
 	output_file.close();
