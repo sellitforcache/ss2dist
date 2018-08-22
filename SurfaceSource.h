@@ -1,3 +1,8 @@
+enum sequence1 {
+	WSSA_WRITE = 0,
+	WSSA_READ	
+};
+
 struct track
 {
 	double nps, bitarray, wgt, erg, tme, x, y, z, xhat, yhat, cs, zhat;		
@@ -65,9 +70,11 @@ public:
 	// surface description lookup table
 	surface_card_data 	surface_card[41];
 
-	// file object
+	// file objects
 	std::string			input_file_name;
 	std::ifstream 		input_file;
+	std::string			output_file_name;
+	std::ofstream 		output_file;
 
 	//
 	//
@@ -80,7 +87,8 @@ public:
 	SurfaceSource( const std::string& );
 	SurfaceSource( const char*   );
 	void Init();
-	void OpenWssaFile( const char* );
+	void OpenWssaFile_Read(  const char* );
+	void OpenWssaFile_Write( const char* );
 	void ReadHeader();
 	void PrintHeader();
 	void PrintSizes();

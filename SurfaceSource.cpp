@@ -168,17 +168,32 @@ void SurfaceSource::Init(){
 }
 SurfaceSource::~SurfaceSource(){
 	input_file.close();
+	output_file.close();
 }
 SurfaceSource::SurfaceSource(const std::string& fileName){
 	Init();
-	OpenWssaFile(fileName.c_str());
+	OpenWssaFile_Read(fileName.c_str());
 }
 SurfaceSource::SurfaceSource(const char*        fileName){
 	Init();
-	OpenWssaFile(fileName);
+	OpenWssaFile_Read(fileName);
+}
+SurfaceSource::SurfaceSource(const std::string& fileName, const int flag){
+	Init();
+	switch(flag){
+		case WSSA_READ:  OpenWssaFile_Read( fileName.c_str());
+		case WSSA_WRITE: OpenWssaFile_Write(fileName.c_str());
+	}
+}
+SurfaceSource::SurfaceSource(const char*        fileName, const int flag){
+	Init();
+	switch(flag){
+		case WSSA_READ:  OpenWssaFile_Read( fileName);
+		case WSSA_WRITE: OpenWssaFile_Write(fileName);
+	}
 }
 
-void SurfaceSource::OpenWssaFile(const char* fileName){
+void SurfaceSource::OpenWssaFile_Read(const char* fileName){
 
 	// for file check
 	struct stat buffer;
@@ -191,11 +206,31 @@ void SurfaceSource::OpenWssaFile(const char* fileName){
 		input_file.open(fileName, std::ios::binary);
 	}
 	else{
-		printf("problem opening %s.  Aborting\n",fileName);
+		printf("problem opening %s for reading.  Aborting\n",fileName);
 		return ;
 	}
 
 }
+void SurfaceSource::OpenWssaFile_Write(const char* fileName){
+
+	// for file check
+	struct stat buffer;
+
+	// set object name
+	output_file_name.assign(fileName);
+
+	// open file
+	if( (stat (fileName, &buffer) == 0)){
+		output_file.open(fileName, std::ios::binary);
+	}
+	else{
+		printf("problem opening %s for writing.  Aborting\n",fileName);
+		return ;
+	}
+
+}
+
+
 // FORTRAN record delimiter length... usually 4 bytes.  Can be 8!  Should set as a preprocessor option
 const int RECORD_DELIMITER_LENGTH = 4;
 bool SurfaceSource::ReadRecord(void** destination, size_t* size, size_t NumberOfEntries)
