@@ -280,7 +280,7 @@ bool SurfaceSource::ReadRecord(void** destination, size_t* size, size_t NumberOf
 		// go to the end of the record
 		dist_to_end = record_length0-length_read;
 		if( dist_to_end > 0 ){
-			printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
+			printf("--> skipping ahead %d bytes to end of record after %d entries\n",dist_to_end, NumberOfEntries);
 			input_file.seekg(dist_to_end, std::ios::cur);
 		}
 
@@ -376,7 +376,7 @@ bool SurfaceSource::ReadSummaryRecord(int** summaries)
 		// go to the end of the record
 		dist_to_end = record_length0-length_read;
 		if( dist_to_end > 0 ){
-			printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
+			//printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
 			input_file.seekg(dist_to_end, std::ios::cur);
 		}
 
@@ -544,8 +544,8 @@ void SurfaceSource::ReadHeader(){
 	// the last record is the SS summary vector
 
 	// first record
-	void** pointers = 	new void*	[15];
-	size_t* sizes 	= 	new size_t	[15];
+	void** pointers = 	new void*	[20];
+	size_t* sizes 	= 	new size_t	[20];
 	size_t size = 1;
 	pointers[0]	= (void**) &id;
 	sizes[0]	= sizeof(id)-1;
@@ -584,17 +584,20 @@ void SurfaceSource::ReadHeader(){
 	if(!ReadRecord(pointers, sizes, size)){printf("ERROR READING THIRD RECORD\n");std::exit(1);}
 
 	// fourth record, first make array of pointers, then sizes
-	size = 3;
+	size = 3+17;   // 17 zeros written after for whatever reason!
 	pointers[0]	= (void*) &niwr;
 	pointers[1]	= (void*) &mipts;
 	pointers[2]	= (void*) &kjaq;
+	int null = 0;
+	for (int g=3;g<3+17;g++){pointers[g]=&null;}
 	sizes[0]	= sizeof(niwr);
 	sizes[1]	= sizeof(mipts);
 	sizes[2]	= sizeof(kjaq);
+	for (int g=3;g<3+17;g++){sizes[g]=sizeof(null);}
 	if(!ReadRecord(pointers, sizes, size)){printf("ERROR READING FOURTH RECORD\n");std::exit(1);}
 
 	// init arays for surface information
-	surface_summary_length		= 2+4*mipts;
+	surface_summary_length		= 2+4*mipt+1;
 	surface_count				= njsw+niwr;
 	surface_parameters			= new surface 	[surface_count];
 	surface_parameters_lengths	= new int 		[surface_count];
@@ -663,8 +666,8 @@ void SurfaceSource::WriteHeader(){
 	// the last record is the SS summary vector
 
 	// first record
-	void** pointers = 	new void*	[15];
-	size_t* sizes 	= 	new size_t	[15];
+	void** pointers = 	new void*	[20];
+	size_t* sizes 	= 	new size_t	[20];
 	size_t size = 1;
 	pointers[0]	= (void**) &id;
 	sizes[0]	= sizeof(id)-1;
@@ -707,9 +710,12 @@ void SurfaceSource::WriteHeader(){
 	pointers[0]	= (void*) &niwr;
 	pointers[1]	= (void*) &mipts;
 	pointers[2]	= (void*) &kjaq;
+	int null = 0;
+	for (int g=3;g<3+17;g++){pointers[g]=&null;}
 	sizes[0]	= sizeof(niwr);
 	sizes[1]	= sizeof(mipts);
 	sizes[2]	= sizeof(kjaq);
+	for (int g=3;g<3+17;g++){sizes[g]=sizeof(null);}
 	if(!WriteRecord(pointers, sizes, size)){printf("ERROR WRITING FOURTH RECORD\n");std::exit(1);}
 
 	// go on, copying surface/cell information from the next records until particle data starts
