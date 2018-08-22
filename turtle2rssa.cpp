@@ -45,6 +45,15 @@ int main(int argc, char* argv[]){
 		return 1;
 	}
 
+	// goto end to get the total number of TRACKS
+	std::string line;
+	turtle_file.seekg (0, turtle_file.end);
+  int length = turtle_file.tellg();
+  turtle_file.seekg (0, turtle_file.beg);
+	std::getline(turtle_file, line);
+	turtle_file.seekg (0, turtle_file.beg);
+	int N = length/(line.length()+1);
+
 	// turtle vectors
 	double this_val;
 	std::vector<double> x;
@@ -54,10 +63,19 @@ int main(int argc, char* argv[]){
 	std::vector<double> mom;
 	std::vector<double> wgt;
 
-	std::string line;
+	// printing
+	long Ns =  int(N/10);
+	int i=0;
+	printf("\nREADING TURTLE TRACKS\n");
+	printf("00==10==20==30==40==50==60==70==80==90==||100%%\n");
+	printf("||");
+
 	while (std::getline(turtle_file, line))
 	{
-    	std::istringstream iss(line);
+			// print a new status
+			if ( i%Ns == 0){printf("||||");fflush(stdout);}
+
+			std::istringstream iss(line);
 			iss>>this_val;
 			x.push_back(this_val);
 			iss>>this_val;
@@ -71,9 +89,17 @@ int main(int argc, char* argv[]){
 			iss>>this_val;
 			wgt.push_back(this_val);
 			iss>>this_val;
+
+			i++;
+
 	}
-	long N  = x.size();
-	printf("DONE READING TURTLE FILE\n");
+
+	printf("<X>   DONE READING TURTLE FILE\n\n");
+
+	if (N != x.size()){
+		printf("line numbers differ ->  calc: %d actual: %d\n   ->  Setting to actual...\n", N ,x.size());
+		N  = x.size();
+	}
 
 	// set header INFORMATION
 	// id		= The ID string, should be SF_00001 for MCNP6-made surface source, char8
@@ -138,20 +164,34 @@ int main(int argc, char* argv[]){
 	ss.surface_parameters[0].value[2]=0.0;  // C
 	ss.surface_parameters[0].value[3]=0.0;  // D
 
+	double  electron_mass = 0.511008;
+	double  neutron_mass  = 939.58;
+	double  proton_mass   = 938.271998;
+
 	// write header
 	ss.WriteHeader();
 
 	// stuff for status printing
-	long Ns =  int(N/10);
-	printf("\nWRITING TRACKS\n");
+	printf("\nWRITING RSSA TRACKS\n");
 	printf("00==10==20==30==40==50==60==70==80==90==||100%%\n");
 	printf("||");
 
 	// loop over tracks
-	for(long i=0;i<N;i++){
+	for( i=0;i<N;i++){
 
 		// print a new status
 		if ( i%Ns == 0){printf("||||");fflush(stdout);}
+
+		this_track.x				= x[i];
+		this_track.y				= y[i];
+		this_track.z				= 0.0;
+		this_track.xhat			= xhat[i];
+		this_track.yhat			= yhat[i];
+		this_track.zhat			= 1.0;
+		this_track.erg			= sqrt(mom[i]*mom[i] + proton_mass*proton_mass) - proton_mass; //erg: particle energy in MeV
+		this_track.wgt			= wgt[i];
+		this_track.tme			= 0.;
+		this_track.bitarray = encode_bitarray(9,0,0); // proton, not second generation, not antiparticle
 
 		// get track
 		ss.PutTrack(&this_track);
