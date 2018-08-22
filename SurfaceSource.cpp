@@ -166,6 +166,10 @@ void SurfaceSource::Init(){
 	strncpy(surface_card[39].description , "Right Hexagonal Prism                   \0", 41);
 	strncpy(surface_card[40].description , "Right Hexagonal Prism - Same as RHP     \0", 41);
 }
+
+//
+// CON/DE-STRUCTORS
+//
 SurfaceSource::~SurfaceSource(){
 	input_file.close();
 	output_file.close();
@@ -174,9 +178,19 @@ SurfaceSource::SurfaceSource(const std::string& fileName){
 	Init();
 	OpenWssaFile_Read(fileName.c_str());
 }
+SurfaceSource::SurfaceSource(const std::string& fileName1, const std::string& fileName2){
+	Init();
+	OpenWssaFile_Read( fileName1.c_str());
+	OpenWssaFile_Write(fileName2.c_str());
+}
 SurfaceSource::SurfaceSource(const char*        fileName){
 	Init();
 	OpenWssaFile_Read(fileName);
+}
+SurfaceSource::SurfaceSource(const char*        fileName1, const char*        fileName2){
+	Init();
+	OpenWssaFile_Read(fileName1);
+	OpenWssaFile_Write(fileName2);
 }
 SurfaceSource::SurfaceSource(const std::string& fileName, const int flag){
 	Init();
@@ -193,6 +207,9 @@ SurfaceSource::SurfaceSource(const char*        fileName, const int flag){
 	}
 }
 
+//
+// FILE IO
+//
 void SurfaceSource::OpenWssaFile_Read(const char* fileName){
 
 	// for file check
@@ -203,7 +220,7 @@ void SurfaceSource::OpenWssaFile_Read(const char* fileName){
 
 	// open file
 	if( (stat (fileName, &buffer) == 0)){
-		input_file.open(fileName, std::ios::binary);
+		input_file.open(fileName, std::ios::in | std::ios::binary);
 	}
 	else{
 		printf("problem opening %s for reading.  Aborting\n",fileName);
@@ -219,9 +236,9 @@ void SurfaceSource::OpenWssaFile_Write(const char* fileName){
 	// set object name
 	output_file_name.assign(fileName);
 
-	// open file
-	if( (stat (fileName, &buffer) == 0)){
-		output_file.open(fileName, std::ios::binary);
+	// open file, make sure it doens't already exist
+	if( (stat (fileName, &buffer) != 0)){
+		output_file.open(fileName, std::ios::out | std::ios::binary);
 	}
 	else{
 		printf("problem opening %s for writing.  Aborting\n",fileName);
@@ -230,9 +247,10 @@ void SurfaceSource::OpenWssaFile_Write(const char* fileName){
 
 }
 
+//
+//  RECORD READS
+//
 
-// FORTRAN record delimiter length... usually 4 bytes.  Can be 8!  Should set as a preprocessor option
-const int RECORD_DELIMITER_LENGTH = 4;
 bool SurfaceSource::ReadRecord(void** destination, size_t* size, size_t NumberOfEntries)
 {
 	int record_length0	= 0;
@@ -262,7 +280,7 @@ bool SurfaceSource::ReadRecord(void** destination, size_t* size, size_t NumberOf
 		// go to the end of the record
 		dist_to_end = record_length0-length_read;
 		if( dist_to_end > 0 ){
-			//printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
+			printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
 			input_file.seekg(dist_to_end, std::ios::cur);
 		}
 
@@ -358,7 +376,7 @@ bool SurfaceSource::ReadSummaryRecord(int** summaries)
 		// go to the end of the record
 		dist_to_end = record_length0-length_read;
 		if( dist_to_end > 0 ){
-			//printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
+			printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
 			input_file.seekg(dist_to_end, std::ios::cur);
 		}
 
@@ -379,7 +397,121 @@ bool SurfaceSource::ReadSummaryRecord(int** summaries)
 
 }
 
+//
+// RECORD WRITES
+//
+bool SurfaceSource::WriteRecord(void** source, size_t* size, size_t NumberOfEntries)
+{
+	int record_length0	= 0;
+	for (int i=0;i<NumberOfEntries;i++){
+		record_length0 += size[i];
+	}
 
+	if (output_file.good())
+	{
+		// read starting delimiter
+		output_file.write((char*) &record_length0, RECORD_DELIMITER_LENGTH);
+
+		// write what's given
+		for(int i=0;i<NumberOfEntries;i++){
+			output_file.write((char*) source[i], size[i]);
+		}
+		// write ending delimiter
+		output_file.write((char*) &record_length0, RECORD_DELIMITER_LENGTH);
+
+		return true;
+
+	}
+	else
+	{
+		printf("OUTPUT FILE NOT GOOD.\n");
+		return false;
+	}
+
+
+}
+
+
+bool SurfaceSource::WriteSurfaceRecord0(int* numbers, int* types, int* lengths, surface* parameters)
+{
+	// internal variables
+	int record_length = 3*sizeof(int) + lengths[0]*sizeof(parameters[0].value[0]);
+
+	// write record
+	if (output_file.good())
+	{
+		output_file.write((char*) &record_length, RECORD_DELIMITER_LENGTH);
+		output_file.write((char*) numbers,	sizeof(int));
+		output_file.write((char*) types,		sizeof(int));
+		output_file.write((char*) lengths,	sizeof(int));
+		output_file.write((char*) parameters,lengths[0]*sizeof(parameters[0].value[0]));
+		output_file.write((char*) &record_length, RECORD_DELIMITER_LENGTH);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
+bool SurfaceSource::WriteSurfaceRecord1(int* numbers, int* types, int* lengths, surface* parameters, int* facets)
+{
+
+	// internal variables
+	int record_length = 4*sizeof(int) + lengths[0]*sizeof(parameters[0].value[0]);
+
+	if (output_file.good())
+	{
+		output_file.write((char*) &record_length, RECORD_DELIMITER_LENGTH);
+		output_file.write((char*) numbers,	sizeof(int));
+		output_file.write((char*) facets,		sizeof(int));
+		output_file.write((char*) types,		sizeof(int));
+		output_file.write((char*) lengths,	sizeof(int));
+		output_file.write((char*) parameters,lengths[0]*sizeof(parameters[0].value[0]));
+		output_file.write((char*) &record_length, RECORD_DELIMITER_LENGTH);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
+
+bool SurfaceSource::WriteSummaryRecord(int** summaries)
+{
+	int record_length0	= surface_summary_length*surface_count*sizeof(int);
+	int null			= 0;
+	int length_write		= 0;
+
+	if (output_file.good())
+	{
+		// write starting delimiter
+		output_file.write((char*) &record_length0, RECORD_DELIMITER_LENGTH);
+
+		// write what's asked for
+		for(int i=0;i<surface_count;i++){
+			for(int j=0;j<surface_summary_length;j++){
+				length_write = length_write + sizeof(int);
+				output_file.write((char*) &summaries[i][j], sizeof(int));
+			}
+		}
+
+		// write ending delimiter, assert
+		output_file.write((char*) &record_length0, RECORD_DELIMITER_LENGTH);
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
+
+//
+// HIGHER LEVEL ROUTINES
+//
 void SurfaceSource::ReadHeader(){
 	// HEADER FORMATTING
 	//
@@ -498,6 +630,104 @@ void SurfaceSource::ReadHeader(){
 
 }
 
+
+void SurfaceSource::WriteHeader(){
+	// HEADER FORMATTING
+	//
+	// record 1: id;
+	// record 2: kods,vers,lods,idtms,probs,aids,knods;
+	// record 3: np1,nrss,nrcd,njsw,niss;
+	// record 4: niwr,mipts,kjaq;
+	//
+	// id		= The ID string, should be SF_00001 for MCNP6-made surface source, char8
+	// kods		= code name, char8
+	// vers		= code version, char5
+	// lods		= LODDAT of code that wrote surface source file, char8
+	// idtms	= IDTM of the surface source write run, char19
+	// probs	= probid, problem id, char19
+	// aids		= title string of the creation run, char80
+	// knods	= ending dump number, int
+	// np1		= total number of histories in SS write run, int
+	// nrss		= the total number of tracks recorded, int
+	// nrcd		= Number of values in a surface-source record, int
+	// njsw		= Number of surfaces in JASW, int
+	// niss		= Number of histories in input surface source, int
+	// niwr		= Number of cells in RSSA file, int
+	// mipts	= Source particle type, int
+	// kjaq		= Flag for macrobody facets on source tape, int
+	//
+	//
+	// the next njsw+niwr records describe the surfaces/cells in the SS
+	//
+	//
+	// the last record is the SS summary vector
+
+	// first record
+	void** pointers = 	new void*	[15];
+	size_t* sizes 	= 	new size_t	[15];
+	size_t size = 1;
+	pointers[0]	= (void**) &id;
+	sizes[0]	= sizeof(id)-1;
+	if(!WriteRecord(pointers, sizes, size)){printf("ERROR WRITING FIRST RECORD\n");std::exit(1);}
+
+	// second record, first make array of pointers, then sizes
+	size = 7;
+	pointers[0]	= (void*) &kods;
+	pointers[1]	= (void*) &vers;
+	pointers[2]	= (void*) &lods;
+	pointers[3]	= (void*) &idtms;
+	pointers[4]	= (void*) &probs;
+	pointers[5]	= (void*) &aids;
+	pointers[6]	= (void*) &knods;
+	sizes[0]	= sizeof(kods)-1;
+	sizes[1]	= sizeof(vers)-1;
+	sizes[2]	= sizeof(lods)-1;
+	sizes[3]	= sizeof(idtms)-1;
+	sizes[4]	= sizeof(probs)-1;
+	sizes[5]	= sizeof(aids)-1;
+	sizes[6]	= sizeof(knods);
+	if(!WriteRecord(pointers, sizes, size)){printf("ERROR WRITING SECOND RECORD\n");std::exit(1);}
+
+	// third record, first make array of pointers, then sizes
+	size = 5;
+	pointers[0]	= (void*) &np1;
+	pointers[1]	= (void*) &nrss;
+	pointers[2]	= (void*) &nrcd;
+	pointers[3]	= (void*) &njsw;
+	pointers[4]	= (void*) &niss;
+	sizes[0]	= sizeof(np1);
+	sizes[1]	= sizeof(nrss);
+	sizes[2]	= sizeof(nrcd);
+	sizes[3]	= sizeof(njsw);
+	sizes[4]	= sizeof(niss);
+	if(!WriteRecord(pointers, sizes, size)){printf("ERROR WRITING THIRD RECORD\n");std::exit(1);}
+
+	// fourth record, first make array of pointers, then sizes
+	size = 3;
+	pointers[0]	= (void*) &niwr;
+	pointers[1]	= (void*) &mipts;
+	pointers[2]	= (void*) &kjaq;
+	sizes[0]	= sizeof(niwr);
+	sizes[1]	= sizeof(mipts);
+	sizes[2]	= sizeof(kjaq);
+	if(!WriteRecord(pointers, sizes, size)){printf("ERROR WRITING FOURTH RECORD\n");std::exit(1);}
+
+	// go on, copying surface/cell information from the next records until particle data starts
+	for(int i = 0 ; i < surface_count ; i++){
+		if( kjaq==0 | i>njsw-1 ) {
+			WriteSurfaceRecord0(&surface_numbers[i],&surface_types[i],&surface_parameters_lengths[i],&surface_parameters[i]);
+		}
+		if( kjaq==1 & i<=njsw-1 ) {
+			WriteSurfaceRecord1(&surface_numbers[i],&surface_types[i],&surface_parameters_lengths[i],&surface_parameters[i],&surface_facets[i]);
+		}
+	}
+
+	// last record is the summary tables
+	WriteSummaryRecord(surface_summaries);
+	output_file.flush();
+
+}
+
 void SurfaceSource::PrintSizes(){
 
 	printf("== DATA SIZE INFORMATION == \n");
@@ -588,281 +818,22 @@ void SurfaceSource::GetTrack(track* this_track){
 
 }
 
-InputFile::~InputFile(){
-	input_file.close();
-}
-InputFile::InputFile(const std::string& fileName){
-	Init();
-	OpenInputFile(fileName.c_str());
-}
-InputFile::InputFile(const char*        fileName){
-	Init();
-	OpenInputFile(fileName);
-}
-void InputFile::Init(){
-	// init valarray vectors
-	surface_plane .resize(4,0);
-	surface_center.resize(3,0);
-	principle_vector.resize(3,0);
-	spec_E_min=0;
-	spec_E_max=0;
-	spec_x_min=0;
-	spec_x_max=0;
-	spec_y_min=0;
-	spec_y_max=0;
-	spec_E_bins=0;
-	// particle naming
-	particle_symbols.resize(38,' ');
-	particle_symbols[ 0] = ' ';
-	particle_symbols[ 1] = 'n';
-	particle_symbols[ 5] = 'q';
-	particle_symbols[ 2] = 'p';
-	particle_symbols[ 3] = 'e';
-	particle_symbols[ 8] = 'f';
-	particle_symbols[ 4] = '|';
-	particle_symbols[16] = '!';
-	particle_symbols[ 6] = 'u';
-	particle_symbols[17] = '<';
-	particle_symbols[ 7] = 'v';
-	particle_symbols[18] = '>';
-	particle_symbols[ 9] = 'h';
-	particle_symbols[19] = 'g';
-	particle_symbols[10] = 'l';
-	particle_symbols[25] = 'b';
-	particle_symbols[11] = '+';
-	particle_symbols[26] = '_';
-	particle_symbols[12] = '-';
-	particle_symbols[27] = '~';
-	particle_symbols[13] = 'x';
-	particle_symbols[28] = 'c';
-	particle_symbols[14] = 'y';
-	particle_symbols[29] = 'w';
-	particle_symbols[15] = 'o';
-	particle_symbols[30] = '@';
-	particle_symbols[20] = '/';
-	particle_symbols[35] = '*';
-	particle_symbols[21] = 'z';
-	particle_symbols[22] = 'k';
-	particle_symbols[36] = '?';
-	particle_symbols[23] = '%';
-	particle_symbols[24] = '^';
-	particle_symbols[31] = 'd';
-	particle_symbols[32] = 't';
-	particle_symbols[33] = 's';
-	particle_symbols[34] = 'a';
-	particle_symbols[37] = '#';
-}
-void InputFile::OpenInputFile(const char* fileName){
+void SurfaceSource::PutTrack(double nps, double bitarray, double wgt, double erg, double tme, double x, double y, double z, double xhat, double yhat, double cs, double zhat){
 
-	// for file check
-	struct stat buffer;
+	// local vars
+	size_t sizes 	= 11*sizeof(double);  // only write the first 11, track in record doens't have zhat
+	double this_track_data[12] = {nps, bitarray, wgt, erg, tme, x, y, z, xhat, yhat, cs, zhat};
 
-	// set object name
-	input_file_name.assign(fileName);
-
-	// print the name
-	std::string title_file = "======> " + input_file_name + " <======";
-	std::cout << "\n" << std::string(title_file.length(), '=') << std::endl;
-	std::cout << title_file <<std::endl;
-	std::cout << std::string(title_file.length(), '=') << "\n" << std::endl;
-
-	// open file
-	if( (stat (fileName, &buffer) == 0)){
-		input_file.open(fileName, std::ios::in);
-	}
-	else{
-		printf("problem opening %s.  Aborting\n",fileName);
-		return;
-	}
-}
-std::vector<std::string> InputFile::SplitString(const std::string &s, char delim) {
-    std::istringstream buf(s);
-    std::istream_iterator<std::string> beg(buf), end;
-    std::vector<std::string> tokens(beg, end);
-	return tokens;
-}
-
-void InputFile::Parse(){
-
-	std::string line;
-	std::vector<std::string> tokens;
-	std::string item;
-	char* delim = new char;
-	strncpy(delim, " " , 1);
-
-	while(std::getline(input_file,line)){
-		tokens = SplitString(line, *delim);
-		if     (tokens.size()==0){}
-		else if(!strcmp(tokens[0].c_str(),"#")){}
-		else{
-			if (!strcmp(tokens[0].c_str(),"surface")){
-				this_sc = atoi(tokens[1].c_str());
-				//printf("this_sc %ld\n",this_sc);
-			}
-			else if(!strcmp(tokens[0].c_str(),"center")){
-				surface_center[0] = atof(tokens[1].c_str());
-				surface_center[1] = atof(tokens[2].c_str());
-				surface_center[2] = atof(tokens[3].c_str());
-			}
-			else if(!strcmp(tokens[0].c_str(),"principle_vector")){
-				principle_vector[0] = atof(tokens[1].c_str());
-				principle_vector[1] = atof(tokens[2].c_str());
-				principle_vector[2] = atof(tokens[3].c_str());
-			}
-			else if(!strcmp(tokens[0].c_str(),"E_bins")){
-				for(long i=1;i<tokens.size();i++){
-					E_bins.push_back(atof(tokens[i].c_str()));
-				}
-			}
-			else if(!strcmp(tokens[0].c_str(),"theta_bins")){
-				for(long i=1;i<tokens.size();i++){
-					theta_bins.push_back(atof(tokens[i].c_str()));
-				}
-			}
-			else if(!strcmp(tokens[0].c_str(),"phi_bins")){
-				for(long i=1;i<tokens.size();i++){
-					phi_bins.push_back(atof(tokens[i].c_str()));
-				}
-			}
-			else if(!strcmp(tokens[0].c_str(),"x_params")){
-				x_min	= atof(tokens[1].c_str());
-				x_max	= atof(tokens[2].c_str());
-				x_res	= atof(tokens[3].c_str());
-				x_len	=  ceil((x_max-x_min)/x_res);
-			}
-			else if(!strcmp(tokens[0].c_str(),"y_params")){
-				y_min	= atof(tokens[1].c_str());
-				y_max	= atof(tokens[2].c_str());
-				y_res	= atof(tokens[3].c_str());
-				y_len	=  ceil((y_max-y_min)/y_res);
-			}
-			else if(!strcmp(tokens[0].c_str(),"spec_E")){
-				spec_E_min	= atof(tokens[1].c_str());
-				spec_E_max	= atof(tokens[2].c_str());
-				spec_E_bins	= atoi(tokens[3].c_str());
-			}
-			else if(!strcmp(tokens[0].c_str(),"spec_x")){
-				spec_x_min	= atof(tokens[1].c_str());
-				spec_x_max	= atof(tokens[2].c_str());
-			}
-			else if(!strcmp(tokens[0].c_str(),"spec_y")){
-				spec_y_min	= atof(tokens[1].c_str());
-				spec_y_max	= atof(tokens[2].c_str());
-			}
-			else if(!strcmp(tokens[0].c_str(),"particle")){
-				for (long i=0;i<particle_symbols.size();i++){
-					if(*tokens[1].c_str() == particle_symbols[i]){
-						this_particle = i;
-						break;
-					}
-				};
-			}
-			else if(!strcmp(tokens[0].c_str(),"spec_theta")){
-				//spec_theta_edges.push_back(0.0);  // don't imply anything
-				for(long i=1;i<tokens.size();i++){
-					spec_theta_edges.push_back(atof(tokens[i].c_str()));
-				}
-			}
-		}
-	}
+	// try reading it all in at once...
+	if(!WriteRecord((void**) this_track_data, &sizes, 1)){printf("ERROR WRITING TRACK RECORD\n");std::exit(1);}
 
 }
-void InputFile::PrintSummary(){
+void SurfaceSource::PutTrack(track* this_track){
 
-	long E_len		= E_bins.end()     - E_bins.begin()     - 1;
-	long theta_len	= theta_bins.end() - theta_bins.begin() - 1;
-	long phi_len	= phi_bins.end()   - phi_bins.begin()   - 1;
-	long i = 0;
+	// local vars
+	size_t sizes 	= 11*sizeof(double);  // only write the first 11, track in record doens't have zhat
 
-	printf(" ======================= INPUT FILE SUMMARY ======================= \n");
-	printf("Particle  %3ld = %1c\n",this_particle,particle_symbols[this_particle]);
-	printf("Surface   %5ld\n",this_sc);
-	printf("E_len,	  %5ld\n",	E_len		);
-	printf("theta_len %5ld\n",	theta_len	);
-	printf("phi_len	  %5ld\n",	phi_len		);
-	printf("y_len	  %5ld\n",	y_len		);
-	printf("y_min	  % 6.4E\n",	y_min		);
-	printf("y_max	  % 6.4E\n",	y_max		);
-	printf("y_res	  % 6.4E\n",	y_res		);
-	printf("x_len	  %5ld\n",	x_len		);
-	printf("x_min	  % 6.4E\n",	x_min		);
-	printf("x_max	  % 6.4E\n",	x_max		);
-	printf("x_res	  % 6.4E\n",	x_res		);
-	printf("\n");
-	printf(" ========================= E_bins VECTOR ========================= \n");
-	for(i=0;i<E_len+1;i++){
-		printf(" % 6.4E",E_bins[i]);
-	}
-	printf("\n\n");
-	printf(" ======================= theta_bins VECTOR ======================= \n");
-	for(i=0;i<theta_len+1;i++){
-		printf(" % 6.4E",theta_bins[i]);
-	}
-	printf("\n\n");
-	printf(" ======================== phi_bins VECTOR ======================== \n");
-	for(i=0;i<phi_len+1;i++){
-		printf(" % 6.4E",phi_bins[i]);
-	}
-	printf("\n");
-	if(spec_E_bins>0){
-		printf("\n");
-		printf(" ======================= Spectral Binning ======================== \n");
-		printf(" E_min %6.4E E_max %6.4E bins %ld\n",spec_E_min,spec_E_max,spec_E_bins);
-		printf(" theta");
-		for(i=1;i<spec_theta_edges.size()+1;i++){
-			printf(" %6.4E",spec_theta_edges[i-1]);
-			if (i%4==0){printf("\n      ");}
-		}
-		if ((i-1)%4!=0){printf("\n");}
-		printf(" x_min %6.4E x_max %6.4E \n",spec_x_min,spec_x_max);
-		printf(" y_min %6.4E y_max %6.4E \n",spec_y_min,spec_y_max);
-		printf("\n");
-	}
-
-}
-bool InputFile::GetSurface( SurfaceSource* ss ){
-
-	// go through, look for the surface specified
-	for(long i=0;i<ss[0].surface_count;i++){
-		if( ss[0].surface_numbers[i] == this_sc ){
-			// check if not a plane, get data
-			switch( ss[0].surface_types[i] ){
-				case 1 :   // p
-					if(ss[0].surface_parameters_lengths[i]!=4){printf("Surface type '%s' marked as having %d parameters!",ss[0].surface_card[ss[0].surface_types[i]].symbol,ss[0].surface_parameters_lengths[i]);return false;}
-					surface_plane[0] = ss[0].surface_parameters[i].value[0];
-					surface_plane[1] = ss[0].surface_parameters[i].value[1];
-					surface_plane[2] = ss[0].surface_parameters[i].value[2];
-					surface_plane[3] = ss[0].surface_parameters[i].value[3];
-					return true;
-				case 2 :   // px
-					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %d parameters!",ss[0].surface_card[ss[0].surface_types[i]].symbol,ss[0].surface_parameters_lengths[i]);return false;}
-					surface_plane[0] = 1.0;
-					surface_plane[1] = 0.0;
-					surface_plane[2] = 0.0;
-					surface_plane[3] = ss[0].surface_parameters[i].value[0];
-					return true;
-				case 3 :   // py
-					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %d parameters!",ss[0].surface_card[ss[0].surface_types[i]].symbol,ss[0].surface_parameters_lengths[i]);return false;}
-					surface_plane[0] = 0.0;
-					surface_plane[1] = 1.0;
-					surface_plane[2] = 0.0;
-					surface_plane[3] = ss[0].surface_parameters[i].value[0];
-					return true;
-				case 4 :   // pz
-					if(ss[0].surface_parameters_lengths[i]!=1){printf("Surface type '%s' marked as having %d parameters!",ss[0].surface_card[ss[0].surface_types[i]].symbol,ss[0].surface_parameters_lengths[i]);return false;}
-					surface_plane[0] = 0.0;
-					surface_plane[1] = 0.0;
-					surface_plane[2] = 1.0;
-					surface_plane[3] = ss[0].surface_parameters[i].value[0];
-					return true;
-				default: // surface not supported
-					printf("Surface type '%s' not supported.  Only planes are!\n",ss[0].surface_card[ss[0].surface_types[i]].symbol); return false;
-			}
-		}
-	}
-
-	// not found
-	printf("Surface %ld not found in the surface source...\n",this_sc);
-	return false;
+	// try reading it all in at once...
+	if(!WriteRecord((void**) &this_track, &sizes, 1)){printf("ERROR WRITING TRACK RECORD\n");std::exit(1);}
 
 }

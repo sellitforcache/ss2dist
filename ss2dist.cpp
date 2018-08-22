@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <bitset>
 #include "SurfaceSource.h"
+#include "InputFile.h"
 #include "histogram.h"
 #include "helpers.h"
 
@@ -30,7 +31,7 @@ int main(int argc, char* argv[]){
 	if (argc!=3) { printf("A wssa filename and a surface description file must be given.\n"); return 1;}
 
   // print the name
-  std::string title_file = "======> " + argv[1] + " <======";
+  std::string title_file = "======> " + std::string(argv[1]) + " <======";
   std::cout << "\n" << std::string(title_file.length(), '=') << std::endl;
   std::cout << title_file <<std::endl;
   std::cout << std::string(title_file.length(), '=') << "\n" << std::endl;

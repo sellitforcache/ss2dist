@@ -17,9 +17,10 @@
 #include <bitset>
 #include "flann/flann.hpp"
 #include "SurfaceSource.h"
+#include "InputFile.h"
 #include "histogram.h"
 #include "helpers.h"
- 
+
 
 /*
 MAIN FUNCTION
@@ -163,7 +164,7 @@ int main(int argc, char* argv[]){
 	std::vector<double>					weight_data;
 
 
-	// histogram vector stuff 
+	// histogram vector stuff
 	// NEED TO FIX THIS - specifying no spec_theta means this becomes an infinite loop...
 	std::vector<histogram> spectra;
 	histogram this_histogram;
@@ -178,7 +179,7 @@ int main(int argc, char* argv[]){
 	// angle histogram for whole angle range
 	histogram angle_spectrum = histogram();
 	angle_spectrum.set_grid_lin(input.spec_theta_edges.front(),input.spec_theta_edges.back(),10000);
-	
+
 	// set loop length
 	long N = 5000;//ss.nrss;
 
@@ -247,16 +248,16 @@ int main(int argc, char* argv[]){
 			// transform position to surface coordinates using basis vectors specified
 			this_pos[0] = (surface_vec2*xfm_pos).sum();
 			this_pos[1] = (surface_vec3*xfm_pos).sum();
-		
+
 			// calc angular values from the principle vector
 			this_theta  = acos((principle_vector1*vec).sum());
 			this_phi 	= atan2((principle_vector3*vec).sum(),(principle_vector2*vec).sum());
 			this_theta_deg = this_theta*180.0/pi;
-			
+
 			if (this_phi < 0.0){
 				this_phi = 2.0*pi + this_phi;
 			}
-		
+
 		}
 		*/
 	}
@@ -284,7 +285,7 @@ int main(int argc, char* argv[]){
 	index.knnSearch(points_mat, indices, dists, nn, flann::SearchParams(0));
 
 
-	
+
 	/*
 	printf("press enter to proceed with printing of results ...\n");
 	std::cin.get();
@@ -310,7 +311,7 @@ int main(int argc, char* argv[]){
 		total_weight += dist[i];
 	}
 
-	
-	
+
+
 
 }

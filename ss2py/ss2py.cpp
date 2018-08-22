@@ -122,7 +122,7 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 	// make numpy array from the already-initialized array
 	PyObject* data_array = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT64, data_matrix);
 
-	// add the header and data into PyList_New
+	// add the header and data into list
 	PyList_SetItem(container_list, 0, header_dict);
 	PyList_SetItem(container_list, 1, data_array);
 

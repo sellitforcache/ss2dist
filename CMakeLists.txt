@@ -18,10 +18,12 @@ set(base_srcs
     SurfaceSource.cpp
     histogram.cpp
     helpers.cpp
+    InputFile.cpp
 )
 
 # actual target:
 add_executable(ss2dist ${base_srcs} ss2dist.cpp)
 add_executable(ss2more ${base_srcs} ss2more.cpp)
+add_executable(writetest ${base_srcs} writetest.cpp)
 
 target_link_libraries(ss2more flann)

@@ -1,11 +1,11 @@
 enum sequence1 {
 	WSSA_WRITE = 0,
-	WSSA_READ	
+	WSSA_READ
 };
 
 struct track
 {
-	double nps, bitarray, wgt, erg, tme, x, y, z, xhat, yhat, cs, zhat;		
+	double nps, bitarray, wgt, erg, tme, x, y, z, xhat, yhat, cs, zhat;
 
 };
 
@@ -18,12 +18,14 @@ struct surface_card_data
 {
 	char	symbol[4];
 	int 	n_coefficients;
-	char 	description[41]; 
+	char 	description[41];
 };
 
+// FORTRAN record delimiter length... usually 4 bytes.  Can be 8!  Should set as a preprocessor option
+const int RECORD_DELIMITER_LENGTH = 4;
 
 class SurfaceSource
-{	
+{
 
 	//
 	//
@@ -41,6 +43,10 @@ class SurfaceSource
 	bool ReadSurfaceRecord0(int* , int* , int* , surface*);
 	bool ReadSurfaceRecord1(int* , int* , int* , surface*, int*);
 	bool ReadSummaryRecord(int**);
+	bool WriteRecord(void** , size_t*, size_t);
+	bool WriteSurfaceRecord0(int* , int* , int* , surface*);
+	bool WriteSurfaceRecord1(int* , int* , int* , surface*, int*);
+	bool WriteSummaryRecord(int**);
 
 
 public:
@@ -53,7 +59,7 @@ public:
 
 	// parameters
 	char				id[9], kods[9], vers[6], lods[9], idtms[20], probs[20], aids[81];
-	int					knods, nrcd, njsw, niwr, mipts, kjaq;	
+	int					knods, nrcd, njsw, niwr, mipts, kjaq;
 	// these are always declared as 8byte?!
 	long long 			np1, nrss, niss;
 
@@ -86,70 +92,20 @@ public:
 	SurfaceSource();
 	SurfaceSource( const std::string& );
 	SurfaceSource( const char*   );
+	SurfaceSource( const std::string& ,const std::string& );
+	SurfaceSource( const char*   ,const char*   );
+	SurfaceSource( const std::string& , const int );
+	SurfaceSource( const char*   , const int );
 	void Init();
 	void OpenWssaFile_Read(  const char* );
 	void OpenWssaFile_Write( const char* );
 	void ReadHeader();
+	void WriteHeader();
 	void PrintHeader();
 	void PrintSizes();
 	void GetTrack(track*);
+	void PutTrack(track*);
+	void PutTrack(double,double,double,double,double,double,double,double,double,double,double,double);
 
-
-};
-
-class InputFile {
-
-	std::vector<std::string>  SplitString(const std::string&, char );
-
-public:
-
-	//
-	//
-	// DATA
-	//
-	//
-	
-	//  surface vectors
-	std::valarray<double> surface_plane;
-	std::valarray<double> surface_center;
-	std::valarray<double> principle_vector;
-
-	// bin vectors
-	std::vector<double> E_bins;
-	std::vector<double> theta_bins;
-	std::vector<double> phi_bins;
-
-	// particle naming
-	std::valarray<char> particle_symbols;
-	long this_particle;
-
-	// regular xy binning paramters
-	double 	x_min, x_max, x_res, y_min, y_max, y_res;
-	long 	x_len, y_len, this_sc;
-
-	// spectral binning paramters
-	double 	spec_E_min, spec_E_max, spec_x_min, spec_x_max, spec_y_min, spec_y_max;
-	long 	spec_E_bins;
-	std::vector<double> spec_theta_edges;
-
-	// file object
-	std::string			input_file_name;
-	std::ifstream 		input_file;
-
-	//
-	//
-	// METHODS
-	//
-	//
-
-	~InputFile();
-	InputFile();
-	InputFile( const std::string& );
-	InputFile( const char*   );
-	void Init();
-	void OpenInputFile( const char* );
-	bool GetSurface( SurfaceSource* );
-	void Parse();
-	void PrintSummary();
 
 };
