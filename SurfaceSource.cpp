@@ -255,7 +255,7 @@ bool SurfaceSource::ReadRecord(void** destination, size_t* size, size_t NumberOf
 {
 	int record_length0	= 0;
 	int record_length1	= 0;
-	int null			= 0;
+	int null					= 0;
 	int length_read		= 0;
 	int dist_to_end		= 0;
 
@@ -263,7 +263,7 @@ bool SurfaceSource::ReadRecord(void** destination, size_t* size, size_t NumberOf
 	{
 		// read starting delimiter
 		input_file.read((char*) &record_length0, RECORD_DELIMITER_LENGTH);
-		//printf("RECORD LENGTH %d\n",record_length0);
+		//printf("READ RECORD LENGTH %d\n",record_length0);
 
 		// read what's asked for
 		for(int i=0;i<NumberOfEntries;i++){
@@ -364,7 +364,7 @@ bool SurfaceSource::ReadSummaryRecord(int** summaries)
 			for(int j=0;j<surface_summary_length;j++){
 				length_read = length_read + sizeof(int);
 				if(length_read>record_length0){
-					printf("DATA REQUESTED (%d) OVERRAN RECORD LENGTH (%d)!\n",length_read,record_length0);
+					printf("SUMMARY DATA REQUESTED (%d) OVERRAN RECORD LENGTH (%d)!\n",length_read,record_length0);
 					return false;
 				}
 				else{
@@ -406,6 +406,7 @@ bool SurfaceSource::WriteRecord(void** source, size_t* size, size_t NumberOfEntr
 	for (int i=0;i<NumberOfEntries;i++){
 		record_length0 += size[i];
 	}
+	//printf("WRITE RECORD LENGTH %d\n",record_length0);
 
 	if (output_file.good())
 	{
@@ -666,8 +667,9 @@ void SurfaceSource::WriteHeader(){
 	// the last record is the SS summary vector
 
 	// first record
-	void** pointers = 	new void*	[20];
-	size_t* sizes 	= 	new size_t	[20];
+	int largest_size = 3+17;
+	void** pointers = 	new void*	[largest_size];
+	size_t* sizes 	= 	new size_t	[largest_size];
 	size_t size = 1;
 	pointers[0]	= (void**) &id;
 	sizes[0]	= sizeof(id)-1;
@@ -706,16 +708,16 @@ void SurfaceSource::WriteHeader(){
 	if(!WriteRecord(pointers, sizes, size)){printf("ERROR WRITING THIRD RECORD\n");std::exit(1);}
 
 	// fourth record, first make array of pointers, then sizes
-	size = 3;
+	size = 3+17;
 	pointers[0]	= (void*) &niwr;
 	pointers[1]	= (void*) &mipts;
 	pointers[2]	= (void*) &kjaq;
 	int null = 0;
-	for (int g=3;g<3+17;g++){pointers[g]=&null;}
+	for (int g=3;g<size;g++){pointers[g]=&null;}
 	sizes[0]	= sizeof(niwr);
 	sizes[1]	= sizeof(mipts);
 	sizes[2]	= sizeof(kjaq);
-	for (int g=3;g<3+17;g++){sizes[g]=sizeof(null);}
+	for (int g=3;g<size;g++){sizes[g]=sizeof(null);}
 	if(!WriteRecord(pointers, sizes, size)){printf("ERROR WRITING FOURTH RECORD\n");std::exit(1);}
 
 	// go on, copying surface/cell information from the next records until particle data starts

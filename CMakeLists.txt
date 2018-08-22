@@ -24,6 +24,7 @@ set(base_srcs
 # actual target:
 add_executable(ss2dist ${base_srcs} ss2dist.cpp)
 add_executable(ss2more ${base_srcs} ss2more.cpp)
+add_executable(turtle2rssa ${base_srcs} turtle2rssa.cpp)
 add_executable(writetest ${base_srcs} writetest.cpp)
 
 target_link_libraries(ss2more flann)
