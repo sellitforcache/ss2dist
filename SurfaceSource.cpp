@@ -303,18 +303,25 @@ bool SurfaceSource::ReadRecord(void** destination, size_t* size, size_t NumberOf
 bool SurfaceSource::ReadSurfaceRecord0(int* numbers, int* types, int* lengths, surface* parameters)
 {
 	// internal variables
-	int record_length = 0;
+	int record_length0 = 0;
+	int record_length1 = 0;
 
 	// read record
 	if (input_file.good())
 	{
-		input_file.read((char*) &record_length, sizeof(record_length));
+		input_file.read((char*) &record_length0, sizeof(record_length0));
 		input_file.read((char*) numbers,	sizeof(int));
 		input_file.read((char*) types,		sizeof(int));
 		input_file.read((char*) lengths,	sizeof(int));
 		input_file.read((char*) parameters,lengths[0]*sizeof(parameters[0].value[0]));
-		input_file.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
-		return true;
+		input_file.read((char*) &record_length1, sizeof(record_length1));
+		if(record_length0!=record_length1){
+			printf("SurfaceRecord0 BEGINNING (%d) AND ENDING (%d) RECORD LENGTH DELIMITERS DO NOT MATCH\n",record_length0,record_length1);
+			return false;
+		}
+		else{
+			return true;
+		}
 	}
 	else
 	{
@@ -363,6 +370,7 @@ bool SurfaceSource::ReadSummaryRecord(int** summaries)
 		for(int i=0;i<surface_count;i++){
 			for(int j=0;j<surface_summary_length;j++){
 				length_read = length_read + sizeof(int);
+				printf("%d read summary record         %d bytes\n",j,length_read);
 				if(length_read>record_length0){
 					printf("SUMMARY DATA REQUESTED (%d) OVERRAN RECORD LENGTH (%d)!\n",length_read,record_length0);
 					return false;
@@ -376,9 +384,13 @@ bool SurfaceSource::ReadSummaryRecord(int** summaries)
 		// go to the end of the record
 		dist_to_end = record_length0-length_read;
 		if( dist_to_end > 0 ){
-			//printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
+			printf("--> skipping ahead %d bytes to end of record\n",dist_to_end);
 			input_file.seekg(dist_to_end, std::ios::cur);
 		}
+
+		printf("surface_summary_length %d surface_count %d\n", surface_summary_length,surface_count);
+		printf("read summary record         %d bytes\n",length_read);
+		printf("read summary record_length0 %d bytes\n",record_length0);
 
 		// read ending delimiter, assert
 		input_file.read((char*) &record_length1, RECORD_DELIMITER_LENGTH);
@@ -498,6 +510,9 @@ bool SurfaceSource::WriteSummaryRecord(int** summaries)
 			}
 		}
 
+		printf("surface_summary_length %d surface_count %d\n", surface_summary_length,surface_count);
+		printf("written summary record         %d bytes\n",length_write);
+		printf("written summary record_length0 %d bytes\n",record_length0);
 		// write ending delimiter, assert
 		output_file.write((char*) &record_length0, RECORD_DELIMITER_LENGTH);
 
@@ -598,7 +613,6 @@ void SurfaceSource::ReadHeader(){
 	if(!ReadRecord(pointers, sizes, size)){printf("ERROR READING FOURTH RECORD\n");std::exit(1);}
 
 	// init arays for surface information
-	surface_summary_length		= 2+4*mipt+1;
 	surface_count				= njsw+niwr;
 	surface_parameters			= new surface 	[surface_count];
 	surface_parameters_lengths	= new int 		[surface_count];
@@ -720,6 +734,26 @@ void SurfaceSource::WriteHeader(){
 	for (int g=3;g<size;g++){sizes[g]=sizeof(null);}
 	if(!WriteRecord(pointers, sizes, size)){printf("ERROR WRITING FOURTH RECORD\n");std::exit(1);}
 
+	// init arays for surface information
+	//surface_count								= njsw+niwr;
+	//surface_parameters					= new surface [surface_count];
+	//surface_parameters_lengths	= new int 		[surface_count];
+	//surface_numbers							= new int 		[surface_count];
+	//surface_types								= new int 		[surface_count];
+	//surface_facets							= new int 		[surface_count];
+	//surface_summaries						= new int* 		[surface_count];
+	//for(int i = 0 ; i < surface_count ; i++){
+	//	for(int j = 0 ; j < 10 ; j++){
+	//		surface_parameters	[i].value[j]	= 0;
+	//	}
+	//	surface_summaries[i] = new int [surface_summary_length];
+	//	for(int k=0;k<surface_summary_length;k++){
+	//		surface_summaries[i][k]=0;
+	//	}
+	//	surface_numbers			[i] 			= -1;
+	//	surface_facets			[i] 			= -1;
+	//}
+
 	// go on, copying surface/cell information from the next records until particle data starts
 	for(int i = 0 ; i < surface_count ; i++){
 		if( kjaq==0 | i>njsw-1 ) {
@@ -793,6 +827,49 @@ void SurfaceSource::PrintHeader(){
 	}
 	printf("\n");
 
+/*
+
+! update the surface-source summary array.
+ns = npsw(ib)
+nsl(1,ib) = nsl(1,ib)+1
+if( npstc/=ns )  nsl(2,ib)=nsl(2,ib)+1
+i = 4*(pbl%i%ipt-1)
+nsl(i+3,ib) = nsl(i+3,ib)+1
+if( npstc/=ns              )  nsl(i+4,ib)=nsl(i+4,ib)+1
+if( pbl%i%ncp==0                 )  nsl(i+5,ib)=nsl(i+5,ib)+1
+if( npstc/=ns .and. pbl%i%ncp==0 )  nsl(i+6,ib)=nsl(i+6,ib)+1
+if( kqss==0 )  nqsw=nqsw+1
+kqss = 1
+nrsw = nrsw+1
+npsw(ib) = npstc
+
+! read and print the surface-source summary information.
+read(iusr,end=320)  a, ((nslr(i,j),i=1,2+4*mipts),j=1,njsw+niwr)
+write(iuo,135) (hp(i),i=1,jp)
+135 format(/,' this ssr problem will use the following particles if available: ',&
+	& 3(a8,1x))
+if( ink(10)/=0 )  write(iuo,140) (i,nslr(1,i),nslr(2,i),i=1,njsw+niwr)
+140 format(/," summary for all particles per surface or cell.",/, &
+	& 5x, "no.",16x,  "total tracks",11x,  "independent histories",/, &
+	& (i7,2i24) )
+is = 0
+l  = 0
+do k=1,mipts
+	if( kpt(k)/=0 ) then
+		if( ipty(k)/=0 ) then
+			do i=1,njsw+niwr
+				is = is+nslr(4*k-1,i)
+			end do
+		endif
+		if( ink(10)/=0 )  write(iuo,160) hnp(k),(i,(nslr(j,i),j=4*k-1,4*k+2),i=1,njsw+niwr)
+	endif
+end do
+160 format(/1x,a8," summary per surface or cell.",/,5x, "no.",8x,&
+	&  "tracks",7x,"indp. tracks",5x,"uncollided",5x,"indp. uncol.",/,(i7,4i15))
+if( is==0 ) call erprnt(1,1,0,0,0,0,0,0,&
+	& '"no surface source tracks for particle types requested."')
+
+*/
 
 	printf("\n============================================================= SURFACE SUMMARIES ============================================================= \n");
 	printf("===============================================================!IMPROVE LATER!=============================================================== \n");

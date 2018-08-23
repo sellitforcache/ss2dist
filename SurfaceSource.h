@@ -71,8 +71,8 @@ public:
 	int** 				surface_summaries;
 	surface*			surface_parameters;
 	int					surface_count;
-	int 				surface_summary_length;
 	int 				mipt = 37;
+	int 				surface_summary_length = 2+4*mipt+1;
 
 	// surface description lookup table
 	surface_card_data 	surface_card[41];
