@@ -195,15 +195,15 @@ SurfaceSource::SurfaceSource(const char*        fileName1, const char*        fi
 SurfaceSource::SurfaceSource(const std::string& fileName, const int flag){
 	Init();
 	switch(flag){
-		case WSSA_READ:  OpenWssaFile_Read( fileName.c_str());
-		case WSSA_WRITE: OpenWssaFile_Write(fileName.c_str());
+		case RSSA_READ:  OpenWssaFile_Read( fileName.c_str());
+		case RSSA_WRITE: OpenWssaFile_Write(fileName.c_str());
 	}
 }
 SurfaceSource::SurfaceSource(const char*        fileName, const int flag){
 	Init();
 	switch(flag){
-		case WSSA_READ:  OpenWssaFile_Read( fileName);
-		case WSSA_WRITE: OpenWssaFile_Write(fileName);
+		case RSSA_READ:  OpenWssaFile_Read( fileName);
+		case RSSA_WRITE: OpenWssaFile_Write(fileName);
 	}
 }
 
@@ -784,7 +784,7 @@ void SurfaceSource::PrintSizes(){
 void SurfaceSource::PrintHeader(){
 
 	printf("=========================================== HEADER INFORMATION =========================================== \n");
-	printf("WSSA ID string                                 :  %8s \n",	id);
+	printf("RSSA ID string                                 :  %8s \n",	id);
 	printf("code name                                      :  %8s \n",	kods);
 	printf("code version                                   :  %5s \n",	vers);
 	printf("LODDAT of code that wrote surface source file  :  %8s \n",	lods);
@@ -830,45 +830,16 @@ void SurfaceSource::PrintHeader(){
 
 /*
 
-! update the surface-source summary array.
-ns = npsw(ib)
-nsl(1,ib) = nsl(1,ib)+1
-if( npstc/=ns )  nsl(2,ib)=nsl(2,ib)+1
-i = 4*(pbl%i%ipt-1)
-nsl(i+3,ib) = nsl(i+3,ib)+1
-if( npstc/=ns              )  nsl(i+4,ib)=nsl(i+4,ib)+1
-if( pbl%i%ncp==0                 )  nsl(i+5,ib)=nsl(i+5,ib)+1
-if( npstc/=ns .and. pbl%i%ncp==0 )  nsl(i+6,ib)=nsl(i+6,ib)+1
-if( kqss==0 )  nqsw=nqsw+1
-kqss = 1
-nrsw = nrsw+1
-npsw(ib) = npstc
 
-! read and print the surface-source summary information.
-read(iusr,end=320)  a, ((nslr(i,j),i=1,2+4*mipts),j=1,njsw+niwr)
-write(iuo,135) (hp(i),i=1,jp)
-135 format(/,' this ssr problem will use the following particles if available: ',&
-	& 3(a8,1x))
-if( ink(10)/=0 )  write(iuo,140) (i,nslr(1,i),nslr(2,i),i=1,njsw+niwr)
-140 format(/," summary for all particles per surface or cell.",/, &
-	& 5x, "no.",16x,  "total tracks",11x,  "independent histories",/, &
-	& (i7,2i24) )
-is = 0
-l  = 0
+write(iuo,140) (i,nslr(1,i),nslr(2,i),i=1,njsw+niwr)
+140 format(/," summary for all particles per surface or cell.",/, 5x, "no.",16x,  "total tracks",11x,  "independent histories",/,  (i7,2i24) )
 do k=1,mipts
 	if( kpt(k)/=0 ) then
-		if( ipty(k)/=0 ) then
-			do i=1,njsw+niwr
-				is = is+nslr(4*k-1,i)
-			end do
-		endif
-		if( ink(10)/=0 )  write(iuo,160) hnp(k),(i,(nslr(j,i),j=4*k-1,4*k+2),i=1,njsw+niwr)
+		write(iuo,160) hnp(k),(i,(nslr(j,i),j=4*k-1,4*k+2),i=1,njsw+niwr)
 	endif
 end do
-160 format(/1x,a8," summary per surface or cell.",/,5x, "no.",8x,&
-	&  "tracks",7x,"indp. tracks",5x,"uncollided",5x,"indp. uncol.",/,(i7,4i15))
-if( is==0 ) call erprnt(1,1,0,0,0,0,0,0,&
-	& '"no surface source tracks for particle types requested."')
+160 format(/1x,a8," summary per surface or cell.",/,5x, "no.",8x, "tracks",7x,"indp. tracks",5x,"uncollided",5x,"indp. uncol.",/,(i7,4i15))
+
 
 */
 

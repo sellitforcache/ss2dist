@@ -1,6 +1,6 @@
 enum sequence1 {
-	WSSA_WRITE = 0,
-	WSSA_READ
+	RSSA_WRITE = 0,
+	RSSA_READ
 };
 
 struct track
