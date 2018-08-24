@@ -207,6 +207,7 @@ int main(int argc, char* argv[]){
 		this_track.erg			= sqrt(mom[i]*mom[i] + proton_mass*proton_mass) - proton_mass; //erg: particle energy in MeV
 		this_track.wgt			= wgt[i];
 		this_track.tme			= 0.;
+		this_track.cs 			= 1234;
 		this_track.bitarray = encode_bitarray(9,0,0); // proton, not second+ generation, not antiparticle
 
 		// put track
