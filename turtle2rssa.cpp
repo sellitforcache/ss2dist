@@ -193,9 +193,10 @@ int main(int argc, char* argv[]){
 		if ( i%Ns == 0){printf("||||");fflush(stdout);}
 
 		// compute direction cosines from the xy angles
-		a = cos(xhat[i]*1e-3);
-	  b = cos(yhat[i]*1e-3);
+		a = sin(xhat[i]*1e-3);
+	  	b = sin(yhat[i]*1e-3);
 		c = sqrt(1.0 - a*a - b*b);
+		//printf("%8.6E %8.6E %8.6E %8.6E %8.6E \n",xhat[i]*1e-3,yhat[i]*1e-3,a,b,c);
 
 		// fill in track struct
 		this_track.x				= x[i]*0.1;  // given in mm!
