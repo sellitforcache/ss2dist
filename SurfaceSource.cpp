@@ -357,20 +357,24 @@ bool SurfaceSource::ReadSummaryRecord(int** summaries)
 	int record_length0	= 0;
 	int record_length1	= 0;
 	int null			= 0;
+	double dnull		= 0.0;
 	int length_read		= 0;
 	int dist_to_end		= 0;
-
+	int this_record_legnth	= 0;
 	if (input_file.good())
 	{
 		// read starting delimiter
 		input_file.read((char*) &record_length0, RECORD_DELIMITER_LENGTH);
 		//printf("RECORD LENGTH %d\n",record_length0);
 
+		// read dumb leading (double) zero
+		input_file.read((char*) &dnull, sizeof(double));
+		length_read = sizeof(double);
+
 		// read what's asked for
 		for(int i=0;i<surface_count;i++){
 			for(int j=0;j<surface_summary_length;j++){
 				length_read = length_read + sizeof(int);
-				printf("%d read summary record         %d bytes\n",j,length_read);
 				if(length_read>record_length0){
 					printf("SUMMARY DATA REQUESTED (%d) OVERRAN RECORD LENGTH (%d)!\n",length_read,record_length0);
 					return false;
@@ -388,14 +392,10 @@ bool SurfaceSource::ReadSummaryRecord(int** summaries)
 			input_file.seekg(dist_to_end, std::ios::cur);
 		}
 
-		printf("surface_summary_length %d surface_count %d\n", surface_summary_length,surface_count);
-		printf("read summary record         %d bytes\n",length_read);
-		printf("read summary record_length0 %d bytes\n",record_length0);
-
 		// read ending delimiter, assert
 		input_file.read((char*) &record_length1, RECORD_DELIMITER_LENGTH);
 		if(record_length0!=record_length1){
-			printf("BEGINNING (%d) AND ENDING (%d) RECORD LENGTH DELIMITERS DO NOT MATCH\n",record_length0,record_length1);
+			printf("BEGINNING (%d) AND ENDING (%d) SUMMARY RECORD LENGTH DELIMITERS DO NOT MATCH\n",record_length0,record_length1);
 			return false;
 		}
 		else{
@@ -493,14 +493,18 @@ bool SurfaceSource::WriteSurfaceRecord1(int* numbers, int* types, int* lengths, 
 
 bool SurfaceSource::WriteSummaryRecord(int** summaries)
 {
-	int record_length0	= surface_summary_length*surface_count*sizeof(int);
+	int record_length0	= surface_summary_length*surface_count*sizeof(int)+sizeof(double);
 	int null			= 0;
-	int length_write		= 0;
+	double dnull		= 0.0;
+	int length_write	= 0;
 
 	if (output_file.good())
 	{
 		// write starting delimiter
 		output_file.write((char*) &record_length0, RECORD_DELIMITER_LENGTH);
+
+		// write stupid leading (double) zero
+		output_file.write((char*) &dnull, sizeof(double));		
 
 		// write what's asked for
 		for(int i=0;i<surface_count;i++){
@@ -510,9 +514,6 @@ bool SurfaceSource::WriteSummaryRecord(int** summaries)
 			}
 		}
 
-		printf("surface_summary_length %d surface_count %d\n", surface_summary_length,surface_count);
-		printf("written summary record         %d bytes\n",length_write);
-		printf("written summary record_length0 %d bytes\n",record_length0);
 		// write ending delimiter, assert
 		output_file.write((char*) &record_length0, RECORD_DELIMITER_LENGTH);
 
