@@ -28,22 +28,88 @@ MAIN FUNCTION
 int main(int argc, char* argv[]){
 
 	//
-	if (argc!=3) { printf("A turtle output and a wssa/rssa filename must be given.\n"); return 1;}
+	if (argc!=4) { printf("An input file, turtle output, and a wssa/rssa filename must be given.\n"); return 1;}
 
 	// init some data
 	track this_track;
-	SurfaceSource ss(argv[2],RSSA_WRITE);
+	SurfaceSource ss(argv[3],RSSA_WRITE);
 
 	// turtle file
 	std::ifstream 		turtle_file;
 	struct stat buffer;
  	if( (stat (argv[1], &buffer) == 0)){
-		turtle_file.open(argv[1], std::ios::in );
+		turtle_file.open(argv[2], std::ios::in );
 	}
 	else{
 		printf("problem opening %s for reading.  Aborting\n",argv[1]);
 		return 1;
 	}
+
+	// load input file
+	InputFile input(argv[1]);
+	input.Parse();
+
+	// calculate the other vectors from plane vectors or input principle vector
+	std::valarray<double> surface_normal  	(3);
+	std::valarray<double> surface_vec1	  	(3);
+	std::valarray<double> surface_vec2    	(3);
+	std::valarray<double> surface_vec3    	(3);
+	std::valarray<double> surface_vec_avg 	(3);
+	std::valarray<double> principle_vector1	(3);
+	std::valarray<double> principle_vector2	(3);
+	std::valarray<double> principle_vector3	(3);
+	std::valarray<double> vec								(3);
+	std::valarray<double> pos								(3);
+	std::valarray<double> xfm_pos						(3);
+	std::valarray<double> this_vec					(3);
+	std::valarray<double> this_pos					(2);
+	surface_normal[0]	=  input.surface_plane[0];
+	surface_normal[1]	=  input.surface_plane[1];
+	surface_normal[2]	=  input.surface_plane[2];
+	//
+	// FOR ANGULAR DISTRIBUTION
+	double principle_vector_mag = sqrtf( input.principle_vector[0]*input.principle_vector[0] + input.principle_vector[1]*input.principle_vector[1] + input.principle_vector[2]*input.principle_vector[2] );
+	if (principle_vector_mag == 0.0){
+		principle_vector1[0]	=  input.surface_plane[0];
+		principle_vector1[1]	=  input.surface_plane[1];
+		principle_vector1[2]	=  input.surface_plane[2];
+	}
+	else{
+		principle_vector1[0]	=  input.principle_vector[0]/principle_vector_mag;
+		principle_vector1[1]	=  input.principle_vector[1]/principle_vector_mag;
+		principle_vector1[2]	=  input.principle_vector[2]/principle_vector_mag;
+	}
+	// second vector is rotation of y axis that is orthogonal
+	double xy_rot_angle = atanf(principle_vector1[1]/principle_vector1[0]);
+	principle_vector2[0]	= cosf(xy_rot_angle+pi/2.);
+	principle_vector2[1]	= sinf(xy_rot_angle+pi/2.);
+	principle_vector2[2]	=  0.0;
+	// compute third vector from cross product
+	principle_vector3[0]= ( principle_vector1[1]*principle_vector2[2] - principle_vector1[2]*principle_vector2[1] );
+	principle_vector3[1]= ( principle_vector1[2]*principle_vector2[0] - principle_vector1[0]*principle_vector2[2] );
+	principle_vector3[2]= ( principle_vector1[0]*principle_vector2[1] - principle_vector1[1]*principle_vector2[0] );
+	// main vector is surface normal
+	surface_vec1[0]	=  input.surface_plane[0];
+	surface_vec1[1]	=  input.surface_plane[1];
+	surface_vec1[2]	=  input.surface_plane[2];
+	// second vector is rotation of y axis that is orthogonal
+	xy_rot_angle = atanf(surface_vec1[1]/surface_vec1[0]);
+	surface_vec2[0]	= cosf(xy_rot_angle+pi/2.);
+	surface_vec2[1]	= sinf(xy_rot_angle+pi/2.);
+	surface_vec2[2]	=  0.0;
+	// compute third vector from cross product
+	surface_vec3[0]= ( surface_vec1[1]*surface_vec2[2] - surface_vec1[2]*surface_vec2[1] );
+	surface_vec3[1]= ( surface_vec1[2]*surface_vec2[0] - surface_vec1[0]*surface_vec2[2] );
+	surface_vec3[2]= ( surface_vec1[0]*surface_vec2[1] - surface_vec1[1]*surface_vec2[0] );
+
+	// print select summary...
+	printf(" ======================= INPUT FILE SUMMARY ======================= \n");
+	printf("SURFACE: %4d\n",input.this_sc);
+	printf("ORIGIN:  % 8.6E   % 8.6E   % 8.6E\n",input.surface_center[0],input.surface_center[1],input.surface_center[2]);
+	printf("VEC1:    % 8.6E   % 8.6E   % 8.6E\n",surface_vec1[0],surface_vec1[1],surface_vec1[2]);
+	printf("VEC2:    % 8.6E   % 8.6E   % 8.6E\n",surface_vec2[0],surface_vec2[1],surface_vec2[2]);
+	printf("VEC3:    % 8.6E   % 8.6E   % 8.6E\n",surface_vec3[0],surface_vec3[1],surface_vec3[2]);
+	printf("\n");
 
 	// goto end to get the total number of TRACKS
 	std::string line;
@@ -76,18 +142,12 @@ int main(int argc, char* argv[]){
 			if ( i%Ns == 0){printf("||||");fflush(stdout);}
 
 			std::istringstream iss(line);
-			iss>>this_val;
-			x.push_back(this_val);
-			iss>>this_val;
-			xhat.push_back(this_val);
-			iss>>this_val;
-			y.push_back(this_val);
-			iss>>this_val;
-			yhat.push_back(this_val);
-			iss>>this_val;
-			mom.push_back(this_val);
-			iss>>this_val;
-			wgt.push_back(this_val);
+			iss>>this_val;	x.push_back(this_val);
+			iss>>this_val;	xhat.push_back(this_val);
+			iss>>this_val;	y.push_back(this_val);
+			iss>>this_val;	yhat.push_back(this_val);
+			iss>>this_val;	mom.push_back(this_val);
+			iss>>this_val;	wgt.push_back(this_val);
 			iss>>this_val;  // last value is number, unecessary information
 
 			i++;
@@ -157,13 +217,13 @@ int main(int argc, char* argv[]){
 
 	// set surface
 	int particle_number = 9; //proton
-	ss.surface_numbers[0]=1234; 	// set later
+	ss.surface_numbers[0]=input.this_sc; 	// set later
 	ss.surface_types[0]=1;  			// general plane
 	ss.surface_parameters_lengths[0] =4;
-	ss.surface_parameters[0].value[0]=1.0;  // A
-	ss.surface_parameters[0].value[1]=0.0;  // B
-	ss.surface_parameters[0].value[2]=0.0;  // C
-	ss.surface_parameters[0].value[3]=0.0;  // D
+	ss.surface_parameters[0].value[0]=input.surface_plane[0];  // A
+	ss.surface_parameters[0].value[1]=input.surface_plane[1];  // B
+	ss.surface_parameters[0].value[2]=input.surface_plane[2];  // C
+	ss.surface_parameters[0].value[3]=input.surface_plane[3];  // D
 	ss.surface_summaries[ 0][0]=N; //  total tracks
 	ss.surface_summaries[ 0][1]=N; //  independent histories
 	ss.surface_summaries[ 0][2+4*(particle_number-1)+0]=N;  // first two ints are totals.. then goes by: tracks, indp. tracks, uncollided, indp. uncol.
@@ -179,7 +239,7 @@ int main(int argc, char* argv[]){
 	double  electron_mass = 0.511008;
 	double  neutron_mass  = 939.58;
 	double  proton_mass   = 938.271998;
-	double 	a, b, c;
+	double 	a, b, c, this_E, this_wgt, this_theta, this_phi, this_theta_deg;
 
 	// stuff for status printing
 	printf("\nWRITING RSSA TRACKS\n");
@@ -193,20 +253,47 @@ int main(int argc, char* argv[]){
 		if ( i%Ns == 0){printf("||||");fflush(stdout);}
 
 		// compute direction cosines from the xy angles
-		a = sin(xhat[i]*1e-3);
-	  	b = sin(yhat[i]*1e-3);
-		c = sqrt(1.0 - a*a - b*b);
-		//printf("%8.6E %8.6E %8.6E %8.6E %8.6E \n",xhat[i]*1e-3,yhat[i]*1e-3,a,b,c);
+		vec[0] = sin(xhat[i]*1e-3);
+	  vec[1] = sin(yhat[i]*1e-3);
+		vec[2] = sqrt(1.0 - a*a - b*b);
+
+		// get position, energy, weight data
+		pos[0] 		=	x[i]*0.1;  // given in mm!
+		pos[1] 		=	y[i]*0.1;  // given in mm!
+		pos[2] 		=	0.0;
+		this_E 	  = sqrt(mom[i]*mom[i] + proton_mass*proton_mass) - proton_mass; //erg: particle energy in MeV
+		this_wgt  = wgt[i];
+
+		// transform particle origin
+		xfm_pos	= pos + input.surface_center;
+
+		// transform vector to normal system
+		this_vec[0] = (surface_vec2*vec).sum();
+		this_vec[1] = (surface_vec3*vec).sum();
+		this_vec[2] = (surface_vec1*vec).sum();
+
+		// transform position to surface coordinates using basis vectors specified
+		this_pos[0] = (surface_vec2*xfm_pos).sum();
+		this_pos[1] = (surface_vec3*xfm_pos).sum();
+
+		// calc angular values from the principle vector
+		this_theta  = acos((principle_vector1*vec).sum());
+		this_phi 	= atan2((principle_vector3*vec).sum(),(principle_vector2*vec).sum());
+		this_theta_deg = this_theta*180.0/pi;
+
+		if (this_phi < 0.0){
+			this_phi = 2.0*pi + this_phi;
+		}
 
 		// fill in track struct
-		this_track.x				= x[i]*0.1;  // given in mm!
-		this_track.y				= y[i]*0.1;  // given in mm!
-		this_track.z				= 0.0;
-		this_track.xhat			= a;
-		this_track.yhat			= b;
-		this_track.zhat			= c;
-		this_track.erg			= sqrt(mom[i]*mom[i] + proton_mass*proton_mass) - proton_mass; //erg: particle energy in MeV
-		this_track.wgt			= wgt[i];
+		this_track.x				=
+		this_track.y				=
+		this_track.z				=
+		this_track.xhat			=
+		this_track.yhat			=
+		this_track.zhat			=
+		this_track.erg			= this_E;
+		this_track.wgt			= this_wgt;
 		this_track.tme			= 0.;
 		this_track.cs 			= 1234;
 		this_track.bitarray = encode_bitarray(9,0,0); // proton, not second+ generation, not antiparticle

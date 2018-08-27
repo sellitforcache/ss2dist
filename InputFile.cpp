@@ -187,6 +187,12 @@ void InputFile::Parse(){
 					}
 				};
 			}
+			else if(!strcmp(tokens[0].c_str(),"plane")){
+				surface_plane[0]	= atof(tokens[1].c_str());
+				surface_plane[1]	= atof(tokens[2].c_str());
+				surface_plane[2]	= atof(tokens[3].c_str());
+				surface_plane[3]	= atof(tokens[3].c_str());
+			}
 			else if(!strcmp(tokens[0].c_str(),"spec_theta")){
 				//spec_theta_edges.push_back(0.0);  // don't imply anything
 				for(long i=1;i<tokens.size();i++){
