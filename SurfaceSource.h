@@ -21,6 +21,12 @@ struct surface_card_data
 	char 	description[41];
 };
 
+struct particle_card_data
+{
+	char	symbol[4];
+	char 	name[41];
+};
+
 // FORTRAN record delimiter length... usually 4 bytes.  Can be 8!  Should set as a preprocessor option
 const int RECORD_DELIMITER_LENGTH = 4;
 
@@ -76,6 +82,8 @@ public:
 
 	// surface description lookup table
 	surface_card_data 	surface_card[41];
+	// particle lookup 
+	particle_card_data	particles[38];
 
 	// file objects
 	std::string			input_file_name;
@@ -98,8 +106,8 @@ public:
 	SurfaceSource( const std::string& , const int );
 	SurfaceSource( const char*   , const int );
 	void Init();
-	void OpenWssaFile_Read(  const char* );
-	void OpenWssaFile_Write( const char* );
+	bool OpenWssaFile_Read(  const char* );
+	bool OpenWssaFile_Write( const char* );
 	void ReadHeader();
 	void WriteHeader();
 	void PrintHeader();

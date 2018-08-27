@@ -39,6 +39,82 @@ void SurfaceSource::Init(){
 	mipts			= 0;
 	kjaq			= 0;
 	surface_count	= 0;
+	// init particle lookup table
+	strncpy(particles[  1-1].name , "neutron\0"						, 8);
+	strncpy(particles[  5-1].name , "anti-neutron\0"				,13);
+	strncpy(particles[  2-1].name , "photon\0"						, 7);
+	strncpy(particles[  3-1].name , "electron\0"					, 9);
+	strncpy(particles[  8-1].name , "positron\0"					, 9);
+	strncpy(particles[  4-1].name , "muon-\0" 						, 6);
+	strncpy(particles[ 16-1].name , "muon+\0"				    	, 6);
+	strncpy(particles[  6-1].name , "electron neutrino\0"			,18);
+	strncpy(particles[ 17-1].name , "anti-electron neutrino\0"		,23);
+	strncpy(particles[  7-1].name , "muon neutrino\0"				,14);
+	strncpy(particles[ 18-1].name , "anti muon neutrino\0"			,19);
+	strncpy(particles[  9-1].name , "proton\0"						, 7);
+	strncpy(particles[ 19-1].name , "anti-proton\0"					,12);
+	strncpy(particles[ 10-1].name , "lambda baryon\0"				,14);
+	strncpy(particles[ 25-1].name , "anti lambda baryon\0"			,19);
+	strncpy(particles[ 11-1].name , "positive sigma baryon\0"		,22);
+	strncpy(particles[ 26-1].name , "anti positive sigma baryon\0"	,17);
+	strncpy(particles[ 12-1].name , "negative sigma baryon\0"		,22);
+	strncpy(particles[ 27-1].name , "anti negative sigma baryon\0"	,27);
+	strncpy(particles[ 13-1].name , "cascade\0"						, 8);
+	strncpy(particles[ 28-1].name , "anti cascade\0"				,13);
+	strncpy(particles[ 14-1].name , "negative cascade\0"			,17);
+	strncpy(particles[ 29-1].name , "positive cascade\0"			,17);
+	strncpy(particles[ 15-1].name , "omega baryon\0"				,13);
+	strncpy(particles[ 30-1].name , "anti omega baryon\0"			,18);
+	strncpy(particles[ 20-1].name , "positive pion\0"				,14);
+	strncpy(particles[ 35-1].name , "negative pion\0"				,14);
+	strncpy(particles[ 21-1].name , "neutral pion\0"				,13);
+	strncpy(particles[ 22-1].name , "positive kaon\0"				,14);
+	strncpy(particles[ 36-1].name , "negative kaon\0"				,14);
+	strncpy(particles[ 23-1].name , "kaon, short\0"					,12);
+	strncpy(particles[ 24-1].name , "kaon, long\0"					,11);
+	strncpy(particles[ 31-1].name , "deuteron\0"					, 9);
+	strncpy(particles[ 32-1].name , "triton\0"						, 7);
+	strncpy(particles[ 33-1].name , "helion\0"						, 7);
+	strncpy(particles[ 34-1].name , "alpha\0"						, 6);
+	strncpy(particles[ 37-1].name , "heavy ions\0"					,11);
+	//
+	strncpy(particles[  1-1].symbol , "n\0", 2); 
+	strncpy(particles[  5-1].symbol , "q\0", 2); 
+	strncpy(particles[  2-1].symbol , "p\0", 2); 
+	strncpy(particles[  3-1].symbol , "e\0", 2); 
+	strncpy(particles[  8-1].symbol , "f\0", 2); 
+	strncpy(particles[  4-1].symbol , "|\0", 2); 
+	strncpy(particles[ 16-1].symbol , "!\0", 2); 
+	strncpy(particles[  6-1].symbol , "u\0", 2); 
+	strncpy(particles[ 17-1].symbol , "<\0", 2); 
+	strncpy(particles[  7-1].symbol , "v\0", 2); 
+	strncpy(particles[ 18-1].symbol , ">\0", 2); 
+	strncpy(particles[  9-1].symbol , "h\0", 2); 
+	strncpy(particles[ 19-1].symbol , "g\0", 2);
+	strncpy(particles[ 10-1].symbol , "l\0", 2); 
+	strncpy(particles[ 25-1].symbol , "b\0", 2); 
+	strncpy(particles[ 11-1].symbol , "+\0", 2); 
+	strncpy(particles[ 26-1].symbol , "_\0", 2); 
+	strncpy(particles[ 12-1].symbol , "-\0", 2); 
+	strncpy(particles[ 27-1].symbol , "~\0", 2); 
+	strncpy(particles[ 13-1].symbol , "x\0", 2); 
+	strncpy(particles[ 28-1].symbol , "c\0", 2); 
+	strncpy(particles[ 14-1].symbol , "y\0", 2); 
+	strncpy(particles[ 29-1].symbol , "w\0", 2); 
+	strncpy(particles[ 15-1].symbol , "o\0", 2); 
+	strncpy(particles[ 30-1].symbol , "@\0", 2); 
+	strncpy(particles[ 20-1].symbol , "/\0", 2);
+	strncpy(particles[ 35-1].symbol , "*\0", 2);
+	strncpy(particles[ 21-1].symbol , "z\0", 2);
+	strncpy(particles[ 22-1].symbol , "k\0", 2);
+	strncpy(particles[ 36-1].symbol , "?\0", 2);
+	strncpy(particles[ 23-1].symbol , "%\0", 2);
+	strncpy(particles[ 24-1].symbol , "^\0", 2);
+	strncpy(particles[ 31-1].symbol , "d\0", 2);
+	strncpy(particles[ 32-1].symbol , "t\0", 2);
+	strncpy(particles[ 33-1].symbol , "s\0", 2);
+	strncpy(particles[ 34-1].symbol , "a\0", 2);
+	strncpy(particles[ 37-1].symbol , "#\0", 2);
 	// init surface lookup table
 	strncpy(surface_card[ 0].symbol , "XXX\0" , 4);
 	strncpy(surface_card[ 1].symbol , "p  \0" , 4);
@@ -210,7 +286,7 @@ SurfaceSource::SurfaceSource(const char*        fileName, const int flag){
 //
 // FILE IO
 //
-void SurfaceSource::OpenWssaFile_Read(const char* fileName){
+bool SurfaceSource::OpenWssaFile_Read(const char* fileName){
 
 	// for file check
 	struct stat buffer;
@@ -221,14 +297,15 @@ void SurfaceSource::OpenWssaFile_Read(const char* fileName){
 	// open file
 	if( (stat (fileName, &buffer) == 0)){
 		input_file.open(fileName, std::ios::in | std::ios::binary);
+		return true;
 	}
 	else{
-		printf("problem opening %s for reading.  Aborting\n",fileName);
-		return ;
+		printf("problem opening %s for reading.\n",fileName);
+		return false;
 	}
 
 }
-void SurfaceSource::OpenWssaFile_Write(const char* fileName){
+bool SurfaceSource::OpenWssaFile_Write(const char* fileName){
 
 	// for file check
 	struct stat buffer;
@@ -239,10 +316,11 @@ void SurfaceSource::OpenWssaFile_Write(const char* fileName){
 	// open file, make sure it doens't already exist
 	if( (stat (fileName, &buffer) != 0)){
 		output_file.open(fileName, std::ios::out | std::ios::binary);
+		return true;
 	}
 	else{
-		printf("problem opening %s for writing.  Aborting\n",fileName);
-		return ;
+		printf("problem opening %s for writing.\n",fileName);
+		return false;
 	}
 
 }
@@ -828,27 +906,25 @@ void SurfaceSource::PrintHeader(){
 	}
 	printf("\n");
 
-/*
 
 
-write(iuo,140) (i,nslr(1,i),nslr(2,i),i=1,njsw+niwr)
-140 format(/," summary for all particles per surface or cell.",/, 5x, "no.",16x,  "total tracks",11x,  "independent histories",/,  (i7,2i24) )
-do k=1,mipts
-	if( kpt(k)/=0 ) then
-		write(iuo,160) hnp(k),(i,(nslr(j,i),j=4*k-1,4*k+2),i=1,njsw+niwr)
-	endif
-end do
-160 format(/1x,a8," summary per surface or cell.",/,5x, "no.",8x, "tracks",7x,"indp. tracks",5x,"uncollided",5x,"indp. uncol.",/,(i7,4i15))
-
-
-*/
 
 	printf("\n============================================================= SURFACE SUMMARIES ============================================================= \n");
-	printf("===============================================================!IMPROVE LATER!=============================================================== \n");
+	int a,b,c,d;
 	for(int i=0;i<surface_count;i++){
-		printf("Surface %5d\n",surface_numbers[i]);
-		for(int j=0;j<surface_summary_length;j++){
-			printf("%d ",surface_summaries[i][j]);
+		printf("--=== Surface %5d ===--\n",surface_numbers[i]);
+		printf("%20s  %21s\n","TOTAL TRACKS","INDEPENDENT HISTORIES");
+		printf("        %12d           %12d\n",surface_summaries[i][0],surface_summaries[i][1]);
+		for(int j=0;j<mipts;j++){
+			a = surface_summaries[i][(2+j*4)+0];
+			b = surface_summaries[i][(2+j*4)+1];
+			c = surface_summaries[i][(2+j*4)+2];
+			d = surface_summaries[i][(2+j*4)+3];
+			if (a+b+c+d > 0){
+				printf("---- %s ----\n",particles[j].name);
+				printf("%20s   %20s   %20s   %20s\n","TOTAL TRACKS","INDEPENDENT TRACKS","UNCOLLIDED","INDEP. UNCOLLIDED");
+				printf("        %12d           %12d           %12d           %12d\n",a,b,c,d);
+			}
 		}
 		printf("\n");
 	}
