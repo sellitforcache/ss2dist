@@ -1,0 +1,11 @@
+# MCNP does not check anything except that the tracks surface number matches a surface in the input
+# Things must be checked manually!
+#
+# plane number
+surface 1234
+# plane def - make sure matches MCNP
+plane  1 1 0 5
+# center point- make sure actually in the plane
+center 1 2 3
+#  vector in plane to map x to (will be projected if not in plane)
+vec 0 0 1

@@ -111,7 +111,9 @@ std::vector<std::string> InputFile::SplitString(const std::string &s, char delim
     std::vector<std::string> tokens(beg, end);
 	return tokens;
 }
-
+double InputFile::mag(std::valarray<double> input){
+	return sqrt(input[0]*input[0]+input[1]*input[1]+input[2]*input[2]);
+}
 void InputFile::Parse(){
 
 	std::string line;
@@ -134,10 +136,11 @@ void InputFile::Parse(){
 				surface_center[1] = atof(tokens[2].c_str());
 				surface_center[2] = atof(tokens[3].c_str());
 			}
-			else if(!strcmp(tokens[0].c_str(),"principle_vector")){
+			else if(!strcmp(tokens[0].c_str(),"principle_vector") | !strcmp(tokens[0].c_str(),"vec")){
 				principle_vector[0] = atof(tokens[1].c_str());
 				principle_vector[1] = atof(tokens[2].c_str());
 				principle_vector[2] = atof(tokens[3].c_str());
+				principle_vector = principle_vector / mag(principle_vector);
 			}
 			else if(!strcmp(tokens[0].c_str(),"E_bins")){
 				for(long i=1;i<tokens.size();i++){
@@ -192,6 +195,7 @@ void InputFile::Parse(){
 				surface_plane[1]	= atof(tokens[2].c_str());
 				surface_plane[2]	= atof(tokens[3].c_str());
 				surface_plane[3]	= atof(tokens[3].c_str());
+				surface_plane = surface_plane / mag(surface_plane);
 			}
 			else if(!strcmp(tokens[0].c_str(),"spec_theta")){
 				//spec_theta_edges.push_back(0.0);  // don't imply anything

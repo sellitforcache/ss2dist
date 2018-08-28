@@ -52,5 +52,6 @@ public:
 	bool GetSurface( SurfaceSource* );
 	void Parse();
 	void PrintSummary();
+	double mag(std::valarray<double>);
 
 };

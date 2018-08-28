@@ -67,40 +67,27 @@ int main(int argc, char* argv[]){
 	surface_normal[1]	=  input.surface_plane[1];
 	surface_normal[2]	=  input.surface_plane[2];
 	//
-	// FOR ANGULAR DISTRIBUTION
-	double principle_vector_mag = sqrtf( input.principle_vector[0]*input.principle_vector[0] + input.principle_vector[1]*input.principle_vector[1] + input.principle_vector[2]*input.principle_vector[2] );
-	if (principle_vector_mag == 0.0){
-		principle_vector1[0]	=  input.surface_plane[0];
-		principle_vector1[1]	=  input.surface_plane[1];
-		principle_vector1[2]	=  input.surface_plane[2];
-	}
-	else{
-		principle_vector1[0]	=  input.principle_vector[0]/principle_vector_mag;
-		principle_vector1[1]	=  input.principle_vector[1]/principle_vector_mag;
-		principle_vector1[2]	=  input.principle_vector[2]/principle_vector_mag;
-	}
-	// second vector is rotation of y axis that is orthogonal
-	double xy_rot_angle = atanf(principle_vector1[1]/principle_vector1[0]);
-	principle_vector2[0]	= cosf(xy_rot_angle+pi/2.);
-	principle_vector2[1]	= sinf(xy_rot_angle+pi/2.);
-	principle_vector2[2]	=  0.0;
-	// compute third vector from cross product
-	principle_vector3[0]= ( principle_vector1[1]*principle_vector2[2] - principle_vector1[2]*principle_vector2[1] );
-	principle_vector3[1]= ( principle_vector1[2]*principle_vector2[0] - principle_vector1[0]*principle_vector2[2] );
-	principle_vector3[2]= ( principle_vector1[0]*principle_vector2[1] - principle_vector1[1]*principle_vector2[0] );
 	// main vector is surface normal
-	surface_vec1[0]	=  input.surface_plane[0];
-	surface_vec1[1]	=  input.surface_plane[1];
-	surface_vec1[2]	=  input.surface_plane[2];
+	surface_vec3[0]	= input.surface_plane[0];
+	surface_vec3[1]	= input.surface_plane[1];
+	surface_vec3[2]	= input.surface_plane[2];
 	// second vector is rotation of y axis that is orthogonal
-	xy_rot_angle = atanf(surface_vec1[1]/surface_vec1[0]);
-	surface_vec2[0]	= cosf(xy_rot_angle+pi/2.);
-	surface_vec2[1]	= sinf(xy_rot_angle+pi/2.);
-	surface_vec2[2]	=  0.0;
+	surface_vec1[0]	= input.principle_vector[0];
+	surface_vec1[1]	= input.principle_vector[1];
+	surface_vec1[2]	= input.principle_vector[2];
+	// check for orthogonality
+	double mag;
+	double dotp = surface_vec1[0]*surface_vec3[0] + surface_vec1[1]*surface_vec3[1] + surface_vec1[2]*surface_vec3[2];
+	if (dotp>0.0){
+		printf("vec not in plane!  projecting into plane.\n");
+		surface_vec1 = surface_vec1 - dotp*surface_vec3;
+		mag = sqrt(surface_vec1[0]*surface_vec1[0]+surface_vec1[1]*surface_vec1[1]+surface_vec1[2]*surface_vec1[2]);
+		surface_vec1 = surface_vec1 / mag;
+	}
 	// compute third vector from cross product
-	surface_vec3[0]= ( surface_vec1[1]*surface_vec2[2] - surface_vec1[2]*surface_vec2[1] );
-	surface_vec3[1]= ( surface_vec1[2]*surface_vec2[0] - surface_vec1[0]*surface_vec2[2] );
-	surface_vec3[2]= ( surface_vec1[0]*surface_vec2[1] - surface_vec1[1]*surface_vec2[0] );
+	surface_vec2[0]= ( surface_vec3[1]*surface_vec1[2] - surface_vec3[2]*surface_vec1[1] );
+	surface_vec2[1]= ( surface_vec3[2]*surface_vec1[0] - surface_vec3[0]*surface_vec1[2] );
+	surface_vec2[2]= ( surface_vec3[0]*surface_vec1[1] - surface_vec3[1]*surface_vec1[0] );
 
 	// print select summary...
 	printf(" ======================= INPUT FILE SUMMARY ======================= \n");
@@ -264,18 +251,6 @@ int main(int argc, char* argv[]){
 		this_E 	  = sqrt(mom[i]*mom[i] + proton_mass*proton_mass) - proton_mass; //erg: particle energy in MeV
 		this_wgt  = wgt[i];
 
-		// transform particle origin
-		xfm_pos	= pos - input.surface_center;
-
-		// transform vector to normal system
-		this_vec[0] = (surface_vec2*vec).sum();
-		this_vec[1] = (surface_vec3*vec).sum();
-		this_vec[2] = (surface_vec1*vec).sum();
-
-		// transform position to surface coordinates using basis vectors specified
-		this_pos[0] = (surface_vec2*xfm_pos).sum();
-		this_pos[1] = (surface_vec3*xfm_pos).sum();
-
 		// calc angular values from the principle vector
 		this_theta  = acos((principle_vector1*vec).sum());
 		this_phi 	= atan2((principle_vector3*vec).sum(),(principle_vector2*vec).sum());
@@ -286,12 +261,12 @@ int main(int argc, char* argv[]){
 		}
 
 		// fill in track struct
-		this_track.x			= input.surface_center[0] + (surface_vec1[0]*pos[0] + surface_vec2[0]*pos[1] + surface_vec3[0]*pos[2]);
-		this_track.y			= input.surface_center[1] + (surface_vec1[1]*pos[0] + surface_vec2[1]*pos[1] + surface_vec3[1]*pos[2]);
-		this_track.z			= input.surface_center[2] + (surface_vec1[2]*pos[0] + surface_vec2[2]*pos[1] + surface_vec3[2]*pos[2]);
-		this_track.xhat			=                      surface_vec1[0]*this_vec[0] + surface_vec2[0]*this_vec[1] + surface_vec3[0]*this_vec[2];
-		this_track.yhat			=                      surface_vec1[1]*this_vec[0] + surface_vec2[1]*this_vec[1] + surface_vec3[1]*this_vec[2];
-		this_track.zhat			=                      surface_vec1[2]*this_vec[0] + surface_vec2[2]*this_vec[1] + surface_vec3[2]*this_vec[2];
+		this_track.x			= input.surface_center[0] + (surface_vec1[0]*pos[0] + surface_vec2[0]*pos[1]	+ surface_vec3[0]*pos[2]);
+		this_track.y			= input.surface_center[1] + (surface_vec1[1]*pos[0] + surface_vec2[1]*pos[1]	+ surface_vec3[1]*pos[2]);
+		this_track.z			= input.surface_center[2] + (surface_vec1[2]*pos[0] + surface_vec2[2]*pos[1]	+ surface_vec3[2]*pos[2]);
+		this_track.xhat			=                          surface_vec1[0]*vec[0]	+ surface_vec2[0]*vec[1]	+ surface_vec3[0]*vec[2];
+		this_track.yhat			=                          surface_vec1[1]*vec[0]	+ surface_vec2[1]*vec[1]	+ surface_vec3[1]*vec[2];
+		this_track.zhat			=                          surface_vec1[2]*vec[0]	+ surface_vec2[2]*vec[1]	+ surface_vec3[2]*vec[2];
 		this_track.erg			= this_E;
 		this_track.wgt			= this_wgt;
 		this_track.tme			= 0.;
