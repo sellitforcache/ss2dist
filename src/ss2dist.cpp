@@ -15,10 +15,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <bitset>
-#include "SurfaceSource.h"
-#include "InputFile.h"
-#include "histogram.h"
-#include "helpers.h"
+#include "ss2lib.hpp"
 
 
 /*
@@ -175,20 +172,20 @@ int main(int argc, char* argv[]){
 	std::vector<double>::iterator spec_theta_dex2;
 	std::vector<double>::iterator phi_dex2;
 
-	// histogram vector stuff
+	// Histogram vector stuff
 	// NEED TO FIX THIS - specifying no spec_theta means this becomes an infinite loop...
-	std::vector<histogram> spectra;
-	histogram this_histogram;
+	std::vector<Histogram> spectra;
+	Histogram this_Histogram;
 	if (input.spec_theta_edges.size()>0){
 		for (long i=0; i<(input.spec_theta_edges.size()-1);i++){
-			this_histogram = histogram();
-			this_histogram.set_grid_log(input.spec_E_min,input.spec_E_max,input.spec_E_bins);
-			spectra.push_back(this_histogram);
+			this_Histogram = Histogram();
+			this_Histogram.set_grid_log(input.spec_E_min,input.spec_E_max,input.spec_E_bins);
+			spectra.push_back(this_Histogram);
 		}
 	}
 
-	// angle histogram for whole angle range
-	histogram angle_spectrum = histogram();
+	// angle Histogram for whole angle range
+	Histogram angle_spectrum = Histogram();
 	angle_spectrum.set_grid_lin(input.spec_theta_edges.front(),input.spec_theta_edges.back(),10000);
 
 	// set loop length

@@ -12,8 +12,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <bitset>
-#include "SurfaceSource.h"
-#include "helpers.h"
+#include "ss2lib.hpp"
 
 #include <vector>
 #include <numeric>
@@ -54,32 +53,32 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 	PyDict_SetItem(header_dict, PyString_FromString("IDTM of the surface source write run")  , 					PyString_FromString(	ss.idtms));
 	PyDict_SetItem(header_dict, PyString_FromString("probid, problem id")  , 														PyString_FromString(	ss.probs));
 	PyDict_SetItem(header_dict, PyString_FromString("title string of the creation run")  , 							PyString_FromString(	ss.aids));
-	PyDict_SetItem(header_dict, PyString_FromString("ending dump number")  , 														PyInt_FromInt(				ss.knods));
+	PyDict_SetItem(header_dict, PyString_FromString("ending dump number")  , 														PyInt_FromLong(				ss.knods));
 	PyDict_SetItem(header_dict, PyString_FromString("total number of histories in SS write run")  , 		PyLong_FromLong(			ss.np1));
 	PyDict_SetItem(header_dict, PyString_FromString("the total number of tracks recorded")  , 					PyLong_FromLong(			ss.nrss));
-	PyDict_SetItem(header_dict, PyString_FromString("Number of values in a surface-source record")  , 	PyInt_FromInt(				ss.nrcd));
-	PyDict_SetItem(header_dict, PyString_FromString("Number of surfaces in JASW")  , 										PyInt_FromInt(				ss.njsw));
+	PyDict_SetItem(header_dict, PyString_FromString("Number of values in a surface-source record")  , 	PyInt_FromLong(				ss.nrcd));
+	PyDict_SetItem(header_dict, PyString_FromString("Number of surfaces in JASW")  , 										PyInt_FromLong(				ss.njsw));
 	PyDict_SetItem(header_dict, PyString_FromString("Number of histories in input surface source")  , 	PyLong_FromLong(			ss.niss));
-	PyDict_SetItem(header_dict, PyString_FromString("Number of cells in RSSA file")  , 									PyInt_FromInt(				ss.niwr));
-	PyDict_SetItem(header_dict, PyString_FromString("Source particle type")  ,								 					PyInt_FromInt(				ss.mipts));
-	PyDict_SetItem(header_dict, PyString_FromString("Flag for macrobody facets on source tape")  , 			PyInt_FromInt(				ss.kjaq));
+	PyDict_SetItem(header_dict, PyString_FromString("Number of cells in RSSA file")  , 									PyInt_FromLong(				ss.niwr));
+	PyDict_SetItem(header_dict, PyString_FromString("Source particle type")  ,								 					PyInt_FromLong(				ss.mipts));
+	PyDict_SetItem(header_dict, PyString_FromString("Flag for macrobody facets on source tape")  , 			PyInt_FromLong(				ss.kjaq));
   // names
-  PyDict_SetItem(header_dict, PyString_FromString("id",                                               PyString_FromString(	ss.id));
-	PyDict_SetItem(header_dict, PyString_FromString("kods",                                             PyString_FromString(	ss.kods));
-	PyDict_SetItem(header_dict, PyString_FromString("vers",                                             PyString_FromString(	ss.vers));
-	PyDict_SetItem(header_dict, PyString_FromString("lods",                                             PyString_FromString(	ss.lods));
-	PyDict_SetItem(header_dict, PyString_FromString("idtms",                                            PyString_FromString(	ss.idtms));
-	PyDict_SetItem(header_dict, PyString_FromString("probs",                                            PyString_FromString(	ss.probs));
-	PyDict_SetItem(header_dict, PyString_FromString("aids",                                             PyString_FromString(	ss.aids));
-	PyDict_SetItem(header_dict, PyString_FromString("knods",                                            PyInt_FromInt(				ss.knods));
-	PyDict_SetItem(header_dict, PyString_FromString("np1",                                              PyLong_FromLong(			ss.np1));
-	PyDict_SetItem(header_dict, PyString_FromString("nrss",                                             PyLong_FromLong(			ss.nrss));
-	PyDict_SetItem(header_dict, PyString_FromString("nrcd",                                             PyInt_FromInt(				ss.nrcd));
-	PyDict_SetItem(header_dict, PyString_FromString("njsw",                                             PyInt_FromInt(				ss.njsw));
-	PyDict_SetItem(header_dict, PyString_FromString("niss",                                             PyLong_FromLong(			ss.niss));
-	PyDict_SetItem(header_dict, PyString_FromString("niwr",                                             PyInt_FromInt(				ss.niwr));
-	PyDict_SetItem(header_dict, PyString_FromString("mipts",                                            PyInt_FromInt(				ss.mipts));
-	PyDict_SetItem(header_dict, PyString_FromString("kjaq",                                             PyInt_FromInt(				ss.kjaq));
+  PyDict_SetItem(header_dict, PyString_FromString("id"),                                               PyString_FromString(	ss.id));
+	PyDict_SetItem(header_dict, PyString_FromString("kods"),                                             PyString_FromString(	ss.kods));
+	PyDict_SetItem(header_dict, PyString_FromString("vers"),                                             PyString_FromString(	ss.vers));
+	PyDict_SetItem(header_dict, PyString_FromString("lods"),                                             PyString_FromString(	ss.lods));
+	PyDict_SetItem(header_dict, PyString_FromString("idtms"),                                            PyString_FromString(	ss.idtms));
+	PyDict_SetItem(header_dict, PyString_FromString("probs"),                                            PyString_FromString(	ss.probs));
+	PyDict_SetItem(header_dict, PyString_FromString("aids"),                                             PyString_FromString(	ss.aids));
+	PyDict_SetItem(header_dict, PyString_FromString("knods"),                                            PyInt_FromLong(				ss.knods));
+	PyDict_SetItem(header_dict, PyString_FromString("np1"),                                              PyLong_FromLong(			ss.np1));
+	PyDict_SetItem(header_dict, PyString_FromString("nrss"),                                             PyLong_FromLong(			ss.nrss));
+	PyDict_SetItem(header_dict, PyString_FromString("nrcd"),                                             PyInt_FromLong(				ss.nrcd));
+	PyDict_SetItem(header_dict, PyString_FromString("njsw"),                                             PyInt_FromLong(				ss.njsw));
+	PyDict_SetItem(header_dict, PyString_FromString("niss"),                                             PyLong_FromLong(			ss.niss));
+	PyDict_SetItem(header_dict, PyString_FromString("niwr"),                                             PyInt_FromLong(				ss.niwr));
+	PyDict_SetItem(header_dict, PyString_FromString("mipts"),                                            PyInt_FromLong(				ss.mipts));
+	PyDict_SetItem(header_dict, PyString_FromString("kjaq"),                                             PyInt_FromLong(				ss.kjaq));
 
 	//
 	unsigned b			= 0;

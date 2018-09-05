@@ -15,11 +15,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <bitset>
-#include "flann/flann.hpp"
-#include "SurfaceSource.h"
-#include "InputFile.h"
-#include "histogram.h"
-#include "helpers.h"
+#include "ss2lib.hpp"
 
 
 /*

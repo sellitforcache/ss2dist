@@ -15,7 +15,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <bitset>
-#include "SurfaceSource.h"
+#include "SurfaceSource.hpp"
 
 /*
 Adapated from https://wiki.calculquebec.ca/w/C%2B%2B_:_fichier_Fortran_binaire/en
@@ -78,31 +78,31 @@ void SurfaceSource::Init(){
 	strncpy(particles[ 34-1].name , "alpha\0"						, 6);
 	strncpy(particles[ 37-1].name , "heavy ions\0"					,11);
 	//
-	strncpy(particles[  1-1].symbol , "n\0", 2); 
-	strncpy(particles[  5-1].symbol , "q\0", 2); 
-	strncpy(particles[  2-1].symbol , "p\0", 2); 
-	strncpy(particles[  3-1].symbol , "e\0", 2); 
-	strncpy(particles[  8-1].symbol , "f\0", 2); 
-	strncpy(particles[  4-1].symbol , "|\0", 2); 
-	strncpy(particles[ 16-1].symbol , "!\0", 2); 
-	strncpy(particles[  6-1].symbol , "u\0", 2); 
-	strncpy(particles[ 17-1].symbol , "<\0", 2); 
-	strncpy(particles[  7-1].symbol , "v\0", 2); 
-	strncpy(particles[ 18-1].symbol , ">\0", 2); 
-	strncpy(particles[  9-1].symbol , "h\0", 2); 
+	strncpy(particles[  1-1].symbol , "n\0", 2);
+	strncpy(particles[  5-1].symbol , "q\0", 2);
+	strncpy(particles[  2-1].symbol , "p\0", 2);
+	strncpy(particles[  3-1].symbol , "e\0", 2);
+	strncpy(particles[  8-1].symbol , "f\0", 2);
+	strncpy(particles[  4-1].symbol , "|\0", 2);
+	strncpy(particles[ 16-1].symbol , "!\0", 2);
+	strncpy(particles[  6-1].symbol , "u\0", 2);
+	strncpy(particles[ 17-1].symbol , "<\0", 2);
+	strncpy(particles[  7-1].symbol , "v\0", 2);
+	strncpy(particles[ 18-1].symbol , ">\0", 2);
+	strncpy(particles[  9-1].symbol , "h\0", 2);
 	strncpy(particles[ 19-1].symbol , "g\0", 2);
-	strncpy(particles[ 10-1].symbol , "l\0", 2); 
-	strncpy(particles[ 25-1].symbol , "b\0", 2); 
-	strncpy(particles[ 11-1].symbol , "+\0", 2); 
-	strncpy(particles[ 26-1].symbol , "_\0", 2); 
-	strncpy(particles[ 12-1].symbol , "-\0", 2); 
-	strncpy(particles[ 27-1].symbol , "~\0", 2); 
-	strncpy(particles[ 13-1].symbol , "x\0", 2); 
-	strncpy(particles[ 28-1].symbol , "c\0", 2); 
-	strncpy(particles[ 14-1].symbol , "y\0", 2); 
-	strncpy(particles[ 29-1].symbol , "w\0", 2); 
-	strncpy(particles[ 15-1].symbol , "o\0", 2); 
-	strncpy(particles[ 30-1].symbol , "@\0", 2); 
+	strncpy(particles[ 10-1].symbol , "l\0", 2);
+	strncpy(particles[ 25-1].symbol , "b\0", 2);
+	strncpy(particles[ 11-1].symbol , "+\0", 2);
+	strncpy(particles[ 26-1].symbol , "_\0", 2);
+	strncpy(particles[ 12-1].symbol , "-\0", 2);
+	strncpy(particles[ 27-1].symbol , "~\0", 2);
+	strncpy(particles[ 13-1].symbol , "x\0", 2);
+	strncpy(particles[ 28-1].symbol , "c\0", 2);
+	strncpy(particles[ 14-1].symbol , "y\0", 2);
+	strncpy(particles[ 29-1].symbol , "w\0", 2);
+	strncpy(particles[ 15-1].symbol , "o\0", 2);
+	strncpy(particles[ 30-1].symbol , "@\0", 2);
 	strncpy(particles[ 20-1].symbol , "/\0", 2);
 	strncpy(particles[ 35-1].symbol , "*\0", 2);
 	strncpy(particles[ 21-1].symbol , "z\0", 2);
@@ -582,7 +582,7 @@ bool SurfaceSource::WriteSummaryRecord(int** summaries)
 		output_file.write((char*) &record_length0, RECORD_DELIMITER_LENGTH);
 
 		// write stupid leading (double) zero
-		output_file.write((char*) &dnull, sizeof(double));		
+		output_file.write((char*) &dnull, sizeof(double));
 
 		// write what's asked for
 		for(int i=0;i<surface_count;i++){

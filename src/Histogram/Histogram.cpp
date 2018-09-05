@@ -16,20 +16,20 @@
 #include <sys/stat.h>
 #include <bitset>
 #include <random>
-#include "histogram.h"
-#include "helpers.h"
+#include "Histogram.hpp"
+#include "helpers.hpp"
 
-histogram::histogram(){
+Histogram::Histogram(){
 }
-histogram::~histogram(){
+Histogram::~Histogram(){
 }
 
-void histogram::set_grid_log(){
+void Histogram::set_grid_log(){
 	// DEFAULT TO SOMETHING REASONABLE
 	set_grid_log(1e-10,1e3,1024);
 }
 
-void histogram::set_grid_log( double E_min_in, double E_max_in, long n_bins_in ){
+void Histogram::set_grid_log( double E_min_in, double E_max_in, long n_bins_in ){
 	// make linearly-spaced vector in log space
 	double E_min_log = log10(E_min_in);
 	double E_max_log = log10(E_max_in);
@@ -37,7 +37,7 @@ void histogram::set_grid_log( double E_min_in, double E_max_in, long n_bins_in )
 	for(long i=0;i<n_bins_in+1;i++){
 		edges.push_back( i*stride + E_min_log );
 	}
-	// convert back to energy  
+	// convert back to energy
 	for(long i=0;i<n_bins_in+1;i++){
 		edges[i] = pow(10,edges[i]);
 	}
@@ -51,12 +51,12 @@ void histogram::set_grid_log( double E_min_in, double E_max_in, long n_bins_in )
 	err		=	std::vector<double> (n_bins, 0);
 }
 
-void histogram::set_grid_lin(){
+void Histogram::set_grid_lin(){
 	// DEFAULT TO SOMETHING REASONABLE
 	set_grid_lin(0,90,100);
 }
 
-void histogram::set_grid_lin( double E_min_in, double E_max_in, long n_bins_in ){
+void Histogram::set_grid_lin( double E_min_in, double E_max_in, long n_bins_in ){
 	// make linearly-spaced vector in lin space
 	double stride    = (E_max_in - E_min_in)/n_bins_in;
 	for(long i=0;i<n_bins_in+1;i++){
@@ -72,12 +72,12 @@ void histogram::set_grid_lin( double E_min_in, double E_max_in, long n_bins_in )
 	err		=	std::vector<double> (n_bins, 0);
 }
 
-void histogram::set_grid_cos(){
+void Histogram::set_grid_cos(){
 	// DEFAULT TO SOMETHING REASONABLE
 	set_grid_cos(0,90,100);
 }
 
-void histogram::set_grid_cos( double E_min_in, double E_max_in, long n_bins_in ){
+void Histogram::set_grid_cos( double E_min_in, double E_max_in, long n_bins_in ){
 	// make linearly-spaced vector in cos space
 	double E_min_cos = cosf(E_min_in/180.0*pi);
 	double E_max_cos = cosf(E_max_in/180.0*pi);
@@ -85,7 +85,7 @@ void histogram::set_grid_cos( double E_min_in, double E_max_in, long n_bins_in )
 	for(long i=0;i<n_bins_in+1;i++){
 		edges.push_back( i*stride + E_min_cos );
 	}
-	// convert back to degree  
+	// convert back to degree
 	for(long i=0;i<n_bins_in+1;i++){
 		edges[i] = acos(edges[i])/pi*180.0;
 	}
@@ -101,7 +101,7 @@ void histogram::set_grid_cos( double E_min_in, double E_max_in, long n_bins_in )
 
 
 
-void histogram::add( double bin_val, double weight ){
+void Histogram::add( double bin_val, double weight ){
 
 	// check if in bounds
 	bool valid = true;
@@ -112,7 +112,7 @@ void histogram::add( double bin_val, double weight ){
 	// add weight to bin if between bin edges
 	long dex;
 	std::vector<double>::iterator it;
-	std::vector<double>::iterator beg = edges.begin(); 
+	std::vector<double>::iterator beg = edges.begin();
 	std::vector<double>::iterator end = edges.end();
 	if (valid){
 		if (bin_val == E_min){
@@ -128,7 +128,7 @@ void histogram::add( double bin_val, double weight ){
 	}
 
 }
-void histogram::update(double norm_val){
+void Histogram::update(double norm_val){
 
 	// calculate error
 	double tally_err_sq, sum_xi, sum_xi2;
@@ -165,11 +165,11 @@ void histogram::update(double norm_val){
 	std::transform  (cumsum_normed.begin(), cumsum_normed.end(), cumsum_normed.begin(), std::bind2nd (std::divides <double> () , total_value)) ;  // binds the second argument to the total value
 
 }
-double  histogram::get_rn(){
-	// simply return the value from the lib 
+double  Histogram::get_rn(){
+	// simply return the value from the lib
 	return distribution(generator);
 }
-double histogram::sample(){
+double Histogram::sample(){
 
 	double rn = get_rn();
 
