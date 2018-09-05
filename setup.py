@@ -12,11 +12,6 @@ setup(name='ss2py',
       version='1.0',
       description='Module for loading a MCNP wssa surface source file en masse.',
       extra_compile_args=['-std=c++11'],
-      include_dirs = [  np.get_include(),
-                        os.getcwd(),
-                        os.getcwd()+'/src/SurfaceSource/',
-                        os.getcwd()+'/src/Histogram/',
-                        os.getcwd()+'/src/InputFile/',
-                        os.getcwd()+'/src/helpers/'],
+      include_dirs = [  np.get_include(), os.getcwd()+'/src'],
       ext_modules=[ss2py_module]
       )
