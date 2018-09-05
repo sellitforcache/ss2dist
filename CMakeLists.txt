@@ -28,3 +28,7 @@ add_executable(turtle2rssa ${base_srcs} turtle2rssa.cpp)
 add_executable(writetest ${base_srcs} writetest.cpp)
 
 target_link_libraries(ss2more flann)
+
+# add the install targets
+install (TARGETS ss2dist DESTINATION bin)
+install (FILES "${PROJECT_SOURCE_DIR}/dist2plot.py" DESTINATION bin)
