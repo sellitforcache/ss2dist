@@ -1,0 +1,6 @@
+# plane number
+surface 2154
+# center point
+center 53843 373.0 0.0
+# plane coeff specification
+plane 0 1 0 5

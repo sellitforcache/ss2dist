@@ -1,4 +1,4 @@
-class histogram {
+class Histogram {
 
 	//
 	// RNG objects
@@ -30,8 +30,8 @@ public:
 	//
 	//
 
-	~histogram();
-	histogram();
+	~Histogram();
+	Histogram();
 	void set_grid_log();
 	void set_grid_log(double,double,long);
 	void set_grid_lin();

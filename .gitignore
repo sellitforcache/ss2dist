@@ -1,0 +1,6 @@
+*.pyc
+src/ss2lib.hpp
+CMakeCache.*
+CMakeFiles
+build/
+BUILD/

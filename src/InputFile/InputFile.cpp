@@ -15,8 +15,8 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <bitset>
-#include "SurfaceSource.h"
-#include "InputFile.h"
+#include "SurfaceSource.hpp"
+#include "InputFile.hpp"
 
 InputFile::~InputFile(){
 	input_file.close();
