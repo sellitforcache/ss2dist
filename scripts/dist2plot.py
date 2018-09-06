@@ -1,8 +1,8 @@
 #! /home/l_bergmann/anaconda/bin/python -W ignore
-# /usr/local/bin/python 
+# /usr/local/bin/python
 #
 # ss2dist, the MCNP surface source to histogram distribution maker
-# Ryan M. Bergmann, March 2015 
+# Ryan M. Bergmann, March 2015
 # ryan.bergmann@psi.ch, ryanmbergmann@gmail.com
 
 import numpy, sys, time
@@ -25,7 +25,7 @@ class mcnp_cell_helper(object):
 	cell_number 				= 80000
 	# boundary surface, should be set
 	boundary_surface 			= 20
-	# transform for surfaces 
+	# transform for surfaces
 	surface_transform			= 1
 	surface_transform_string	= ''
 	# density maps
@@ -49,7 +49,7 @@ class mcnp_cell_helper(object):
 			mcnp_cell_helper.surface_transform_string = '%2d'%mcnp_cell_helper.surface_transform
 
 	def _make_plane(self, a, b, c, d):
-		#surf     97 plane        0.000     0.000    1.000   -10 
+		#surf     97 plane        0.000     0.000    1.000   -10
 		if a==1. and b==0. and c==0.:
 			out_string =  '%5d %2s px % 14.12E'%(mcnp_cell_helper.plane_surface_number,mcnp_cell_helper.surface_transform_string,d)
 		elif a==0. and b==1. and c==0.:
@@ -98,7 +98,7 @@ class mcnp_cell_helper(object):
 			out_string = '%5d %2s cx   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
 		else:
 			out_string = '%5d %2s c/x  % 14.12E % 14.12E % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,y0,z0,r)
-		# 
+		#
 		mcnp_cell_helper.cyl_surface_number = mcnp_cell_helper.cyl_surface_number + 1
 		return mcnp_cell_helper.cyl_surface_number-1, out_string+'\n'
 
@@ -108,7 +108,7 @@ class mcnp_cell_helper(object):
 			out_string = '%5d %2s cy   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
 		else:
 			out_string = '%5d %2s c/y  % 14.12E % 14.12E % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,z0,r)
-		# 
+		#
 		mcnp_cell_helper.cyl_surface_number = mcnp_cell_helper.cyl_surface_number + 1
 		return mcnp_cell_helper.cyl_surface_number-1, out_string+'\n'
 
@@ -118,7 +118,7 @@ class mcnp_cell_helper(object):
 			out_string = '%5d %2s cz   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,r)
 		else:
 			out_string = '%5d %2s c/z  % 14.12E % 14.12E % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,y0,r)
-		# 
+		#
 		mcnp_cell_helper.cyl_surface_number = mcnp_cell_helper.cyl_surface_number + 1
 		return mcnp_cell_helper.cyl_surface_number-1, out_string+'\n'
 
@@ -134,7 +134,7 @@ class mcnp_cell_helper(object):
 			out_string = '%5d %2s sz   % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,z0,r)
 		else:
 			out_string = '%5d %2s s    % 14.12E % 14.12E % 14.12E % 14.12E'%(mcnp_cell_helper.cyl_surface_number,mcnp_cell_helper.surface_transform_string,x0,y0,z0,r)
-		# 
+		#
 		mcnp_cell_helper.cyl_surface_number = mcnp_cell_helper.cyl_surface_number + 1
 		return mcnp_cell_helper.cyl_surface_number-1, out_string+'\n'
 
@@ -178,7 +178,7 @@ def make_independent_distribution(file_obj,dist_number,*args):
 
 
 def make_dependent_distribution(file_obj,dist_number,secondary_dist_start,vector_vars,vector_probs,option='H',datatype='float'):
-	
+
 	#write distribution of distributions card
 	string0 = 'DS%d   S '%dist_number
 	file_obj.write(string0)
@@ -206,7 +206,7 @@ def make_dependent_distribution(file_obj,dist_number,secondary_dist_start,vector
 		# SI card first
 		string0 = 'SI%d %s '%(k+secondary_dist_start,option)
 		file_obj.write(string0)
-		total_len = len(string0)  
+		total_len = len(string0)
 		for j in range(0,len(vector_vars[k])):
 			if datatype == '3float':
 				string1=data_string%(vector_vars[k][j][0],vector_vars[k][j][1],vector_vars[k][j][2])
@@ -242,7 +242,7 @@ def make_dependent_distribution(file_obj,dist_number,secondary_dist_start,vector
 
 def make_dependent_variable(file_obj,dist_number,vector_vars,option='H',datatype='3float'):
 
-	# write distributions 
+	# write distributions
 	if datatype == '3float':
 		data_string=' % 14.12E % 14.12E % 14.12E'
 	if datatype == 'float':
@@ -252,7 +252,7 @@ def make_dependent_variable(file_obj,dist_number,vector_vars,option='H',datatype
 	# SI card first
 	string0 = 'DS%d %s '%(dist_number,option)
 	file_obj.write(string0)
-	total_len = len(string0)  
+	total_len = len(string0)
 	for j in range(0,len(vector_vars)):
 		if datatype == '3float':
 			string1=data_string%(vector_vars[j][0],vector_vars[j][1],vector_vars[j][2])
@@ -321,7 +321,7 @@ def _smooth(x,window_len=11,window='flat'):
 	y=y[(window_len-1)/2:-(window_len-1)/2]
 	y[:firstdex] = 0.0
 	y[lastdex+1:] = 0.0
-	
+
 	return y
 
 def make_steps(ax,bins_in,avg_in,values_in,options=['log'],color=None,label='',ylim=False,linewidth=1):
@@ -507,7 +507,7 @@ except IOError:
 
 if spec_present:
 
-	cm  = plt.get_cmap('jet') 
+	cm  = plt.get_cmap('jet')
 
 	E_min			=     spec_data[ 0]
 	E_max			=     spec_data[ 1]
@@ -526,25 +526,25 @@ if spec_present:
 	angle_spec_start=spec_end
 	spec_area_x=[x_min,x_max,x_max,x_min,x_min]
 	spec_area_y=[y_min,y_min,y_max,y_max,y_min]
-	
+
 	# print lengths, vectors
 	print "%10s %6.4E"%("E_min",	E_min	)
 	print "%10s %6.4E"%("E_max",	E_max	)
 	print "%10s %5d"%(  "E_bins",	E_bins	)
 	print "%10s %6.4E"%("x_min",	x_min	)
-	print "%10s %6.4E"%("x_max",	x_max	)	
+	print "%10s %6.4E"%("x_max",	x_max	)
 	print "%10s %6.4E"%("y_min",	y_min	)
 	print "%10s %6.4E"%("y_max",	y_max	)
-	
+
 	### remove the header info and reshape for easier indexing
-	theta_edges = spec_data[theta_start:spec_start] 
+	theta_edges = spec_data[theta_start:spec_start]
 	spec = spec_data[spec_start:spec_end]
 	spec = numpy.reshape(spec,(theta_bins,E_bins))
 
 	### also for angle histogram
-	angle_spec_edges = spec_data[angle_spec_start:angle_spec_start+angle_spec_bins+1] 
+	angle_spec_edges = spec_data[angle_spec_start:angle_spec_start+angle_spec_bins+1]
 	angle_spec_value = spec_data[angle_spec_start+angle_spec_bins+1:]
-	
+
 	### constants
 	charge_per_amp = 6.241e18
 	charge_per_milliamp = charge_per_amp/1000.0
@@ -574,7 +574,7 @@ if spec_present:
 		fig.savefig('angular-spec.png')
 	if plot:
 		plt.show()
-	
+
 	### smoothing
 	if smooth:
 		print "SMOOTHING SPECTRAL DATA BY %d BINS..."%smooth
@@ -620,7 +620,7 @@ if spec_present:
 		fig.savefig('%d-%s-specs-sa_normed.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
 		plt.show()
-		
+
 	fig  = plt.figure()
 	ene = numpy.power(10,numpy.linspace(numpy.log10(E_min),numpy.log10(E_max),E_bins+1))
 	ax1 = fig.add_subplot(111)
@@ -658,7 +658,7 @@ if spec_present:
 		fig.savefig('%d-%s-specs-sa_normed_loglog.png'%(this_sc,particle_symbols[this_particle]))
 	if plot:
 		plt.show()
-		
+
 else:
     print "No file '"+fname+"' present."
 
@@ -708,14 +708,14 @@ principle_vector_2	= float(dist[30])
 principle_vector_3	= float(dist[31])
 dist_start			=            32
 
-# copy vectors 
-E_bins			= dist[dist_start:dist_start+E_len] 
+# copy vectors
+E_bins			= dist[dist_start:dist_start+E_len]
 dist_start		= dist_start + E_len
-theta_bins_deg	= dist[dist_start:dist_start+theta_len] 
+theta_bins_deg	= dist[dist_start:dist_start+theta_len]
 theta_bins		= numpy.pi*numpy.array(theta_bins_deg)/180.
 cosine_bins		= numpy.cos(theta_bins)
 dist_start		= dist_start + theta_len
-phi_bins		= dist[dist_start:dist_start+phi_len] 
+phi_bins		= dist[dist_start:dist_start+phi_len]
 dist_start		= dist_start + phi_len
 
 # print lengths, vectors
@@ -796,11 +796,11 @@ for theta_bin in range(0,len(theta_bins)-1):
 #
 # write mcnp sdef
 #
-surface_center 	= numpy.array([surf_cx,surf_cy,surf_cz]) 
-surface_normal 	= numpy.array([surf_a,surf_b,surf_c]) 
-surface_vec1 	= numpy.array([surface_vector1_1,surface_vector1_2,surface_vector1_3]) 
-surface_vec2 	= numpy.array([surface_vector2_1,surface_vector2_2,surface_vector2_3]) 
-surface_vec3 	= numpy.array([surface_vector3_1,surface_vector3_2,surface_vector3_3]) 
+surface_center 	= numpy.array([surf_cx,surf_cy,surf_cz])
+surface_normal 	= numpy.array([surf_a,surf_b,surf_c])
+surface_vec1 	= numpy.array([surface_vector1_1,surface_vector1_2,surface_vector1_3])
+surface_vec2 	= numpy.array([surface_vector2_1,surface_vector2_2,surface_vector2_3])
+surface_vec3 	= numpy.array([surface_vector3_1,surface_vector3_2,surface_vector3_3])
 principle_vector= numpy.array([principle_vector_1,principle_vector_2,principle_vector_3])
 
 # rotate central vector for source into reference frame
@@ -809,8 +809,11 @@ pvec[0]	= surface_vec2[0]*principle_vector[0]+surface_vec2[1]*principle_vector[1
 pvec[1]	= surface_vec3[0]*principle_vector[0]+surface_vec3[1]*principle_vector[1]+surface_vec3[2]*principle_vector[2]
 pvec[2]	= surface_vec1[0]*principle_vector[0]+surface_vec1[1]*principle_vector[1]+surface_vec1[2]*principle_vector[2]
 
-offset_factor=1e-6
+offset_factor=1e-2 # THIS IS IN CM
 xform_num = 999
+
+# offset centerpoint a tiny pit in direction of normal
+surface_center_offset = surface_center + offset_factor*surface_normal
 
 # figure out angular probabilities
 weight_totals=[]
@@ -826,8 +829,6 @@ if sphere:
 else:
 	print "\nSDEF plane offset by % 3.2E...\n"%offset_factor
 fsdef=open(sdef_name,'w')
-
-
 
 
 # write easy stuff
@@ -848,12 +849,12 @@ fsdef.write('        wgt=%14.12E\n'%numpy.sum(weight_totals))
 fsdef.write('c \n')
 fsdef.write('c TRANSFORM\n')
 fsdef.write('c \n')
-fsdef.write('tr%3d   % 6.7E  % 6.7E  % 6.7E\n'%(xform_num,(1.0+offset_factor)*surface_center[0],(1.0+offset_factor)*surface_center[1],(1.0+offset_factor)*surface_center[2]))
+fsdef.write('tr%3d   % 6.7E  % 6.7E  % 6.7E\n'%(xform_num,surface_center_offset[0],surface_center_offset[1],surface_center_offset[2]))
 fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec2[0],surface_vec2[1],surface_vec2[2])) # (surface_rotation_xy,90-surface_rotation_xy,90))
 fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec3[0],surface_vec3[1],surface_vec3[2])) # (90+surface_rotation_xy,surface_rotation_xy,90))
 fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec1[0],surface_vec1[1],surface_vec1[2])) # (90,90,surface_rotation_yz))
 #
-# 
+#
 # make CCC surfaces/cells
 #
 # surfs
@@ -945,10 +946,10 @@ fsdef.write('c \n')
 fsdef.close()
 print "\nDONE.\n"
 
-#  
+#
 #
 # THIS IS THE OLD ONE WHERE I THOUGHT THE POS COULD DEPEND ON ON THE FINAL CCC (IT CAN'T -> MCNP COMPLAINS WHEN DEPENDENT ON A DEPENDENT)
-# 
+#
 #
 # write easy stuff
 #fsdef.write('c\n')
@@ -974,7 +975,7 @@ print "\nDONE.\n"
 #fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec2[0],surface_vec2[1],surface_vec2[2])) # (90+surface_rotation_xy,surface_rotation_xy,90))
 #fsdef.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_vec3[0],surface_vec3[1],surface_vec3[2])) # (90,90,surface_rotation_yz))
 ##
-## 
+##
 ## make CCC surfaces/cells
 ##
 ## surfs
