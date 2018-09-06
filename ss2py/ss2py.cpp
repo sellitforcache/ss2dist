@@ -82,17 +82,17 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 
 	//
 	unsigned b			= 0;
-	unsigned j			= 0;
+	//unsigned j			= 0;
 	unsigned ipt		= 0;
-	unsigned nsf		= 0;
+	//unsigned nsf		= 0;
 	unsigned i_positron = 0;
 	unsigned jgp		= 0;
 	//
-	double 	total_weight	= 0.0;
-	double 	total_tracks	= 0;
+	//double 	total_weight	= 0.0;
+	//double 	total_tracks	= 0;
 	//
-	bool printflag = false;
-	bool errorflag = false;
+	//bool printflag = false;
+	//bool errorflag = false;
 
 	// set loop length
 	long N = ss.nrss;
@@ -120,7 +120,8 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 
 		b   = abs(int(this_track.bitarray));
 		decode_bitarray(b, &ipt, &i_positron, &jgp);
-		nsf=this_track.cs;
+		//nsf=this_track.cs;
+
 
 		// get data
 		data_matrix[i*n_per_element+0] 	= ipt;
