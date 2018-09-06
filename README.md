@@ -37,5 +37,15 @@ $ ss2dist [wssa_file] [input_file]
 This will produce two files, named '[surface_number]\_[particle]\_dist.bin' and '[surface_number]\_[particle]\_spec.bin' which contain the histogram data.  They are then post-processed with dist2plot.py (which means the wssa files doesn't need to be read if you simply want to change some plot parameters):
 
 ```
-$ dist2plot.py [surface_number]_[particle]_dist.bin [OPTIONS...]
+$ dist2plot.py [surface_number]_[particle]_dist.bin [OPTIONS]
 ```
+
+Where [OPTIONS] can be any combination/order of:
+* plot : Make popup plots
+* png  : Write .png files for all plots
+* log  : Logarithmic scale for spatial distributions
+* vmin=[number] : set the minimum value for the spatial distribution colormap
+* vmax=[number] : set the maximum value for the spatial distribution colormap
+* smooth=[integer] : number of bins to smooth over in spectral plots
+
+If all the plotting completes successfully, then the script writes a MCNP sdef card into a file named '[surface_number]\_[particle].sdef'
