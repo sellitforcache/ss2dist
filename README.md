@@ -1,4 +1,5 @@
 # ss2dist
+Ryan M. Bergmann, 2018.
 
 Contains:
 * C++ library to read tracks from MCNP6 surface source files, create histograms, and parse some simple input files
