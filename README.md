@@ -1,7 +1,41 @@
 # ss2dist
 
-c++ program to read tracks from MCNP6 surface source files.  Performs spatial binning within several energy bounds and well as creating a single independently-binned energy spectrum within a spatial limit.  See sample inputs.  Plotting script 'dist2plot.py' reads in the resulting binaries outputs and plots them using matplotlib.
+Contains:
+* C++ library to read tracks from MCNP6 surface source files, create histograms, and parse some simple input files
+* Executables to create angle-dependent spatial distributions and energy spectra.  
+* Plotting script 'dist2plot.py' that reads in the resulting binary outputs and plots them using matplotlib.  At successful plotting, dist2plot.py also writes a MCNP sdef card based on the histograms it got from ss2dist.
 
-building:  make 
+## Installing C++ library and and executables
 
-usage:  ./ss2dist [wssa_file] [input_file]
+Building uses cmake (>3.1).  Recommended way to build (you can always use 'ccmake' instead of 'cmake' to use an interactive GUI to set install variables):
+
+```
+$ mkdir BUILD
+$ cd BUILD
+$ cmake .. -DCMAKE_INSTALL_PREFIX:PATH=[/path/where/you/want/to/install]
+$ make
+$ make install
+```
+
+## Installing Python module
+
+After the library and executables are built and installed, the Python module can be built and installed (requires ss2lib, so it must be already be installed).
+
+```
+$ python setup.py install
+```
+
+
+## ss2dist Usage
+
+See example inputs and scripts.  Generally it goes like this:
+
+```
+$ ss2dist [wssa_file] [input_file]
+```
+
+This will produce two files, named '[surface_number]\_[particle]\_dist.bin' and '[surface_number]\_[particle]\_spec.bin' which contain the histogram data.  They are then post-processed with dist2plot.py (which means the wssa files doesn't need to be read if you simply want to change some plot parameters):
+
+```
+$ dist2plot.py [surface_number]_[particle]_dist.bin [OPTIONS...]
+```

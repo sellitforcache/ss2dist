@@ -5,7 +5,7 @@
 # Ryan M. Bergmann, March 2015
 # ryan.bergmann@psi.ch, ryanmbergmann@gmail.com
 
-import numpy, sys, time
+import numpy, sys, time, re
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
@@ -442,60 +442,26 @@ particle_symbols[33] = 's'
 particle_symbols[34] = 'a'
 particle_symbols[37] = '#'
 
-### option
-plot=False
-png=False
-smooth=0
-if len(sys.argv) == 2:
-	logplot = False
-elif len(sys.argv) == 3:
-	if sys.argv[2] == 'log':
-		logplot = True
-	elif sys.argv[2] == 'lin':
-		logplot = False
-	else:
-		logplot = False
-	vmax_in = 1e6
-	vmin_in = 1e0
-elif len(sys.argv) == 4:
-	if sys.argv[2] == 'log':
-		logplot = True
-	elif sys.argv[2] == 'lin':
-		logplot = False
-	else:
-		logplot = False
-	#
-	vmax_in = float(sys.argv[3])
-	vmin_in = 1e0
-elif len(sys.argv) == 5:
-	if sys.argv[2] == 'log':
-		logplot = True
-	elif sys.argv[2] == 'lin':
-		logplot = False
-	else:
-		logplot = False
-	#
-	vmax_in = float(sys.argv[4])
-	vmin_in = float(sys.argv[3])
-elif len(sys.argv) >= 6:
-	if sys.argv[2] == 'log':
-		logplot = True
-	elif sys.argv[2] == 'lin':
-		logplot = False
-	else:
-		logplot = False
-	#
-	vmax_in = float(sys.argv[4])
-	vmin_in = float(sys.argv[3])
-	#
-	for i in range(5,len(sys.argv)):
-		if sys.argv[i] == 'plot':
-			plot=True
-		if sys.argv[i] == 'png':
-			png=True
-		sline=sys.argv[i].split('=')
-		if sline[0]=='smooth':
-			smooth=int(sline[1])
+### parse options
+options={
+'plot' : False,
+'png' : False,
+'smooth=' : 0,
+'log' : False,
+'vmin=' : 1e-9,
+'vmax=' : 1e3}
+for input_argument in sys.argv[2:]: # first argument has to be file name of the dist file
+	for this_option in options.keys():
+		this_match = re.match('%s([0-9eE+-]*)'%this_option,input_argument)
+		if this_match:
+			if type(options[this_option])==type(False):
+				options[this_option]=True
+			elif type(options[this_option])==type(int(0)):
+				options[this_option]=int(this_match.group(1))
+			elif type(options[this_option])==type(float(0.0)):
+				options[this_option]=float(this_match.group(1))
+			else:
+				print "%s is not a valid option. Ignored."%this_option
 
 ### load the spec file
 fname = sys.argv[1][:-8]+'spec.bin'
@@ -557,9 +523,9 @@ if spec_present:
 	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
 	sa = -2.*numpy.pi*numpy.diff(numpy.cos(angle_spec_edges/180.*numpy.pi))
 	angle_spec_value_normed = numpy.divide(angle_spec_value,sa)
-	if smooth:
-		print "SMOOTHING ANGLE SPECTRUM DATA BY %d BINS..."%smooth
-		this_spec = _smooth(angle_spec_value_normed,window_len=smooth)
+	if options['smooth=']:
+		print "SMOOTHING ANGLE SPECTRUM DATA BY %d BINS..."%options['smooth=']
+		this_spec = _smooth(angle_spec_value_normed,window_len=options['smooth='])
 		angle_spec_value_normed = this_spec
 	maxdex = numpy.argmax(angle_spec_value_normed)
 	maxval = angle_spec_value_normed[maxdex]
@@ -570,16 +536,16 @@ if spec_present:
 	ax1.set_xlabel(r'Angle from Principle Vector (deg)')
 	ax1.set_ylabel(r'Number Density (particles/source/sa)')
 	#ax1.legend(loc=2)#'best')
-	if png:
+	if options['png']:
 		fig.savefig('angular-spec.png')
-	if plot:
+	if options['plot']:
 		plt.show()
 
 	### smoothing
-	if smooth:
-		print "SMOOTHING SPECTRAL DATA BY %d BINS..."%smooth
+	if options['smooth=']:
+		print "SMOOTHING SPECTRAL DATA BY %d BINS..."%options['smooth=']
 		for j in range(0,theta_bins):
-			this_spec = _smooth(spec[j,:],window_len=smooth)
+			this_spec = _smooth(spec[j,:],window_len=options['smooth='])
 			spec[j,:] = this_spec
 
 	### images
@@ -596,9 +562,9 @@ if spec_present:
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source)')
 	ax1.legend(loc='best')
-	if png:
+	if options['png']:
 		fig.savefig('%d-%s-specs.png'%(this_sc,particle_symbols[this_particle]))
-	if plot:
+	if options['plot']:
 		plt.show()
 
 	### images, normalized to theta bin
@@ -616,9 +582,9 @@ if spec_present:
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source/sterad)')
 	ax1.legend(loc='best')
-	if png:
+	if options['png']:
 		fig.savefig('%d-%s-specs-sa_normed.png'%(this_sc,particle_symbols[this_particle]))
-	if plot:
+	if options['plot']:
 		plt.show()
 
 	fig  = plt.figure()
@@ -634,9 +600,9 @@ if spec_present:
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source)')
 	ax1.legend(loc='best')
-	if png:
+	if options['png']:
 		fig.savefig('%d-%s-specs_loglog.png'%(this_sc,particle_symbols[this_particle]))
-	if plot:
+	if options['plot']:
 		plt.show()
 
 	### images, normalized to theta bin
@@ -654,9 +620,9 @@ if spec_present:
 	ax1.set_xlabel(r'Energy (MeV)')
 	ax1.set_ylabel(r'Current (particles/source/sterad)')
 	ax1.legend(loc='best')
-	if png:
+	if options['png']:
 		fig.savefig('%d-%s-specs-sa_normed_loglog.png'%(this_sc,particle_symbols[this_particle]))
-	if plot:
+	if options['plot']:
 		plt.show()
 
 else:
@@ -757,10 +723,10 @@ for theta_bin in range(0,len(theta_bins)-1):
 	for E_bin in range(0,len(E_bins)-1):
 		f = plt.figure()
 		ax = f.add_subplot(111)
-		if logplot:
-			imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('spectral'),norm=LogNorm(vmin=vmin_in,vmax=vmax_in))
+		if options['log']:
+			imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('spectral'),norm=LogNorm(vmin=options['vmin='],vmax=options['vmax=']))
 		else:
-			imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('spectral'),vmin=vmin_in,vmax=vmax_in)
+			imgplot = ax.imshow(dist[E_bin][theta_bin][phi_bin][:][:]          ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('spectral'),vmin=options['vmin='],vmax=options['vmax='])
 		this_weight = numpy.sum(dist[E_bin][theta_bin][phi_bin][:][:])
 		imgplot.set_interpolation('nearest')
 		theta_deg = theta_bins[theta_bin:theta_bin+2]*180.0/numpy.pi
@@ -779,9 +745,9 @@ for theta_bin in range(0,len(theta_bins)-1):
 		#
 		#
 		ax.set_title('%d : %s : %5.2f-%5.2f MeV : %5.2f-%5.2f deg : wgt %10.8E'%(this_sc,particle_symbols[this_particle],E_bins[E_bin],E_bins[E_bin+1],theta_bins_deg[theta_bin],theta_bins_deg[theta_bin+1],this_weight))
-		if png:
+		if options['png']:
 			fig.savefig('%d-%s-dist-E%d-Theta%d.png'%(this_sc,particle_symbols[this_particle],E_bin,theta_bin))
-		if plot:
+		if options['plot']:
 			plt.show()
 
 

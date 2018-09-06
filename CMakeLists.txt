@@ -11,3 +11,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 include_directories(${CMAKE_SOURCE_DIR})
 
 add_subdirectory(  src  )
+
+# install support scripts
+install (FILES "${PROJECT_SOURCE_DIR}/scripts/dist2plot.py" DESTINATION bin PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
