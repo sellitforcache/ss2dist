@@ -15,6 +15,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <bitset>
+#include <random>
 #include "ss2lib.hpp"
 
 

@@ -47,5 +47,5 @@ install (TARGETS ss2lib DESTINATION  lib)
 install (FILES "${PROJECT_SOURCE_DIR}/src/ss2lib.hpp" DESTINATION include)
 
 # install support scripts
-install (FILES "${PROJECT_SOURCE_DIR}/scripts/dist2plot.py" DESTINATION bin)
-install (FILES "${PROJECT_SOURCE_DIR}/scripts/spec2plot.py" DESTINATION bin)
+install (FILES "${PROJECT_SOURCE_DIR}/scripts/dist2plot.py" DESTINATION bin PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+install (FILES "${PROJECT_SOURCE_DIR}/scripts/spec2plot.py" DESTINATION bin PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)

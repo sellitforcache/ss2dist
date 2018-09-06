@@ -4,7 +4,7 @@ import numpy as np
 
 ss2py_module = Extension('ss2py',   sources=['ss2py/ss2py.cpp'],
                                     libraries = ['ss2lib'],
-                                    library_dirs = ['/home/l_bergmann/Software/lib/'],
+                                    #library_dirs = ['/home/l_bergmann/Software/lib/'],
                                     extra_compile_args=['-std=c++11']
                                     )
 
