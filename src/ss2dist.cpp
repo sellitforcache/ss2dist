@@ -69,7 +69,7 @@ int main(int argc, char* argv[]){
 	//
 	//
 	// FOR ANGULAR DISTRIBUTION
-	double principle_vector_mag = sqrtf( input.principle_vector[0]*input.principle_vector[0] + input.principle_vector[1]*input.principle_vector[1] + input.principle_vector[2]*input.principle_vector[2] );
+	double principle_vector_mag = sqrt( input.principle_vector[0]*input.principle_vector[0] + input.principle_vector[1]*input.principle_vector[1] + input.principle_vector[2]*input.principle_vector[2] );
 	if (principle_vector_mag == 0.0){
 		principle_vector1[0]	=  input.surface_plane[0];
 		principle_vector1[1]	=  input.surface_plane[1];
@@ -81,9 +81,9 @@ int main(int argc, char* argv[]){
 		principle_vector1[2]	=  input.principle_vector[2]/principle_vector_mag;
 	}
 	// second vector is rotation of y axis that is orthogonal
-	double xy_rot_angle = atanf(principle_vector1[1]/principle_vector1[0]);
-	principle_vector2[0]	= cosf(xy_rot_angle+pi/2.);
-	principle_vector2[1]	= sinf(xy_rot_angle+pi/2.);
+	double xy_rot_angle = atan(principle_vector1[1]/principle_vector1[0]);
+	principle_vector2[0]	= cos(xy_rot_angle+pi/2.);
+	principle_vector2[1]	= sin(xy_rot_angle+pi/2.);
 	principle_vector2[2]	=  0.0;
 	// compute third vector from cross product
 	principle_vector3[0]= ( principle_vector1[1]*principle_vector2[2] - principle_vector1[2]*principle_vector2[1] );
@@ -97,9 +97,9 @@ int main(int argc, char* argv[]){
 	surface_vec1[1]	=  input.surface_plane[1];
 	surface_vec1[2]	=  input.surface_plane[2];
 	// second vector is rotation of y axis that is orthogonal
-	xy_rot_angle = atanf(surface_vec1[1]/surface_vec1[0]);
-	surface_vec2[0]	= cosf(xy_rot_angle+pi/2.);
-	surface_vec2[1]	= sinf(xy_rot_angle+pi/2.);
+	xy_rot_angle = atan(surface_vec1[1]/surface_vec1[0]);
+	surface_vec2[0]	= cos(xy_rot_angle+pi/2.);
+	surface_vec2[1]	= sin(xy_rot_angle+pi/2.);
 	surface_vec2[2]	=  0.0;
 	// compute third vector from cross product
 	surface_vec3[0]= ( surface_vec1[1]*surface_vec2[2] - surface_vec1[2]*surface_vec2[1] );
@@ -360,7 +360,7 @@ int main(int argc, char* argv[]){
 	surface_vec_avg[0] = surface_vec_avg[0]/N;
 	surface_vec_avg[1] = surface_vec_avg[1]/N;
 	surface_vec_avg[2] = surface_vec_avg[2]/N;
-	double avg_vec_mag = sqrtf(surface_vec_avg[0]*surface_vec_avg[0]+surface_vec_avg[1]*surface_vec_avg[1]+surface_vec_avg[2]*surface_vec_avg[2]);
+	double avg_vec_mag = sqrt(surface_vec_avg[0]*surface_vec_avg[0]+surface_vec_avg[1]*surface_vec_avg[1]+surface_vec_avg[2]*surface_vec_avg[2]);
 	surface_vec_avg[0] = surface_vec_avg[0] / avg_vec_mag;
 	surface_vec_avg[1] = surface_vec_avg[1] / avg_vec_mag;
 	surface_vec_avg[2] = surface_vec_avg[2] / avg_vec_mag;
