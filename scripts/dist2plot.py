@@ -741,7 +741,7 @@ for theta_bin in range(0,len(theta_bins)-1):
 		#  plot where the spectrum (if present) was calculated
 		#
 		if spec_present:
-			ax.plot(spec_area_x,spec_area_y,linewidth=2,color=[0.8,0.8,0.8])
+			ax.plot(spec_area_x,spec_area_y,linewidth=2,color=[1.0,0,0.5])
 		#
 		#
 		ax.set_title('%d : %s : %5.2f-%5.2f MeV : %5.2f-%5.2f deg : wgt %10.8E'%(this_sc,particle_symbols[this_particle],E_bins[E_bin],E_bins[E_bin+1],theta_bins_deg[theta_bin],theta_bins_deg[theta_bin+1],this_weight))
