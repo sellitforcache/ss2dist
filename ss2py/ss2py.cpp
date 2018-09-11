@@ -79,6 +79,26 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 	PyDict_SetItem(header_dict, PyString_FromString("niwr"),                                             PyInt_FromLong(				ss.niwr));
 	PyDict_SetItem(header_dict, PyString_FromString("mipts"),                                            PyInt_FromLong(				ss.mipts));
 	PyDict_SetItem(header_dict, PyString_FromString("kjaq"),                                             PyInt_FromLong(				ss.kjaq));
+  // summary data
+  // init arays for surface information
+	//surface_count								= njsw+niwr;
+	//surface_parameters					= new surface [surface_count];
+	//surface_parameters_lengths	= new int 		[surface_count];
+	//surface_numbers							= new int 		[surface_count];
+	//surface_types								= new int 		[surface_count];
+	//surface_facets							= new int 		[surface_count];
+	//surface_summaries						= new int* 		[surface_count];
+	//for(int i = 0 ; i < surface_count ; i++){
+	//	for(int j = 0 ; j < 10 ; j++){
+	//		surface_parameters	[i].value[j]	= 0;
+	//	}
+	//	surface_summaries[i] = new int [surface_summary_length];
+	//	for(int k=0;k<surface_summary_length;k++){
+	//		surface_summaries[i][k]=0;
+	//	}
+	//	surface_numbers			[i] 			= -1;
+	//	surface_facets			[i] 			= -1;
+	//}
 
 	//
 	unsigned b			= 0;

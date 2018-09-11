@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 3.1)
 set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# GCC checks
 if(CMAKE_COMPILER_IS_GNUCC)
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
     message(FATAL_ERROR "Insufficient gcc version")
