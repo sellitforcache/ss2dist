@@ -118,7 +118,7 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 	long N = ss.nrss;
 
 	// data array
-	long n_per_element = 9;
+	long n_per_element =10;
 	long Ndataset = N*n_per_element;
 	npy_intp dims[2];
 	dims[0] = N;
@@ -153,6 +153,7 @@ static PyObject* read_wssa(PyObject *self, PyObject* args){
 		data_matrix[i*n_per_element+6]	=	this_track.z;
 		data_matrix[i*n_per_element+7] 	= this_track.erg;
 		data_matrix[i*n_per_element+8] 	= this_track.wgt;
+    data_matrix[i*n_per_element+9] 	= this_track.cs;
 
 	}
 
