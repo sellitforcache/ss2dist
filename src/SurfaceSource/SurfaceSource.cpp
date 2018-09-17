@@ -391,7 +391,7 @@ bool SurfaceSource::ReadSurfaceRecord0(int* numbers, int* types, int* lengths, s
 		input_file.read((char*) numbers,	sizeof(int));
 		input_file.read((char*) types,		sizeof(int));
 		input_file.read((char*) lengths,	sizeof(int));
-		input_file.read((char*) parameters,lengths[0]*sizeof(parameters[0].value[0]));
+		input_file.read((char*) parameters,lengths[0]*sizeof(parameters->value[0]));
 		input_file.read((char*) &record_length1, sizeof(record_length1));
 		if(record_length0!=record_length1){
 			printf("SurfaceRecord0 BEGINNING (%d) AND ENDING (%d) RECORD LENGTH DELIMITERS DO NOT MATCH\n",record_length0,record_length1);
@@ -420,7 +420,7 @@ bool SurfaceSource::ReadSurfaceRecord1(int* numbers, int* types, int* lengths, s
 		input_file.read((char*) facets,		sizeof(int));
 		input_file.read((char*) types,		sizeof(int));
 		input_file.read((char*) lengths,	sizeof(int));
-		input_file.read((char*) parameters,lengths[0]*sizeof(parameters[0].value[0]));
+		input_file.read((char*) parameters,lengths[0]*sizeof(parameters->value[0]));
 		input_file.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
 		return true;
 	}
@@ -526,7 +526,7 @@ bool SurfaceSource::WriteRecord(void** source, size_t* size, size_t NumberOfEntr
 bool SurfaceSource::WriteSurfaceRecord0(int* numbers, int* types, int* lengths, surface* parameters)
 {
 	// internal variables
-	int record_length = 3*sizeof(int) + lengths[0]*sizeof(parameters[0].value[0]);
+	int record_length = 3*sizeof(int) + lengths[0]*sizeof(parameters->value[0]);
 
 	// write record
 	if (output_file.good())
@@ -535,7 +535,7 @@ bool SurfaceSource::WriteSurfaceRecord0(int* numbers, int* types, int* lengths, 
 		output_file.write((char*) numbers,	sizeof(int));
 		output_file.write((char*) types,		sizeof(int));
 		output_file.write((char*) lengths,	sizeof(int));
-		output_file.write((char*) parameters,lengths[0]*sizeof(parameters[0].value[0]));
+		output_file.write((char*) parameters,lengths[0]*sizeof(parameters->value[0]));
 		output_file.write((char*) &record_length, RECORD_DELIMITER_LENGTH);
 		return true;
 	}
@@ -549,7 +549,7 @@ bool SurfaceSource::WriteSurfaceRecord1(int* numbers, int* types, int* lengths, 
 {
 
 	// internal variables
-	int record_length = 4*sizeof(int) + lengths[0]*sizeof(parameters[0].value[0]);
+	int record_length = 4*sizeof(int) + lengths[0]*sizeof(parameters->value[0]);
 
 	if (output_file.good())
 	{
@@ -558,7 +558,7 @@ bool SurfaceSource::WriteSurfaceRecord1(int* numbers, int* types, int* lengths, 
 		output_file.write((char*) facets,		sizeof(int));
 		output_file.write((char*) types,		sizeof(int));
 		output_file.write((char*) lengths,	sizeof(int));
-		output_file.write((char*) parameters,lengths[0]*sizeof(parameters[0].value[0]));
+		output_file.write((char*) parameters,lengths[0]*sizeof(parameters->value[0]));
 		output_file.write((char*) &record_length, RECORD_DELIMITER_LENGTH);
 		return true;
 	}
@@ -853,7 +853,7 @@ void SurfaceSource::PrintSizes(){
 
 	printf("== DATA SIZE INFORMATION == \n");
 	printf("normal integers  :  %1ld bytes\n",	sizeof(knods));
-	printf("floating points  :  %1ld bytes\n",	sizeof(surface_parameters[0].value[0]));
+	printf("floating points  :  %1ld bytes\n",	sizeof(surface_parameters->value[0]));
 	printf("characters       :  %1ld bytes\n",	sizeof(id[0]));
 	printf("\n");
 
@@ -934,19 +934,32 @@ void SurfaceSource::PrintHeader(){
 void SurfaceSource::GetTrack(track* this_track){
 
 	// local vars
-	//size_t size 	= 1;
 	size_t sizes 	= 11*sizeof(double);
 
-	// try reading it all in at once...
-	if(!ReadRecord((void**) &this_track, &sizes, 1)){printf("ERROR READING TRACKS RECORD\n");std::exit(1);}
+	// try reading it all in at once... copy from array to make sure struct padding doesn't do anything...
+	double* this_track_data = new double [12];
+	if(!ReadRecord((void**) &this_track_data, &sizes, 1)){printf("ERROR READING TRACKS RECORD\n");std::exit(1);}
+	this_track->nps 			= this_track_data[ 0];
+	this_track->bitarray 	= this_track_data[ 1];
+	this_track->wgt 			= this_track_data[ 2];
+	this_track->erg 			= this_track_data[ 3];
+	this_track->tme 			= this_track_data[ 4];
+	this_track->x 				= this_track_data[ 5];
+	this_track->y 				= this_track_data[ 6];
+	this_track->z 				= this_track_data[ 7];
+	this_track->xhat 			= this_track_data[ 8];
+	this_track->yhat 			= this_track_data[ 9];
+	this_track->cs 				= this_track_data[10];
+	this_track->zhat			= this_track_data[11];
+	delete this_track_data;
 
 	// calculate missing zhat from the data
-	if ((this_track[0].xhat*this_track[0].xhat+this_track[0].yhat*this_track[0].yhat)<1.0){
-		this_track[0].zhat   = copysign(std::sqrt(1.0 - this_track[0].xhat*this_track[0].xhat -
-		                                         this_track[0].yhat*this_track[0].yhat), this_track[0].bitarray);
+	if ((this_track->xhat*this_track->xhat+this_track->yhat*this_track->yhat)<1.0){
+		this_track->zhat   = copysign(std::sqrt(1.0 - this_track->xhat*this_track->xhat -
+		                                         this_track->yhat*this_track->yhat), this_track->bitarray);
 	}
 	else{
-	    this_track[0].zhat = 0.0;
+	    this_track->zhat = 0.0;
 	}
 
 }
@@ -954,19 +967,39 @@ void SurfaceSource::GetTrack(track* this_track){
 void SurfaceSource::PutTrack(double nps, double bitarray, double wgt, double erg, double tme, double x, double y, double z, double xhat, double yhat, double cs, double zhat){
 
 	// local vars
-	size_t sizes 	= 11*sizeof(double);  // only write the first 11, track in record doens't have zhat
-	double this_track_data[12] = {nps, bitarray, wgt, erg, tme, x, y, z, xhat, yhat, cs, zhat};
-
-	// try reading it all in at once...
-	if(!WriteRecord((void**) this_track_data, &sizes, 1)){printf("ERROR WRITING TRACK RECORD\n");std::exit(1);}
+	size_t sizes 	= 11*sizeof(double);  // only write the first 11, track in record doesn't have zhat
+	double* this_track_data = new double [12];
+	this_track_data[ 0] = nps 		;
+	this_track_data[ 1] = bitarray;
+	this_track_data[ 2] = wgt 		;
+	this_track_data[ 3] = erg 		;
+	this_track_data[ 4] = tme 		;
+	this_track_data[ 5] = x 			;
+	this_track_data[ 6] = y 			;
+	this_track_data[ 7] = z 			;
+	this_track_data[ 8] = xhat 		;
+	this_track_data[ 9] = yhat 		;
+	this_track_data[10] = cs 			;
+	this_track_data[11] = zhat		;
+	// writing it all in at once...
+	if(!WriteRecord((void**) &this_track_data, &sizes, 1)){printf("ERROR WRITING TRACK RECORD\n");std::exit(1);}
+	delete this_track_data;
 
 }
 void SurfaceSource::PutTrack(track* this_track){
 
-	// local vars
-	size_t sizes 	= 11*sizeof(double);  // only write the first 11, track in record doens't have zhat
-
-	// try reading it all in at once...
-	if(!WriteRecord((void**) &this_track, &sizes, 1)){printf("ERROR WRITING TRACK RECORD\n");std::exit(1);}
-
+	// pass to other method since it copies to a continguous array, so contiguity is guranteed, some compilers might pad the struct...
+	PutTrack( this_track->nps,
+		        this_track->bitarray,
+						this_track->wgt,
+						this_track->erg,
+						this_track->tme,
+						this_track->x,
+						this_track->y,
+						this_track->z,
+						this_track->xhat,
+						this_track->yhat,
+						this_track->cs,
+						this_track->zhat
+					);
 }

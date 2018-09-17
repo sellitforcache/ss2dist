@@ -258,17 +258,19 @@ int main(int argc, char* argv[]){
 		}
 
 		// fill in track struct
-		this_track.x			= input.surface_center[0] + (surface_vec1[0]*pos[0] + surface_vec2[0]*pos[1]	+ surface_vec3[0]*pos[2]);
-		this_track.y			= input.surface_center[1] + (surface_vec1[1]*pos[0] + surface_vec2[1]*pos[1]	+ surface_vec3[1]*pos[2]);
-		this_track.z			= input.surface_center[2] + (surface_vec1[2]*pos[0] + surface_vec2[2]*pos[1]	+ surface_vec3[2]*pos[2]);
-		this_track.xhat			=                          surface_vec1[0]*vec[0]	+ surface_vec2[0]*vec[1]	+ surface_vec3[0]*vec[2];
-		this_track.yhat			=                          surface_vec1[1]*vec[0]	+ surface_vec2[1]*vec[1]	+ surface_vec3[1]*vec[2];
-		this_track.zhat			=                          surface_vec1[2]*vec[0]	+ surface_vec2[2]*vec[1]	+ surface_vec3[2]*vec[2];
-		this_track.erg			= this_E;
-		this_track.wgt			= this_wgt;
-		this_track.tme			= 0.;
-		this_track.cs 			= 1234;
+		// nps, bitarray, wgt, erg, tme, x, y, z, xhat, yhat, cs, zhat
+		this_track.nps 			= -(i+1);
 		this_track.bitarray = encode_bitarray(9,0,0); // proton, not second+ generation, not antiparticle
+		this_track.wgt			= this_wgt;
+		this_track.erg			= this_E;
+		this_track.tme			= 0.;
+		this_track.x				= input.surface_center[0] + (surface_vec1[0]*pos[0] + surface_vec2[0]*pos[1]	+ surface_vec3[0]*pos[2]);
+		this_track.y				= input.surface_center[1] + (surface_vec1[1]*pos[0] + surface_vec2[1]*pos[1]	+ surface_vec3[1]*pos[2]);
+		this_track.z				= input.surface_center[2] + (surface_vec1[2]*pos[0] + surface_vec2[2]*pos[1]	+ surface_vec3[2]*pos[2]);
+		this_track.xhat			=                          	 surface_vec1[0]*vec[0]	+ surface_vec2[0]*vec[1]	+ surface_vec3[0]*vec[2];
+		this_track.yhat			=                          	 surface_vec1[1]*vec[0]	+ surface_vec2[1]*vec[1]	+ surface_vec3[1]*vec[2];
+		this_track.zhat			=                          	 surface_vec1[2]*vec[0]	+ surface_vec2[2]*vec[1]	+ surface_vec3[2]*vec[2];
+		this_track.cs 			= input.this_sc;
 
 		// put track
 		ss.PutTrack(&this_track);
@@ -276,5 +278,7 @@ int main(int argc, char* argv[]){
 	}
 
 	printf("<X>   DONE.\n\n");
+
+	printf("\n BE SURE TO SET NPS TO * %d * ... OR OMIT THE NPS CARD !!!!!!\n",N);
 
 }

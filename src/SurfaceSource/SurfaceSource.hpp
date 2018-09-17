@@ -6,7 +6,6 @@ enum sequence1 {
 struct track
 {
 	double nps, bitarray, wgt, erg, tme, x, y, z, xhat, yhat, cs, zhat;
-
 };
 
 struct surface
@@ -82,7 +81,7 @@ public:
 
 	// surface description lookup table
 	surface_card_data 	surface_card[41];
-	// particle lookup 
+	// particle lookup
 	particle_card_data	particles[38];
 
 	// file objects
