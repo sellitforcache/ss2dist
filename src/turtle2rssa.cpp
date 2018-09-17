@@ -112,6 +112,7 @@ int main(int argc, char* argv[]){
 	std::vector<double> yhat;
 	std::vector<double> mom;
 	std::vector<double> wgt;
+	std::vector<double> nps;
 
 	// printing
 	long Ns =  int(N/10);
@@ -132,7 +133,7 @@ int main(int argc, char* argv[]){
 			iss>>this_val;	yhat.push_back(this_val);
 			iss>>this_val;	mom.push_back(this_val);
 			iss>>this_val;	wgt.push_back(this_val);
-			iss>>this_val;  // last value is number, unecessary information
+			iss>>this_val;  nps.push_back(this_val); // last value is number, might be unecessary information, but maybe not if turtle has some kind of variance reduction...
 
 			i++;
 
@@ -259,7 +260,7 @@ int main(int argc, char* argv[]){
 
 		// fill in track struct
 		// nps, bitarray, wgt, erg, tme, x, y, z, xhat, yhat, cs, zhat
-		this_track.nps 			= -(i+1);
+		this_track.nps 			= -(nps[i]);
 		this_track.bitarray = encode_bitarray(9,0,0); // proton, not second+ generation, not antiparticle
 		this_track.wgt			= this_wgt;
 		this_track.erg			= this_E;
