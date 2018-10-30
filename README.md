@@ -48,5 +48,6 @@ Where [OPTIONS] can be any combination/order of:
 * vmin=[number] : set the minimum value for the spatial distribution colormap
 * vmax=[number] : set the maximum value for the spatial distribution colormap
 * smooth=[integer] : number of bins to smooth over in spectral plots
+* csv : write a CSV file of the spectrum data
 
 If all the plotting completes successfully, then the script writes a MCNP sdef card into a file named '[surface_number]\_[particle].sdef'

@@ -442,6 +442,13 @@ particle_symbols[33] = 's'
 particle_symbols[34] = 'a'
 particle_symbols[37] = '#'
 
+
+### check input options
+if len(sys.argv)<2:
+	print "At minimum, first argument has to be file name of the dist file"
+	exit()
+
+
 ### parse options
 options={
 'plot' : False,
@@ -449,7 +456,8 @@ options={
 'smooth=' : 0,
 'log' : False,
 'vmin=' : 1e-9,
-'vmax=' : 1e3}
+'vmax=' : 1e3,
+'csv' : False}
 for input_argument in sys.argv[2:]: # first argument has to be file name of the dist file
 	for this_option in options.keys():
 		this_match = re.match('%s([0-9eE+-]*)'%this_option,input_argument)
@@ -624,6 +632,32 @@ if spec_present:
 		fig.savefig('%d-%s-specs-sa_normed_loglog.png'%(this_sc,particle_symbols[this_particle]))
 	if options['plot']:
 		plt.show()
+
+	### write csv?
+	if options['csv']:
+		# write particle type
+		output_string = 'UNITS: %s / source\n'%particle_symbols[this_particle]
+		# write column headers
+		output_string = output_string + '%42s %42s'%('Lower Bin Energy (MeV),','Upper Bin Energy (MeV),')
+		for j in range(0,theta_bins):
+			print j
+			output_string = output_string + '%42s'%(' theta = [% 10.6E to % 10.6E] deg ,'%(theta_edges[j],theta_edges[j+1]))
+		output_string = output_string[:-1] + '\n'  # take off last comma
+		# write values 
+		for k in range(0,len(ene)-1):
+			print k
+			output_string = output_string + '% 41.6E,  % 41.6E, '%(ene[k],ene[k+1])
+			for j in range(0,theta_bins):
+				output_string = output_string + '% 41.6E,'%(spec[j,k])
+			output_string = output_string[:-1] + '\n'  # take off last comma
+		# write it
+		csv_fname =  sys.argv[1][:-8]+'spec.csv'
+		print "\nWRITING: %s\n"%csv_fname
+		fcsv=open(csv_fname,'w')
+		fcsv.write(output_string)
+		fcsv.close()
+	
+
 
 else:
     print "No file '"+fname+"' present."
