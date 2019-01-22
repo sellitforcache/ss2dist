@@ -271,15 +271,15 @@ SurfaceSource::SurfaceSource(const char*        fileName1, const char*        fi
 SurfaceSource::SurfaceSource(const std::string& fileName, const int flag){
 	Init();
 	switch(flag){
-		case RSSA_READ:  OpenWssaFile_Read( fileName.c_str());
-		case RSSA_WRITE: OpenWssaFile_Write(fileName.c_str());
+		case RSSA_READ:  OpenWssaFile_Read( fileName.c_str()); break;
+		case RSSA_WRITE: OpenWssaFile_Write(fileName.c_str()); break;
 	}
 }
 SurfaceSource::SurfaceSource(const char*        fileName, const int flag){
 	Init();
 	switch(flag){
-		case RSSA_READ:  OpenWssaFile_Read( fileName);
-		case RSSA_WRITE: OpenWssaFile_Write(fileName);
+		case RSSA_READ:  OpenWssaFile_Read( fileName); break;
+		case RSSA_WRITE: OpenWssaFile_Write(fileName); break;
 	}
 }
 
