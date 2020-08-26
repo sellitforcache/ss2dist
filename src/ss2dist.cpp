@@ -372,7 +372,7 @@ int main(int argc, char* argv[]){
 	//
 
 	// open dist output file
-	char* ofileName = new char [ int(floor(log10(input.this_sc)))+9 ];
+	char* ofileName = new char [ 40 ];
 	if(input.this_particle==20){
 		sprintf(ofileName,"%ld_%s_dist.bin",input.this_sc,"pi0");
 	}
